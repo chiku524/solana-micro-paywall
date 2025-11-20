@@ -41,20 +41,18 @@ A Solana-native micro-paywall / pay-per-use SDK built on Solana Pay, targeting p
    npm run db:generate
    ```
 
-5. **Start the backend:**
+5. **Start development servers:**
    ```bash
-   cd apps/backend
+   # From project root - starts both backend and web app
    npm run dev
-   ```
-
-6. **Start the dashboard (separate terminal):**
-   ```bash
-   cd apps/dashboard
-   npm run dev
+   
+   # Or start individually:
+   npm run dev:backend  # Backend API only
+   npm run dev:web      # Web app only
    ```
 
 The API will be available at `http://localhost:3000/api`  
-The Dashboard will be available at `http://localhost:3001` (or configured port)
+The Web App (Marketplace + Dashboard) will be available at `http://localhost:3001`
 
 ## 📁 Project Structure
 
@@ -62,11 +60,12 @@ The Dashboard will be available at `http://localhost:3001` (or configured port)
 solana-micro-paywall/
 ├── apps/
 │   ├── backend/          # NestJS API server
-│   └── dashboard/        # Next.js merchant dashboard
+│   └── web/              # Next.js unified app (Marketplace + Dashboard)
 ├── packages/
 │   ├── widget-sdk/       # Embeddable payment widget
 │   ├── shared/           # Shared types and utilities
 │   └── config/           # Environment configuration
+├── scripts/              # Utility scripts (migrations, etc.)
 └── docs/                 # Documentation
 ```
 
@@ -89,12 +88,14 @@ solana-micro-paywall/
 - ✅ Automatic payment status polling
 - ✅ Event-driven architecture
 
-### Dashboard Frontend ✅
-- ✅ Merchant creation and management
+### Web App (Marketplace + Dashboard) ✅
+- ✅ **Marketplace**: Public content discovery, browsing, and purchase
+- ✅ **Dashboard**: Merchant creation and management
 - ✅ Content management (CRUD)
 - ✅ Payment analytics and stats
 - ✅ Settings management
 - ✅ Responsive design
+- ✅ Unified navigation between marketplace and dashboard
 
 ## 📚 Documentation
 
@@ -152,11 +153,12 @@ curl -X POST http://localhost:3000/api/payments/create-payment-request \
 
 1. ✅ **Run manual SQL migration** in Supabase SQL Editor
 2. ✅ **Generate Prisma client** - `npm run db:generate` in `apps/backend`
-3. ✅ **Start backend** - `npm run dev` in `apps/backend`
-4. ✅ **Start dashboard** - `npm run dev` in `apps/dashboard`
-5. ✅ **Create merchant** - Use dashboard or API
-6. ✅ **Add content** - Create paywall content
-7. ✅ **Test payments** - Use widget SDK on a test page
+3. ✅ **Start development servers** - `npm run dev` from project root
+4. ✅ **Access web app** - Navigate to `http://localhost:3001`
+5. ✅ **Create merchant** - Use the web app or API
+6. ✅ **Add content** - Create paywall content via dashboard
+7. ✅ **Browse marketplace** - Discover and purchase content
+8. ✅ **Test payments** - Use widget SDK on a test page
 
 ## 📝 License
 

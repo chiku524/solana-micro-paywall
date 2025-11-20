@@ -15,8 +15,6 @@
     "dev": "concurrently -n \"backend,web\" -c \"blue,green\" \"npm run dev:backend\" \"npm run dev:web\"",
     "dev:backend": "npm run dev --prefix apps/backend",
     "dev:web": "npm run dev --prefix apps/web",
-    "dev:dashboard": "npm run dev --prefix apps/dashboard",
-    "dev:marketplace": "npm run dev --prefix apps/marketplace",
     "lint": "npm run lint --workspaces",
     "test": "npm run test --workspaces"
   },
