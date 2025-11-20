@@ -1,0 +1,225 @@
+// Prisma Schema for Solana Micro-Paywall Platform
+// This schema defines the core data model for merchants, payments, access tokens, and ledger tracking.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Merchant & Content Management
+// ============================================================================
+
+model Merchant {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  status         String   @default("pending") // pending, active, suspended, kyc_required
+  payoutAddress  String?  // Solana wallet address for payouts
+  webhookSecret  String?  // HMAC secret for webhook verification
+  configJson     Json?    // Widget configuration, branding, etc.
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  contents       Content[]
+  paymentIntents PaymentIntent[]
+  accessTokens   AccessToken[]
+  refundRequests RefundRequest[]
+
+  @@index([email])
+  @@index([status])
+}
+
+model Content {
+  id           String   @id @default(cuid())
+  merchantId   String
+  slug         String
+  priceLamports BigInt   // Price in lamports (1 SOL = 1e9 lamports)
+  currency     String   @default("SOL") // SOL, USDC, PYUSD
+  durationSecs Int?     // Access duration in seconds (null = one-time)
+  metadata     Json?    // Additional content metadata
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Discovery & Presentation Fields
+  title        String?  // Human-readable title (e.g., "Advanced Solana Development Guide")
+  description  String?  // Short description for listings
+  thumbnailUrl String?  // Image URL for marketplace cards
+  category     String?  // Category: "article", "video", "course", "api", "download", "subscription"
+  tags         String[] @default([]) // Array of tags for search/filtering
+  visibility   String   @default("private") // "public", "private", "unlisted"
+  canonicalUrl String?  // Original content URL (if hosted elsewhere)
+  previewText  String?  // Free preview text (first paragraph, etc.)
+  
+  // Analytics
+  viewCount    Int      @default(0)
+  purchaseCount Int     @default(0) // Derived from payment count
+
+  // Relations
+  merchant      Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  paymentIntents PaymentIntent[]
+
+  @@unique([merchantId, slug])
+  @@index([merchantId])
+  @@index([visibility])
+  @@index([category])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// Payment Flow
+// ============================================================================
+
+model PaymentIntent {
+  id          String   @id @default(cuid())
+  merchantId  String
+  contentId   String
+  memo        String   @unique // Unique memo binding payment to intent
+  nonce       String   @unique // Additional nonce for replay protection
+  amount      BigInt   // Amount in lamports
+  currency    String   @default("SOL")
+  payerWallet String?  // Optional: wallet address that initiated
+  status      String   @default("pending") // pending, confirmed, failed, expired
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime // Expiration timestamp
+  confirmedAt DateTime?
+
+  // Relations
+  merchant    Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  content     Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  payment     Payment?
+
+  @@index([merchantId])
+  @@index([contentId])
+  @@index([memo])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  intentId      String   @unique
+  txSignature   String   @unique // Solana transaction signature
+  payerWallet   String   // Wallet that made the payment
+  amount        BigInt   // Confirmed amount in lamports
+  currency      String   @default("SOL")
+  confirmedAt   DateTime @default(now())
+  blockTime     BigInt?  // Solana block time
+  slot          BigInt?  // Solana slot number
+
+  // Relations
+  intent        PaymentIntent @relation(fields: [intentId], references: [id], onDelete: Cascade)
+  accessToken   AccessToken?
+  refundRequests RefundRequest[]
+
+  @@index([txSignature])
+  @@index([payerWallet])
+  @@index([confirmedAt])
+  @@index([intentId])
+}
+
+// ============================================================================
+// Access Control
+// ============================================================================
+
+model AccessToken {
+  id         String   @id @default(cuid())
+  merchantId String
+  contentId  String?
+  paymentId  String?  @unique
+  tokenJti   String   @unique // JWT JTI (JWT ID) claim
+  expiresAt  DateTime
+  redeemedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  payment       Payment?       @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  stripeReceipt StripeReceipt?
+
+  @@index([tokenJti])
+  @@index([merchantId])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// Refunds & Reconciliation
+// ============================================================================
+
+model RefundRequest {
+  id          String   @id @default(cuid())
+  merchantId  String
+  paymentId   String
+  type        String   // "on_chain", "off_chain", "credit"
+  status      String   @default("pending") // pending, processing, completed, failed
+  reason      String?
+  refundTxSignature String? // On-chain refund transaction signature
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  merchant    Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@index([paymentId])
+  @@index([status])
+}
+
+// ============================================================================
+// Optional: Stripe Fallback (Future Enhancement)
+// ============================================================================
+
+model StripeReceipt {
+  id          String   @id @default(cuid())
+  stripeSessionId String @unique
+  merchantId  String
+  contentId   String?
+  amount      BigInt
+  currency    String
+  payerEmail  String?
+  accessTokenId String? @unique
+  createdAt   DateTime @default(now())
+
+  accessToken AccessToken? @relation(fields: [accessTokenId], references: [id], onDelete: SetNull)
+
+  @@index([stripeSessionId])
+  @@index([merchantId])
+}
+
+// ============================================================================
+// Analytics & Audit
+// ============================================================================
+
+model DashboardEvent {
+  id         String   @id @default(cuid())
+  merchantId String?
+  eventType  String   // "payment_created", "payment_confirmed", "token_redeemed", etc.
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([merchantId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model LedgerEvent {
+  id           String   @id @default(cuid())
+  eventType    String   // "payment_intent_created", "payment_confirmed", "token_issued", "refund_processed"
+  entityType   String   // "payment_intent", "payment", "access_token", "refund"
+  entityId     String
+  previousState Json?
+  newState     Json
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([eventType])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+

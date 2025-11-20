@@ -1,0 +1,41 @@
+{
+  "name": "@solana-micro-paywall/widget-sdk",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@solana/pay": "^0.2.6",
+    "@solana/wallet-adapter-base": "^0.9.26",
+    "@solana/web3.js": "^1.91.3",
+    "eventemitter3": "^5.0.1",
+    "qrcode": "^1.5.4",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@types/qrcode": "^1.5.6",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "tsup": "^7.2.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12",
+    "vitest": "^1.2.2"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^1.91.3"
+  }
+}
