@@ -6,6 +6,8 @@ import { apiClient, Content } from '../../lib/api-client';
 import { ContentCard } from './content-card';
 import { SkeletonCard } from '../ui/skeleton';
 import { debounce } from '../../lib/utils/debounce';
+import { logger } from '../../lib/logger';
+import { SearchAutocomplete } from './search-autocomplete';
 
 export function DiscoverContent() {
   const searchParams = useSearchParams();
@@ -31,7 +33,10 @@ export function DiscoverContent() {
       setContents(response.contents);
       setTotal(response.total);
     } catch (error) {
-      console.error('Failed to load contents:', error);
+      logger.error('Failed to load contents', error instanceof Error ? error : new Error(String(error)), {
+        filters,
+        page,
+      });
     } finally {
       setLoading(false);
     }
@@ -77,12 +82,10 @@ export function DiscoverContent() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label className="mb-2 block text-sm font-medium text-neutral-300">Search</label>
-            <input
-              type="text"
+            <SearchAutocomplete
               value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              onChange={(value) => setFilters({ ...filters, search: value })}
               placeholder="Search content..."
-              className="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-white placeholder-neutral-500"
             />
           </div>
           <div>

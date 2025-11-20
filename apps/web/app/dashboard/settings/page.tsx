@@ -68,7 +68,9 @@ function SettingsPageContent() {
           status: (data.status || 'active') as 'pending' | 'active' | 'suspended' | 'kyc_required',
         });
       } catch (err: any) {
-        console.error('Failed to load merchant:', err);
+        logger.error('Failed to load merchant', err instanceof Error ? err : new Error(String(err)), {
+          merchantId,
+        });
       } finally {
         setLoading(false);
       }
@@ -89,12 +91,40 @@ function SettingsPageContent() {
       return;
     }
 
+    // Optimistic UI update
+    const previousMerchant = merchant;
+    const optimisticMerchant = {
+      ...merchant,
+      payoutAddress: data.payoutAddress || null,
+      status: data.status,
+    };
+    setMerchant(optimisticMerchant);
+    reset({
+      payoutAddress: data.payoutAddress || '',
+      status: data.status,
+    });
+
     setSaving(true);
     const loadingToast = showLoading('Saving settings...');
     try {
       await apiClient.updateMerchant(merchantId, data);
       updateToast(loadingToast, 'Settings saved successfully!', 'success');
+      // Reload to ensure consistency
+      const updated = await apiClient.getMerchant(merchantId) as any;
+      setMerchant(updated);
+      reset({
+        payoutAddress: updated.payoutAddress || '',
+        status: (updated.status || 'active') as 'pending' | 'active' | 'suspended' | 'kyc_required',
+      });
     } catch (err) {
+      // Rollback optimistic update on error
+      if (previousMerchant) {
+        setMerchant(previousMerchant);
+        reset({
+          payoutAddress: previousMerchant.payoutAddress || '',
+          status: (previousMerchant.status || 'active') as 'pending' | 'active' | 'suspended' | 'kyc_required',
+        });
+      }
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       updateToast(loadingToast, `Failed to save settings: ${errorMessage}`, 'error');
     } finally {

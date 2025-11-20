@@ -5,6 +5,8 @@ import { TrendingSection } from '../components/marketplace/trending-section';
 import { CategoriesSection } from '../components/marketplace/categories-section';
 import { MerchantLogin } from '../components/merchant-login';
 
+export const revalidate = 60; // ISR: Revalidate every 60 seconds
+
 export default async function HomePage() {
   const [trending, recent] = await Promise.all([
     apiClient.getTrending(6).catch(() => []),
@@ -17,20 +19,20 @@ export default async function HomePage() {
       <header className="border-b border-neutral-800 bg-neutral-900/60">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-white">
+            <Link href="/" className="text-xl sm:text-2xl font-bold text-white">
               Solana Micro-Paywall
             </Link>
-            <nav className="flex items-center space-x-6">
-              <Link href="/marketplace" className="text-neutral-300 hover:text-white">
+            <nav className="hidden md:flex md:items-center md:space-x-4 lg:space-x-6">
+              <Link href="/marketplace" className="text-sm lg:text-base text-neutral-300 hover:text-white">
                 Marketplace
               </Link>
-              <Link href="/marketplace/discover" className="text-neutral-300 hover:text-white">
+              <Link href="/marketplace/discover" className="text-sm lg:text-base text-neutral-300 hover:text-white">
                 Discover
               </Link>
-              <Link href="/docs" className="text-neutral-300 hover:text-white">
+              <Link href="/docs" className="text-sm lg:text-base text-neutral-300 hover:text-white">
                 Documentation
               </Link>
-              <Link href="/dashboard" className="text-emerald-400 hover:text-emerald-300">
+              <Link href="/dashboard" className="text-sm lg:text-base text-emerald-400 hover:text-emerald-300">
                 For Merchants
               </Link>
             </nav>
@@ -40,21 +42,21 @@ export default async function HomePage() {
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Hero Section */}
-        <section className="mb-12 text-center">
-          <h1 className="mb-4 text-5xl font-bold text-white">Discover Premium Content</h1>
-          <p className="mb-8 text-xl text-neutral-400">
+        <section className="mb-8 sm:mb-12 text-center">
+          <h1 className="mb-4 text-3xl sm:text-4xl lg:text-5xl font-bold text-white">Discover Premium Content</h1>
+          <p className="mb-6 sm:mb-8 text-base sm:text-lg lg:text-xl text-neutral-400 px-4">
             Access exclusive articles, videos, courses, and more with Solana payments
           </p>
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4">
             <Link
               href="/marketplace/discover"
-              className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-8 py-3 text-lg font-medium text-emerald-950 transition hover:bg-emerald-400"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-emerald-500 px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-medium text-emerald-950 transition hover:bg-emerald-400"
             >
               Browse All Content
             </Link>
             <Link
               href="/dashboard"
-              className="inline-flex items-center justify-center rounded-lg border border-neutral-700 px-8 py-3 text-lg font-medium text-neutral-100 transition hover:bg-neutral-800"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-neutral-700 px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg font-medium text-neutral-100 transition hover:bg-neutral-800"
             >
               Merchant Dashboard
             </Link>
@@ -71,10 +73,10 @@ export default async function HomePage() {
 
         {/* Recent Content */}
         {recent.contents.length > 0 && (
-          <section className="mt-12">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-3xl font-bold text-white">Recently Added</h2>
-              <Link href="/marketplace/discover?sort=newest" className="text-emerald-400 hover:text-emerald-300">
+          <section className="mt-8 sm:mt-12">
+            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white">Recently Added</h2>
+              <Link href="/marketplace/discover?sort=newest" className="text-sm sm:text-base text-emerald-400 hover:text-emerald-300">
                 View All →
               </Link>
             </div>

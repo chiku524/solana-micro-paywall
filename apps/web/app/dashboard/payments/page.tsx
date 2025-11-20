@@ -1,54 +1,76 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import useSWR from 'swr';
 import { apiClient } from '../../../lib/api-client';
 import { SkeletonTable } from '../../../components/ui/skeleton';
-import Link from 'next/link';
+import { logger } from '../../../lib/logger';
 
-interface DashboardStats {
-  merchant: {
+interface Payment {
+  id: string;
+  txSignature: string;
+  amount: string;
+  currency: string;
+  payerWallet: string;
+  confirmedAt: string;
+  content: string;
+  intent?: {
     id: string;
-    email: string;
+    memo: string;
     status: string;
-    payoutAddress: string | null;
   };
-  stats: {
-    totalPayments: number;
-    todayPayments: number;
-    weekPayments: number;
-    monthPayments: number;
-    totalRevenue: string;
-    avgPaymentAmount: string;
-  };
-  recentPayments: Array<{
-    id: string;
-    txSignature: string;
-    amount: string;
-    currency: string;
-    payerWallet: string;
-    confirmedAt: string;
-    content: string;
-  }>;
 }
 
-function AnalyticsPageContent() {
+interface PaymentHistoryResponse {
+  payments: Payment[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+function PaymentsPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const [page, setPage] = useState(1);
   const merchantId = searchParams.get('merchantId') || '';
 
-  const { data: stats, error, isLoading } = useSWR<DashboardStats>(
-    merchantId ? `dashboard-${merchantId}` : null,
+  // Get payment history
+  const { data, error, isLoading, mutate } = useSWR<PaymentHistoryResponse>(
+    merchantId ? `payments-${merchantId}-${page}` : null,
     async () => {
       if (!merchantId) return null;
-      return apiClient.getMerchantDashboard(merchantId) as Promise<DashboardStats>;
+      // For now, we'll use the dashboard stats endpoint and extend it
+      // In a real implementation, you'd have a dedicated payments endpoint
+      const dashboard = await apiClient.getMerchantDashboard(merchantId) as any;
+      return {
+        payments: dashboard.recentPayments || [],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: dashboard.stats.totalPayments || 0,
+          totalPages: Math.ceil((dashboard.stats.totalPayments || 0) / 10),
+        },
+      };
     },
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      dedupingInterval: 2000,
     }
   );
+
+  useEffect(() => {
+    if (!merchantId && typeof window !== 'undefined') {
+      const storedMerchantId = localStorage.getItem('merchantId') || '';
+      if (storedMerchantId) {
+        router.replace(`/dashboard/payments?merchantId=${storedMerchantId}`);
+      }
+    }
+  }, [merchantId, router]);
 
   if (isLoading) {
     return (
@@ -60,12 +82,12 @@ function AnalyticsPageContent() {
     );
   }
 
-  if (error || !stats) {
+  if (error || !data) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="mb-4 rounded-lg bg-red-900/20 border border-red-800 p-4 text-red-400">
-            {error instanceof Error ? error.message : 'Failed to load analytics'}
+            {error instanceof Error ? error.message : 'Failed to load payment history'}
           </div>
           <Link
             href="/dashboard"
@@ -83,74 +105,44 @@ function AnalyticsPageContent() {
     return `${amount.toFixed(4)} ${currency}`;
   };
 
-  // Calculate growth percentages
-  const weekGrowth = stats.stats.todayPayments > 0 
-    ? ((stats.stats.weekPayments - stats.stats.todayPayments) / stats.stats.todayPayments * 100).toFixed(1)
-    : '0';
-  const monthGrowth = stats.stats.weekPayments > 0
-    ? ((stats.stats.monthPayments - stats.stats.weekPayments) / stats.stats.weekPayments * 100).toFixed(1)
-    : '0';
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
 
   return (
     <div className="min-h-screen bg-neutral-950">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Analytics</h1>
+          <h1 className="text-3xl font-bold text-white">Payment History</h1>
           <p className="mt-2 text-neutral-400">
-            Detailed insights and performance metrics
+            View all your payment transactions
           </p>
         </div>
 
-        {/* Stats Grid with Growth Indicators */}
-        <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Payment Stats */}
+        <div className="mb-8 grid gap-6 sm:grid-cols-3">
           <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
             <p className="text-sm font-medium text-neutral-400">Total Payments</p>
-            <p className="mt-2 text-3xl font-bold text-white">{stats.stats.totalPayments}</p>
-            <p className="mt-1 text-xs text-neutral-500">All time</p>
+            <p className="mt-2 text-3xl font-bold text-white">{data.pagination.total}</p>
           </div>
           <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
-            <p className="text-sm font-medium text-neutral-400">Today</p>
-            <p className="mt-2 text-3xl font-bold text-emerald-400">{stats.stats.todayPayments}</p>
-            <p className="mt-1 text-xs text-neutral-500">Last 24 hours</p>
-          </div>
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
-            <p className="text-sm font-medium text-neutral-400">This Week</p>
-            <p className="mt-2 text-3xl font-bold text-blue-400">{stats.stats.weekPayments}</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {parseFloat(weekGrowth) >= 0 ? '+' : ''}{weekGrowth}% vs today
-            </p>
-          </div>
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
-            <p className="text-sm font-medium text-neutral-400">This Month</p>
-            <p className="mt-2 text-3xl font-bold text-purple-400">{stats.stats.monthPayments}</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {parseFloat(monthGrowth) >= 0 ? '+' : ''}{monthGrowth}% vs week
-            </p>
-          </div>
-        </div>
-
-        {/* Revenue Stats */}
-        <div className="mb-8 grid gap-6 sm:grid-cols-2">
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
-            <p className="text-sm font-medium text-neutral-400">Total Revenue</p>
+            <p className="text-sm font-medium text-neutral-400">Page</p>
             <p className="mt-2 text-3xl font-bold text-emerald-400">
-              {formatAmount(stats.stats.totalRevenue, 'SOL')}
+              {data.pagination.page} / {data.pagination.totalPages}
             </p>
-            <p className="mt-1 text-xs text-neutral-500">All time earnings</p>
           </div>
           <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
-            <p className="text-sm font-medium text-neutral-400">Average Payment</p>
+            <p className="text-sm font-medium text-neutral-400">Showing</p>
             <p className="mt-2 text-3xl font-bold text-blue-400">
-              {formatAmount(stats.stats.avgPaymentAmount, 'SOL')}
+              {data.payments.length} payments
             </p>
-            <p className="mt-1 text-xs text-neutral-500">Per transaction</p>
           </div>
         </div>
 
-        {/* Recent Payments Table */}
+        {/* Payments Table */}
         <div className="rounded-lg border border-neutral-800 bg-neutral-900/60">
           <div className="border-b border-neutral-800 px-6 py-4">
-            <h2 className="text-lg font-semibold text-white">Recent Payments</h2>
+            <h2 className="text-lg font-semibold text-white">All Payments</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-neutral-800">
@@ -171,17 +163,20 @@ function AnalyticsPageContent() {
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
                     Date
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-800 bg-neutral-900/60">
-                {stats.recentPayments.length === 0 ? (
+                {data.payments.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-neutral-400">
-                      No payments yet
+                    <td colSpan={6} className="px-6 py-8 text-center text-neutral-400">
+                      No payments found
                     </td>
                   </tr>
                 ) : (
-                  stats.recentPayments.map((payment) => (
+                  data.payments.map((payment) => (
                     <tr key={payment.id} className="hover:bg-neutral-800/30">
                       <td className="whitespace-nowrap px-6 py-4">
                         <a
@@ -205,7 +200,17 @@ function AnalyticsPageContent() {
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-400">
-                        {new Date(payment.confirmedAt).toLocaleString()}
+                        {formatDate(payment.confirmedAt)}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        <a
+                          href={`https://solscan.io/tx/${payment.txSignature}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-400 hover:text-emerald-300"
+                        >
+                          View →
+                        </a>
                       </td>
                     </tr>
                   ))
@@ -213,13 +218,38 @@ function AnalyticsPageContent() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {data.pagination.totalPages > 1 && (
+            <div className="border-t border-neutral-800 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="rounded-lg bg-neutral-800 px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700"
+                >
+                  Previous
+                </button>
+                <span className="text-neutral-300">
+                  Page {page} of {data.pagination.totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
+                  disabled={page === data.pagination.totalPages}
+                  className="rounded-lg bg-neutral-800 px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-export default function AnalyticsPage() {
+export default function PaymentsPage() {
   return (
     <Suspense
       fallback={
@@ -231,7 +261,8 @@ export default function AnalyticsPage() {
         </div>
       }
     >
-      <AnalyticsPageContent />
+      <PaymentsPageContent />
     </Suspense>
   );
 }
+

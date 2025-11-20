@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { apiClient } from '../lib/api-client';
 import { showSuccess, showError, showLoading, updateToast } from '../lib/toast';
 import { merchantLoginSchema, merchantIdSchema, type MerchantLoginFormData, type MerchantIdFormData } from '../lib/validations/merchant';
+import { setAuthToken, setMerchantId } from '../lib/auth';
+import { logger } from '../lib/logger';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -47,38 +49,64 @@ export function MerchantLogin() {
         payoutAddress: data.payoutAddress || undefined,
       }) as any;
       setMerchantId(merchant.id);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('merchantId', merchant.id);
+      
+      // Backend now returns existing merchant if email already exists (no error thrown)
+      // Login with JWT
+      updateToast(loadingToast, 'Logging in...', 'loading');
+      try {
+        const authResult = await apiClient.login(merchant.id);
+        setAuthToken(authResult.accessToken);
+        setMerchantId(merchant.id);
+        updateToast(loadingToast, 'Login successful! Redirecting to dashboard...', 'success');
+        resetCreate();
+        setTimeout(() => {
+          router.push(`/dashboard?merchantId=${merchant.id}`);
+        }, 1000);
+      } catch (authErr) {
+        logger.error('JWT login failed', authErr instanceof Error ? authErr : new Error(String(authErr)), { merchantId: merchant.id });
+        // Still redirect - dashboard will handle auth
+        setMerchantId(merchant.id);
+        updateToast(loadingToast, `Your merchant ID: ${merchant.id}. Redirecting...`, 'success');
+        resetCreate();
+        setTimeout(() => {
+          router.push(`/dashboard?merchantId=${merchant.id}`);
+        }, 1000);
       }
-      updateToast(loadingToast, `Merchant created! Redirecting to dashboard...`, 'success');
-      resetCreate();
-      setTimeout(() => {
-        router.push(`/dashboard?merchantId=${merchant.id}`);
-      }, 1000);
     } catch (err: any) {
-      if (err?.status === 409) {
-        const message = err?.message || 'A merchant with this email already exists.';
+      // Handle any other errors (shouldn't happen now, but keep for safety)
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (err?.status === 409 || err?.message?.includes('already exists')) {
+        // Fallback: try to find merchant by email
         updateToast(loadingToast, 'Merchant already exists. Finding your account...', 'loading');
         try {
           const merchants = await apiClient.getMerchants({ search: data.email }) as any;
           if (merchants?.data && merchants.data.length > 0) {
             const existingMerchant = merchants.data[0];
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('merchantId', existingMerchant.id);
+            try {
+              const authResult = await apiClient.login(existingMerchant.id);
+              setAuthToken(authResult.accessToken);
+              setMerchantId(existingMerchant.id);
+              updateToast(loadingToast, 'Found your merchant! Redirecting...', 'success');
+              resetCreate();
+              setTimeout(() => {
+                router.push(`/dashboard?merchantId=${existingMerchant.id}`);
+              }, 1000);
+            } catch (authErr) {
+              logger.error('JWT login failed', authErr instanceof Error ? authErr : new Error(String(authErr)), { merchantId: existingMerchant.id });
+              updateToast(loadingToast, `Your merchant ID: ${existingMerchant.id}. Please use it to login.`, 'error');
+              setMerchantId(existingMerchant.id);
+              setShowExistingLogin(true);
             }
-            updateToast(loadingToast, `Found your merchant! Redirecting...`, 'success');
-            resetCreate();
-            setTimeout(() => {
-              router.push(`/dashboard?merchantId=${existingMerchant.id}`);
-            }, 1000);
           } else {
-            updateToast(loadingToast, 'Could not find your merchant. Please contact support.', 'error');
+            updateToast(loadingToast, 'Could not find your merchant. Please enter your merchant ID manually.', 'error');
+            setShowExistingLogin(true);
           }
         } catch (findErr) {
+          logger.error('Failed to find merchant', findErr instanceof Error ? findErr : new Error(String(findErr)), { email: data.email });
           updateToast(loadingToast, 'Could not find your merchant. Please enter your merchant ID manually.', 'error');
+          setShowExistingLogin(true);
         }
       } else {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         updateToast(loadingToast, `Failed to create merchant: ${errorMessage}`, 'error');
       }
     } finally {
@@ -87,12 +115,27 @@ export function MerchantLogin() {
   };
 
   const onSubmitLogin = async (data: MerchantIdFormData) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('merchantId', data.merchantId);
+    setLoading(true);
+    const loadingToast = showLoading('Logging in...');
+    
+    try {
+      // Login with JWT
+      const authResult = await apiClient.login(data.merchantId.trim());
+      setAuthToken(authResult.accessToken);
+      setMerchantId(data.merchantId.trim());
+      updateToast(loadingToast, 'Login successful! Redirecting...', 'success');
+      resetLogin();
+      setTimeout(() => {
+        router.push(`/dashboard?merchantId=${data.merchantId.trim()}`);
+      }, 500);
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Invalid merchant ID';
+      updateToast(loadingToast, `Login failed: ${errorMessage}`, 'error');
+      // Fall back to merchantId in localStorage for backward compatibility
+      setMerchantId(data.merchantId.trim());
+    } finally {
+      setLoading(false);
     }
-    showSuccess('Logging in...');
-    resetLogin();
-    router.push(`/dashboard?merchantId=${data.merchantId}`);
   };
 
   return (

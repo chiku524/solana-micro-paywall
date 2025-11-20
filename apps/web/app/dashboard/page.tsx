@@ -192,32 +192,32 @@ function DashboardPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-2 text-neutral-400">
+      <div className="min-h-screen bg-neutral-950">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6 lg:py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard</h1>
+          <p className="mt-2 text-sm sm:text-base text-neutral-400">
             Welcome back, {stats.merchant.email}
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
-            <p className="text-sm font-medium text-neutral-400">Total Payments</p>
-            <p className="mt-2 text-3xl font-bold text-white">{stats.stats.totalPayments}</p>
+        <div className="mb-6 sm:mb-8 grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-4 sm:p-6">
+            <p className="text-xs sm:text-sm font-medium text-neutral-400">Total Payments</p>
+            <p className="mt-2 text-2xl sm:text-3xl font-bold text-white">{stats.stats.totalPayments}</p>
           </div>
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
-            <p className="text-sm font-medium text-neutral-400">Today</p>
-            <p className="mt-2 text-3xl font-bold text-emerald-400">{stats.stats.todayPayments}</p>
+          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-4 sm:p-6">
+            <p className="text-xs sm:text-sm font-medium text-neutral-400">Today</p>
+            <p className="mt-2 text-2xl sm:text-3xl font-bold text-emerald-400">{stats.stats.todayPayments}</p>
           </div>
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
-            <p className="text-sm font-medium text-neutral-400">This Week</p>
-            <p className="mt-2 text-3xl font-bold text-blue-400">{stats.stats.weekPayments}</p>
+          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-4 sm:p-6">
+            <p className="text-xs sm:text-sm font-medium text-neutral-400">This Week</p>
+            <p className="mt-2 text-2xl sm:text-3xl font-bold text-blue-400">{stats.stats.weekPayments}</p>
           </div>
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6">
-            <p className="text-sm font-medium text-neutral-400">Total Revenue</p>
-            <p className="mt-2 text-3xl font-bold text-emerald-400">
+          <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-4 sm:p-6">
+            <p className="text-xs sm:text-sm font-medium text-neutral-400">Total Revenue</p>
+            <p className="mt-2 text-2xl sm:text-3xl font-bold text-emerald-400">
               {formatAmount(stats.stats.totalRevenue, 'SOL')}
             </p>
           </div>
@@ -225,26 +225,26 @@ function DashboardPageContent() {
 
         {/* Recent Payments */}
         <div className="rounded-lg border border-neutral-800 bg-neutral-900/60">
-          <div className="border-b border-neutral-800 px-6 py-4">
-            <h2 className="text-lg font-semibold text-white">Recent Payments</h2>
+          <div className="border-b border-neutral-800 px-4 sm:px-6 py-3 sm:py-4">
+            <h2 className="text-base sm:text-lg font-semibold text-white">Recent Payments</h2>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="min-w-full divide-y divide-neutral-800">
               <thead className="bg-neutral-800/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
                     Transaction
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400 hidden sm:table-cell">
                     Content
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400 hidden md:table-cell">
                     Payer
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400 hidden lg:table-cell">
                     Date
                   </th>
                 </tr>
@@ -252,35 +252,36 @@ function DashboardPageContent() {
               <tbody className="divide-y divide-neutral-800 bg-neutral-900/60">
                 {stats.recentPayments.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-neutral-400">
+                    <td colSpan={5} className="px-4 sm:px-6 py-8 text-center text-neutral-400">
                       No payments yet
                     </td>
                   </tr>
                 ) : (
                   stats.recentPayments.map((payment) => (
                     <tr key={payment.id} className="hover:bg-neutral-800/30">
-                      <td className="whitespace-nowrap px-6 py-4">
+                      <td className="whitespace-nowrap px-3 sm:px-6 py-4">
                         <a
                           href={`https://solscan.io/tx/${payment.txSignature}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-mono text-sm text-emerald-400 hover:text-emerald-300"
+                          className="font-mono text-xs sm:text-sm text-emerald-400 hover:text-emerald-300"
                         >
                           {payment.txSignature.slice(0, 8)}...{payment.txSignature.slice(-8)}
                         </a>
+                        <div className="mt-1 sm:hidden text-xs text-neutral-400">{payment.content}</div>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-300">
+                      <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-sm text-neutral-300 hidden sm:table-cell">
                         {payment.content}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-white">
+                      <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium text-white">
                         {formatAmount(payment.amount, payment.currency)}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4">
+                      <td className="whitespace-nowrap px-3 sm:px-6 py-4 hidden md:table-cell">
                         <span className="font-mono text-xs text-neutral-400">
                           {payment.payerWallet.slice(0, 6)}...{payment.payerWallet.slice(-4)}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-400">
+                      <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-xs sm:text-sm text-neutral-400 hidden lg:table-cell">
                         {formatDate(payment.confirmedAt)}
                       </td>
                     </tr>

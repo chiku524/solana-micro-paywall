@@ -1,4 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+// Ensure API_URL ends with /api
+const getApiUrl = () => {
+  const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  return url.endsWith('/api') ? url : `${url}/api`;
+};
+const API_URL = getApiUrl();
+import { getAuthHeader } from './auth';
 
 export interface ApiError {
   message: string;
@@ -84,11 +90,15 @@ export class ApiClient {
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
+      // Get auth header (JWT token)
+      const authHeaders = getAuthHeader();
+      
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders, // Add JWT token if available
           ...options?.headers,
         },
       });
@@ -212,6 +222,14 @@ export class ApiClient {
     });
 
     return requestPromise;
+  }
+
+  // Auth
+  async login(merchantId: string) {
+    return this.request<{ accessToken: string; merchant: { id: string; email: string; status: string } }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ merchantId }),
+    });
   }
 
   // Merchants

@@ -2,6 +2,7 @@ import 'reflect-metadata';
 
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import compression from 'compression';
 import { Request, Response, NextFunction } from 'express';
@@ -45,6 +46,48 @@ async function bootstrap() {
   
   // Add global exception filter for better error handling
   app.useGlobalFilters(new HttpExceptionFilter());
+  
+  // Swagger API Documentation (only if package is installed)
+  try {
+    if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === 'true') {
+      const config = new DocumentBuilder()
+        .setTitle('Solana Micro-Paywall API')
+        .setDescription('API documentation for Solana Micro-Paywall platform')
+        .setVersion('1.0')
+        .addBearerAuth(
+          {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            name: 'JWT',
+            description: 'Enter JWT token',
+            in: 'header',
+          },
+          'JWT-auth',
+        )
+        .addTag('merchants', 'Merchant management endpoints')
+        .addTag('contents', 'Content management endpoints')
+        .addTag('payments', 'Payment processing endpoints')
+        .addTag('discover', 'Marketplace discovery endpoints')
+        .addTag('auth', 'Authentication endpoints')
+        .addTag('health', 'Health check endpoints')
+        .build();
+      
+      const document = SwaggerModule.createDocument(app, config);
+      SwaggerModule.setup('api/docs', app, document, {
+        swaggerOptions: {
+          persistAuthorization: true,
+        },
+      });
+      
+      Logger.log('Swagger documentation available at /api/docs', 'Bootstrap');
+    }
+  } catch (error) {
+    Logger.warn('Swagger not available - package may not be installed', 'Bootstrap');
+  }
+  
+  // Enable global JWT guard (can be overridden with @Public() decorator)
+  // app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
   
   // Enable CORS for widget SDK
   const corsOrigins = process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || [];

@@ -2,6 +2,7 @@
 
 import { Component, ReactNode } from 'react';
 import { showError } from '../../lib/toast';
+import { logger } from '../../lib/logger';
 
 interface Props {
   children: ReactNode;
@@ -24,11 +25,23 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    console.error('Error caught by boundary:', error, errorInfo);
-    showError('Something went wrong. Please refresh the page.');
+    logger.error('Error caught by boundary', error, {
+      componentStack: errorInfo.componentStack,
+      errorInfo,
+    });
     
-    // TODO: Log to error tracking service (Sentry, etc.)
-    // logErrorToService(error, errorInfo);
+    // Send to Sentry if available
+    if (typeof window !== 'undefined' && (window as any).Sentry) {
+      (window as any).Sentry.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack,
+          },
+        },
+      });
+    }
+    
+    showError('Something went wrong. Please refresh the page.');
   }
 
   componentDidUpdate(prevProps: Props) {

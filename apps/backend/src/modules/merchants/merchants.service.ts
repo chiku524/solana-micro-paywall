@@ -29,7 +29,24 @@ export class MerchantsService {
     });
 
     if (existing) {
-      throw new ConflictException(`Merchant with email ${email} already exists`);
+      // Return existing merchant instead of throwing error
+      // This allows the frontend to automatically log in existing merchants
+      this.logger.log(`Merchant with email ${email} already exists, returning existing merchant ${existing.id}`);
+      
+      // Auto-activate pending merchants for development/testing
+      if (existing.status === 'pending') {
+        const updated = await this.prisma.merchant.update({
+          where: { id: existing.id },
+          data: { status: 'active' },
+        });
+        // Clear cache
+        await this.cacheService.del(`merchant:${existing.id}`);
+        await this.cacheService.del(`merchant:email:${email}`);
+        this.logger.log(`Auto-activated merchant ${existing.id} from pending to active`);
+        return updated;
+      }
+      
+      return existing;
     }
 
     // Validate payout address if provided
@@ -281,7 +298,7 @@ export class MerchantsService {
     const totalRevenue = revenueData._sum.amount || BigInt(0);
     const avgPaymentAmount = revenueData._avg.amount || BigInt(0);
 
-    // Recent payments
+    // Recent payments - optimized with select instead of include
     const recentPayments = await this.prisma.payment.findMany({
       where: {
         intent: {
@@ -290,10 +307,20 @@ export class MerchantsService {
       },
       take: 10,
       orderBy: { confirmedAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        txSignature: true,
+        amount: true,
+        currency: true,
+        payerWallet: true,
+        confirmedAt: true,
         intent: {
-          include: {
-            content: true,
+          select: {
+            content: {
+              select: {
+                slug: true,
+              },
+            },
           },
         },
       },

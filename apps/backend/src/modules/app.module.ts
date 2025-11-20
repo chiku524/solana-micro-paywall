@@ -13,8 +13,10 @@ import { CacheModule } from './cache/cache.module';
 import { RateLimitModule } from './rate-limit/rate-limit.module';
 import { JobsModule } from './jobs/jobs.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { AuthModule } from './auth/auth.module';
 import { RequestIdMiddleware } from '../common/middleware/request-id.middleware';
 import { TimeoutMiddleware } from '../common/middleware/timeout.middleware';
+import { SanitizeMiddleware } from '../common/middleware/sanitize.middleware';
 
 @Module({
   imports: [
@@ -34,12 +36,13 @@ import { TimeoutMiddleware } from '../common/middleware/timeout.middleware';
     DiscoverModule,
     JobsModule,
     WebhooksModule,
+    AuthModule,
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(RequestIdMiddleware, TimeoutMiddleware)
+      .apply(RequestIdMiddleware, TimeoutMiddleware, SanitizeMiddleware)
       .forRoutes('*');
   }
 }

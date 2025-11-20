@@ -6,6 +6,7 @@ import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.
 import Link from 'next/link';
 import { apiClient, Content } from '../../lib/api-client';
 import { showSuccess, showError, showLoading, updateToast } from '../../lib/toast';
+import { logger } from '../../lib/logger';
 
 interface ContentDetailProps {
   content: Content;
@@ -106,7 +107,10 @@ export function ContentDetail({ content }: ContentDetailProps) {
       setPaymentIntent(null);
       updateToast(loadingToast, 'Payment successful! You now have access to this content.', 'success');
     } catch (error: any) {
-      console.error('Payment error:', error);
+      logger.error('Payment error', error instanceof Error ? error : new Error(String(error)), {
+        contentId: content.id,
+        merchantId: content.merchant.id,
+      });
       const errorMessage = error.message || 'Unknown error';
       updateToast(loadingToast, `Payment failed: ${errorMessage}`, 'error');
     } finally {

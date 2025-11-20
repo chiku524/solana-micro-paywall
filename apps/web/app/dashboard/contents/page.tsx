@@ -142,14 +142,31 @@ function ContentsPageContent() {
           ? parseInt(data.durationSecs) 
           : undefined,
       });
+      // Optimistic UI update - add content to list immediately
+      const newContent = {
+        id: 'temp-' + Date.now(), // Temporary ID
+        slug: data.slug.trim(),
+        priceLamports: (priceLamports / 1e9).toFixed(4),
+        currency: data.currency,
+        durationSecs: data.durationSecs ? parseInt(data.durationSecs.toString()) : null,
+        createdAt: new Date().toISOString(),
+        merchant: { id: merchantId, email: '' },
+        _count: { paymentIntents: 0 },
+      };
+      setContents((prev) => [newContent as any, ...prev]);
+      
       updateToast(loadingToast, 'Content created successfully!', 'success');
       setShowCreateModal(false);
       reset();
-      setLoading(true);
+      
+      // Reload to get real data (will replace optimistic update)
       await loadContents(merchantId);
     } catch (err: any) {
       const errorMessage = err?.message || 'Unknown error';
-      console.error('Content creation error:', err);
+      logger.error('Content creation error', err instanceof Error ? err : new Error(String(err)), {
+        merchantId,
+        slug: data.slug,
+      });
       updateToast(loadingToast, `Failed to create content: ${errorMessage}`, 'error');
     } finally {
       setCreateLoading(false);
@@ -161,14 +178,20 @@ function ContentsPageContent() {
     const confirmed = window.confirm('Are you sure you want to delete this content?');
     if (!confirmed) return;
 
+    // Optimistic UI update - remove from list immediately
+    const deletedContent = contents.find((c) => c.id === id);
+    setContents((prev) => prev.filter((c) => c.id !== id));
+
     try {
       const merchantId = getMerchantId();
       const loadingToast = showLoading('Deleting content...');
       await apiClient.deleteContent(id);
       updateToast(loadingToast, 'Content deleted successfully!', 'success');
-      setLoading(true);
-      await loadContents(merchantId);
     } catch (err) {
+      // Rollback optimistic update on error
+      if (deletedContent) {
+        setContents((prev) => [...prev, deletedContent]);
+      }
       showError(`Failed to delete content: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   }
@@ -230,15 +253,15 @@ function ContentsPageContent() {
 
   return (
     <div className="min-h-screen bg-neutral-950">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6 lg:py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">Contents</h1>
-            <p className="mt-2 text-neutral-400">Manage your paywall content</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Contents</h1>
+            <p className="mt-2 text-sm sm:text-base text-neutral-400">Manage your paywall content</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center space-x-2 rounded-lg bg-emerald-500 px-4 py-2 font-medium text-emerald-950 transition hover:bg-emerald-400"
+            className="w-full sm:w-auto flex items-center justify-center space-x-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm sm:text-base font-medium text-emerald-950 transition hover:bg-emerald-400"
           >
             <PlusIcon className="h-5 w-5" />
             <span>Create Content</span>
@@ -328,23 +351,23 @@ function ContentsPageContent() {
 
         {/* Contents List */}
         <div className="rounded-lg border border-neutral-800 bg-neutral-900/60">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="min-w-full divide-y divide-neutral-800">
               <thead className="bg-neutral-800/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
                     Slug
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
                     Price
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400 hidden sm:table-cell">
                     Duration
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400 hidden md:table-cell">
                     Payments
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-400">
                     Actions
                   </th>
                 </tr>
@@ -352,28 +375,33 @@ function ContentsPageContent() {
               <tbody className="divide-y divide-neutral-800 bg-neutral-900/60">
                 {contents.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-neutral-400">
+                    <td colSpan={5} className="px-4 sm:px-6 py-8 text-center text-neutral-400">
                       No contents yet. Create your first content!
                     </td>
                   </tr>
                 ) : (
                   contents.map((content) => (
                     <tr key={content.id} className="hover:bg-neutral-800/30">
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-white">
+                      <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium text-white">
                         {content.slug}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-300">
+                      <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-xs sm:text-sm text-neutral-300">
                         {formatAmount(content.priceLamports, content.currency)}
+                        <div className="mt-1 sm:hidden text-xs text-neutral-500">
+                          {content.durationSecs
+                            ? `${Math.floor(content.durationSecs / 3600)} hours`
+                            : 'One-time'} • {content._count.paymentIntents} payments
+                        </div>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-300">
+                      <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-xs sm:text-sm text-neutral-300 hidden sm:table-cell">
                         {content.durationSecs
                           ? `${Math.floor(content.durationSecs / 3600)} hours`
                           : 'One-time'}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-300">
+                      <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-xs sm:text-sm text-neutral-300 hidden md:table-cell">
                         {content._count.paymentIntents}
                       </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        <td className="whitespace-nowrap px-3 sm:px-6 py-4 text-xs sm:text-sm">
                           <Button
                             onClick={() => handleDelete(content.id)}
                             variant="ghost"
@@ -381,7 +409,7 @@ function ContentsPageContent() {
                             className="text-red-400 hover:text-red-300"
                             title="Delete content"
                           >
-                            <TrashIcon className="h-5 w-5" />
+                            <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                           </Button>
                         </td>
                     </tr>
