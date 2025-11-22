@@ -32,11 +32,7 @@ NODE_ENV = "development"
 vars = { NODE_ENV = "staging" }
 
 [env.production]
-vars = { 
-  NODE_ENV = "production"
-  FRONTEND_URL = "https://micropaywall.app"
-  CORS_ORIGIN = "https://micropaywall.app,https://www.micropaywall.app"
-}
+vars = { NODE_ENV = "production", FRONTEND_URL = "https://micropaywall.app", CORS_ORIGIN = "https://micropaywall.app,https://www.micropaywall.app" }
 
 # Routes for custom domain
 [env.production.routes]
