@@ -25,3 +25,6 @@ Thumbs.db
 # Wrangler
 .wrangler/
 
+# Lock file (Cloudflare uses npm install, not npm ci)
+package-lock.json
+

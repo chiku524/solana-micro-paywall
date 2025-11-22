@@ -60,7 +60,7 @@ npx wrangler deploy
 
 **Build Command**: 
 ```
-npm install --ignore-scripts
+npm install --ignore-scripts --no-workspaces
 ```
 
 **Deploy Command**: 
@@ -68,7 +68,10 @@ npm install --ignore-scripts
 npx wrangler deploy --env production
 ```
 
-**Note**: `--ignore-scripts` prevents building widget-sdk and other workspace packages that aren't needed for Workers.
+**Why**: 
+- `npm install` (not `npm ci`) - more forgiving, no lock file sync issues
+- `--no-workspaces` - treats this as standalone, ignores monorepo
+- `--ignore-scripts` - prevents building widget-sdk and other packages
 
 This ensures:
 - ✅ Dependencies are installed
