@@ -6,12 +6,15 @@ When setting up your Worker in the Cloudflare Dashboard, use these commands:
 
 ### **Build Command** (Optional):
 ```
-npm install
+npm install --ignore-scripts
 ```
 
 **OR** leave it empty (Cloudflare will handle dependency installation automatically)
 
-**Why**: Cloudflare Workers don't need a traditional build step - Wrangler handles TypeScript compilation and bundling automatically. The `npm install` just ensures dependencies are available.
+**Why**: 
+- `npm install` (instead of `npm ci`) is more forgiving if lock file is out of sync
+- `--ignore-scripts` prevents building widget-sdk and other packages
+- Cloudflare Workers don't need a traditional build step - Wrangler handles TypeScript compilation automatically
 
 ### **Deploy Command** (Required):
 ```
