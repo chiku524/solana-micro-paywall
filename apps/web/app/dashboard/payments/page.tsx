@@ -74,7 +74,7 @@ function PaymentsPageContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-950 p-8">
+      <div className="min-h-screen bg-transparent relative z-10 p-8">
         <div className="mx-auto max-w-7xl">
           <SkeletonTable />
         </div>
@@ -110,7 +110,7 @@ function PaymentsPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-transparent relative z-10">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">Payment History</h1>

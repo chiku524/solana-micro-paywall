@@ -250,6 +250,10 @@ export class ApiClient {
     return this.request(`/merchants/${id}/dashboard`);
   }
 
+  async getMerchantPublicProfile(id: string) {
+    return this.request(`/merchants/${id}/public-profile`);
+  }
+
   async createMerchant(data: { email: string; payoutAddress?: string }) {
     return this.request('/merchants', {
       method: 'POST',
@@ -374,6 +378,190 @@ export class ApiClient {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  // Purchases
+  async getPurchases(walletAddress: string, params?: { page?: number; limit?: number }) {
+    const query = new URLSearchParams();
+    query.append('walletAddress', walletAddress);
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.limit) query.append('limit', params.limit.toString());
+    return this.request(`/purchases?${query.toString()}`);
+  }
+
+  async checkAccess(walletAddress: string, merchantId: string, contentSlug: string) {
+    const query = new URLSearchParams();
+    query.append('walletAddress', walletAddress);
+    query.append('merchantId', merchantId);
+    query.append('contentSlug', contentSlug);
+    return this.request<{ hasAccess: boolean }>(`/purchases/check-access?${query.toString()}`);
+  }
+
+  async generateShareableLink(purchaseId: string, walletAddress: string) {
+    return this.request<{ shareableLink: string; shareToken: string }>(
+      `/purchases/${purchaseId}/shareable-link?walletAddress=${walletAddress}`
+    );
+  }
+
+  async verifyShareableAccess(purchaseId: string, token: string) {
+    return this.request<{ hasAccess: boolean; purchase?: any }>(
+      `/purchases/share/${purchaseId}/verify?token=${token}`
+    );
+  }
+
+  // Bookmarks
+  async getBookmarks(walletAddress: string, params?: { page?: number; limit?: number }) {
+    const query = new URLSearchParams();
+    query.append('walletAddress', walletAddress);
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.limit) query.append('limit', params.limit.toString());
+    return this.request(`/bookmarks?${query.toString()}`);
+  }
+
+  async addBookmark(walletAddress: string, contentId: string) {
+    return this.request('/bookmarks', {
+      method: 'POST',
+      body: JSON.stringify({ walletAddress, contentId }),
+    });
+  }
+
+  async removeBookmark(walletAddress: string, contentId: string) {
+    const query = new URLSearchParams();
+    query.append('walletAddress', walletAddress);
+    return this.request(`/bookmarks/${contentId}?${query.toString()}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async isBookmarked(walletAddress: string, contentId: string) {
+    const query = new URLSearchParams();
+    query.append('walletAddress', walletAddress);
+    query.append('contentId', contentId);
+    return this.request<{ isBookmarked: boolean }>(`/bookmarks/check?${query.toString()}`);
+  }
+
+  // Recommendations
+  async getRecommendationsForWallet(walletAddress: string, limit?: number) {
+    const query = new URLSearchParams();
+    query.append('walletAddress', walletAddress);
+    if (limit) query.append('limit', limit.toString());
+    return this.request<Content[]>(`/recommendations/for-wallet?${query.toString()}`);
+  }
+
+  async getRecommendationsForContent(contentId: string, limit?: number) {
+    const query = new URLSearchParams();
+    if (limit) query.append('limit', limit.toString());
+    return this.request<Content[]>(`/recommendations/for-content/${contentId}?${query.toString()}`);
+  }
+
+  // Merchant Following
+  async followMerchant(walletAddress: string, merchantId: string) {
+    return this.request(`/merchants/${merchantId}/follow`, {
+      method: 'POST',
+      body: JSON.stringify({ walletAddress }),
+    });
+  }
+
+  async unfollowMerchant(walletAddress: string, merchantId: string) {
+    return this.request(`/merchants/${merchantId}/unfollow`, {
+      method: 'POST',
+      body: JSON.stringify({ walletAddress }),
+    });
+  }
+
+  async getFollowStatus(walletAddress: string, merchantId: string) {
+    const query = new URLSearchParams();
+    query.append('walletAddress', walletAddress);
+    return this.request<{ isFollowing: boolean; followerCount: number }>(
+      `/merchants/${merchantId}/follow-status?${query.toString()}`
+    );
+  }
+
+  // Referrals
+  async createReferralCode(data: {
+    merchantId?: string;
+    referrerWallet?: string;
+    discountPercent?: number;
+    discountAmount?: string;
+    maxUses?: number;
+    expiresAt?: string;
+    customCode?: string;
+  }) {
+    return this.request('/referrals/codes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getReferralCode(code: string) {
+    return this.request(`/referrals/codes/${code}`);
+  }
+
+  async applyReferralCode(data: {
+    code: string;
+    referrerWallet: string;
+    refereeWallet: string;
+    purchaseId: string;
+    originalAmount: string;
+  }) {
+    return this.request('/referrals/apply', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getReferralStats(walletAddress: string) {
+    return this.request(`/referrals/stats/${walletAddress}`);
+  }
+
+  // API Keys
+  async createApiKey(data: {
+    name: string;
+    rateLimit?: number;
+    allowedIps?: string[];
+    expiresAt?: string;
+  }) {
+    return this.request('/api-keys', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async listApiKeys() {
+    return this.request('/api-keys');
+  }
+
+  async revokeApiKey(apiKeyId: string) {
+    return this.request(`/api-keys/${apiKeyId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getApiKeyStats(apiKeyId?: string, days?: number) {
+    const query = new URLSearchParams();
+    if (apiKeyId) query.append('apiKeyId', apiKeyId);
+    if (days) query.append('days', days.toString());
+    return this.request(`/api-keys/stats?${query.toString()}`);
+  }
+
+  // Analytics
+  async getConversionRate(merchantId: string, days?: number) {
+    const query = new URLSearchParams();
+    if (days) query.append('days', days.toString());
+    return this.request(`/analytics/conversion/${merchantId}?${query.toString()}`);
+  }
+
+  async getTopContent(merchantId?: string, limit?: number) {
+    const query = new URLSearchParams();
+    if (merchantId) query.append('merchantId', merchantId);
+    if (limit) query.append('limit', limit.toString());
+    return this.request(`/analytics/top-content?${query.toString()}`);
+  }
+
+  async getMerchantPerformance(merchantId: string, days?: number) {
+    const query = new URLSearchParams();
+    if (days) query.append('days', days.toString());
+    return this.request(`/analytics/performance/${merchantId}?${query.toString()}`);
   }
 
 }

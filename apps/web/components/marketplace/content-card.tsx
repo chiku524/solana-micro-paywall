@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Content } from '../../lib/api-client';
+import { BookmarkButton } from './bookmark-button';
 
 interface ContentCardProps {
   content: Content;
@@ -18,7 +19,7 @@ export function ContentCard({ content }: ContentCardProps) {
 
   return (
     <Link href={`/marketplace/content/${content.merchant.id}/${content.slug}`}>
-      <div className="group overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900/60 transition hover:border-emerald-500/50 hover:bg-neutral-900">
+      <div className="group relative overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900/60 transition hover:border-emerald-500/50 hover:bg-neutral-900">
         {content.thumbnailUrl ? (
           <div className="relative h-48 w-full overflow-hidden bg-neutral-800">
             <Image
@@ -29,10 +30,16 @@ export function ContentCard({ content }: ContentCardProps) {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               loading="lazy"
             />
+            <div className="absolute top-2 right-2">
+              <BookmarkButton contentId={content.id} />
+            </div>
           </div>
         ) : (
-          <div className="flex h-48 w-full items-center justify-center bg-gradient-to-br from-emerald-500/20 to-blue-500/20">
+          <div className="relative flex h-48 w-full items-center justify-center bg-gradient-to-br from-emerald-500/20 to-blue-500/20">
             <div className="text-4xl">📄</div>
+            <div className="absolute top-2 right-2">
+              <BookmarkButton contentId={content.id} />
+            </div>
           </div>
         )}
         <div className="p-4">
@@ -47,17 +54,26 @@ export function ContentCard({ content }: ContentCardProps) {
           {content.description && (
             <p className="mb-3 line-clamp-2 text-sm text-neutral-400">{content.description}</p>
           )}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-lg font-bold text-emerald-400">
-                {price.toFixed(4)} {content.currency}
-              </p>
-              <p className="text-xs text-neutral-500">{formatDuration(content.durationSecs)}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-lg font-bold text-emerald-400">
+                  {price.toFixed(4)} {content.currency}
+                </p>
+                <p className="text-xs text-neutral-500">{formatDuration(content.durationSecs)}</p>
+              </div>
+              <div className="text-right text-xs text-neutral-500">
+                <p>{content.purchaseCount} purchases</p>
+              </div>
             </div>
-            <div className="text-right text-xs text-neutral-500">
-              <p>{content.purchaseCount} purchases</p>
+            <div className="mt-3 pt-3 border-t border-neutral-800">
+              <Link
+                href={`/marketplace/merchant/${content.merchant.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs text-neutral-400 hover:text-emerald-400 transition"
+              >
+                View merchant profile →
+              </Link>
             </div>
-          </div>
         </div>
       </div>
     </Link>

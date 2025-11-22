@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "build": "tsup src/index.ts --format esm,cjs --dts --target es2020 --jsx react-jsx",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "test": "vitest"
   },

@@ -228,6 +228,77 @@ export class MerchantsService {
   }
 
   /**
+   * Get merchant public profile with stats
+   */
+  async getPublicProfile(merchantId: string) {
+    const cacheKey = `merchant:${merchantId}:public-profile`;
+    const cached = await this.cacheService.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const merchant = await this.prisma.merchant.findUnique({
+      where: { id: merchantId },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        bio: true,
+        avatarUrl: true,
+        websiteUrl: true,
+        twitterUrl: true,
+        telegramUrl: true,
+        discordUrl: true,
+        githubUrl: true,
+        createdAt: true,
+        _count: {
+          select: {
+            contents: true,
+            followers: true,
+            purchases: true,
+          },
+        },
+      },
+    });
+
+    if (!merchant) {
+      throw new NotFoundException(`Merchant not found: ${merchantId}`);
+    }
+
+    // Calculate total revenue
+    const revenueData = await this.prisma.payment.aggregate({
+      where: {
+        intent: {
+          merchantId,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    const totalRevenue = revenueData._sum.amount || BigInt(0);
+
+    // Get average rating (placeholder for future implementation)
+    const averageRating = null; // TODO: Implement rating system
+
+    const result = {
+      ...merchant,
+      stats: {
+        totalContent: merchant._count.contents,
+        totalFollowers: merchant._count.followers,
+        totalSales: merchant._count.purchases,
+        totalRevenue: totalRevenue.toString(),
+        averageRating,
+      },
+    };
+
+    // Cache for 5 minutes
+    await this.cacheService.set(cacheKey, result, 300);
+    return result;
+  }
+
+  /**
    * Get merchant dashboard statistics
    */
   async getDashboardStats(merchantId: string) {

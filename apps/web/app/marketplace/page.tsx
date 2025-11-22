@@ -3,6 +3,7 @@ import { apiClient } from '../../lib/api-client';
 import { ContentCard } from '../../components/marketplace/content-card';
 import { TrendingSection } from '../../components/marketplace/trending-section';
 import { CategoriesSection } from '../../components/marketplace/categories-section';
+import { RecommendationsSection } from '../../components/marketplace/recommendations-section';
 
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
@@ -13,7 +14,7 @@ export default async function MarketplacePage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen relative z-10">
       {/* Header */}
       <header className="border-b border-neutral-800 bg-neutral-900/60">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -24,6 +25,9 @@ export default async function MarketplacePage() {
             <nav className="hidden md:flex md:items-center md:space-x-4 lg:space-x-6">
               <Link href="/marketplace/discover" className="text-sm lg:text-base text-neutral-300 hover:text-white">
                 Discover
+              </Link>
+              <Link href="/library" className="text-sm lg:text-base text-neutral-300 hover:text-white">
+                My Library
               </Link>
               <Link href="/docs" className="text-sm lg:text-base text-neutral-300 hover:text-white">
                 Documentation
@@ -75,6 +79,9 @@ export default async function MarketplacePage() {
             </div>
           </section>
         )}
+
+        {/* Recommendations */}
+        <RecommendationsSection limit={8} />
       </main>
 
       {/* Footer */}

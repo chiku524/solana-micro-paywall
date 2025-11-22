@@ -121,7 +121,7 @@ export default function DocsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen relative z-10">
       {/* Header */}
       <header className="border-b border-neutral-800 bg-neutral-900/60">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">

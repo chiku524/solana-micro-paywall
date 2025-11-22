@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { MerchantsService } from './merchants.service';
+import { MerchantsFollowService } from './merchants-follow.service';
 import { CreateMerchantDto } from './dto/create-merchant.dto';
 import { UpdateMerchantDto } from './dto/update-merchant.dto';
 import { MerchantQueryDto } from './dto/merchant-query.dto';
@@ -28,7 +29,10 @@ import { Merchant } from '../../common/decorators/merchant.decorator';
 export class MerchantsController {
   private readonly logger = new Logger(MerchantsController.name);
 
-  constructor(private readonly merchantsService: MerchantsService) {}
+  constructor(
+    private readonly merchantsService: MerchantsService,
+    private readonly merchantsFollowService: MerchantsFollowService,
+  ) {}
 
   @Post()
   @Public()
@@ -86,6 +90,59 @@ export class MerchantsController {
       throw new Error('Unauthorized: Cannot delete another merchant\'s account');
     }
     return this.merchantsService.remove(id);
+  }
+
+  // Follow/Unfollow endpoints
+  @Post(':id/follow')
+  @Public()
+  async followMerchant(
+    @Param('id') merchantId: string,
+    @Body() body: { walletAddress: string },
+  ) {
+    if (!body.walletAddress) {
+      throw new Error('walletAddress is required');
+    }
+    return this.merchantsFollowService.followMerchant(body.walletAddress, merchantId);
+  }
+
+  @Post(':id/unfollow')
+  @Public()
+  async unfollowMerchant(
+    @Param('id') merchantId: string,
+    @Body() body: { walletAddress: string },
+  ) {
+    if (!body.walletAddress) {
+      throw new Error('walletAddress is required');
+    }
+    return this.merchantsFollowService.unfollowMerchant(body.walletAddress, merchantId);
+  }
+
+  @Get(':id/follow-status')
+  @Public()
+  async getFollowStatus(
+    @Param('id') merchantId: string,
+    @Query('walletAddress') walletAddress: string,
+  ) {
+    if (!walletAddress) {
+      throw new Error('walletAddress query parameter is required');
+    }
+    const isFollowing = await this.merchantsFollowService.isFollowing(walletAddress, merchantId);
+    const followerCount = await this.merchantsFollowService.getFollowerCount(merchantId);
+    return { isFollowing, followerCount };
+  }
+
+  @Get(':id/followers')
+  @Public()
+  async getFollowers(@Param('id') merchantId: string) {
+    const count = await this.merchantsFollowService.getFollowerCount(merchantId);
+    return { merchantId, followerCount: count };
+  }
+
+  @Get(':id/public-profile')
+  @Public()
+  @ApiOperation({ summary: 'Get merchant public profile with stats' })
+  async getPublicProfile(@Param('id') id: string) {
+    return this.merchantsService.getPublicProfile(id);
   }
 }
 

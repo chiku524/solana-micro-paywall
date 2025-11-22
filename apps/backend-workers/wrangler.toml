@@ -1,0 +1,45 @@
+name = "micropaywall"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "micropaywall-db"
+database_id = ""  # Will be set after creating database
+
+# KV Namespace for caching
+[[kv_namespaces]]
+binding = "CACHE"
+id = ""  # Will be set after creating namespace
+preview_id = ""  # Will be set after creating preview namespace
+
+# Queues for background jobs
+[[queues.producers]]
+queue = "payment-verification"
+binding = "PAYMENT_QUEUE"
+
+[[queues.producers]]
+queue = "webhooks"
+binding = "WEBHOOK_QUEUE"
+
+# Environment variables
+[vars]
+NODE_ENV = "development"
+
+[env.staging]
+vars = { NODE_ENV = "staging" }
+
+[env.production]
+vars = { 
+  NODE_ENV = "production"
+  FRONTEND_URL = "https://micropaywall.app"
+  CORS_ORIGIN = "https://micropaywall.app,https://www.micropaywall.app"
+}
+
+# Routes for custom domain
+[env.production.routes]
+pattern = "api.micropaywall.app/*"
+zone_name = "micropaywall.app"
+

@@ -9,10 +9,27 @@ import { ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         return {
+          // Multiple throttler tiers for different endpoint types
           throttlers: [
             {
-              ttl: 60000, // Time window in milliseconds
+              name: 'default',
+              ttl: 60000, // 1 minute
               limit: 100, // Max requests per window
+            },
+            {
+              name: 'payment',
+              ttl: 60000, // 1 minute
+              limit: 10, // Stricter limit for payment endpoints
+            },
+            {
+              name: 'strict',
+              ttl: 60000, // 1 minute
+              limit: 5, // Very strict limit for sensitive operations
+            },
+            {
+              name: 'api-key',
+              ttl: 60000, // 1 minute
+              limit: 1000, // Higher limit for API key authenticated requests
             },
           ],
         };

@@ -21,6 +21,17 @@ model Merchant {
   payoutAddress  String?  // Solana wallet address for payouts
   webhookSecret  String?  // HMAC secret for webhook verification
   configJson     Json?    // Widget configuration, branding, etc.
+  
+  // Profile fields
+  displayName    String?  // Public display name
+  bio            String?  // Merchant bio/description
+  avatarUrl      String?  // Profile picture URL
+  websiteUrl     String?  // Personal/company website
+  twitterUrl      String?  // Twitter/X profile URL
+  telegramUrl    String?  // Telegram channel/group URL
+  discordUrl     String?  // Discord server URL
+  githubUrl      String?  // GitHub profile URL
+  
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -29,6 +40,10 @@ model Merchant {
   paymentIntents PaymentIntent[]
   accessTokens   AccessToken[]
   refundRequests RefundRequest[]
+  purchases      Purchase[]
+  followers      MerchantFollow[]
+  referralCodes  ReferralCode[]
+  apiKeys        ApiKey[]
 
   @@index([email])
   @@index([status])
@@ -62,6 +77,8 @@ model Content {
   // Relations
   merchant      Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   paymentIntents PaymentIntent[]
+  purchases     Purchase[]
+  bookmarks     Bookmark[]
 
   @@unique([merchantId, slug])
   @@index([merchantId])
@@ -115,6 +132,7 @@ model Payment {
   intent        PaymentIntent @relation(fields: [intentId], references: [id], onDelete: Cascade)
   accessToken   AccessToken?
   refundRequests RefundRequest[]
+  purchase      Purchase?
 
   @@index([txSignature])
   @@index([payerWallet])
@@ -140,10 +158,66 @@ model AccessToken {
   merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   payment       Payment?       @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   stripeReceipt StripeReceipt?
+  purchase      Purchase?
 
   @@index([tokenJti])
   @@index([merchantId])
   @@index([expiresAt])
+}
+
+// ============================================================================
+// Buyer Purchase Tracking
+// ============================================================================
+
+model Purchase {
+  id            String   @id @default(cuid())
+  walletAddress String   // Buyer's wallet address
+  paymentId     String   @unique
+  contentId     String
+  merchantId    String
+  accessTokenId String?   @unique
+  purchasedAt   DateTime @default(now())
+  expiresAt     DateTime?
+  
+  // Relations
+  content       Content      @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  merchant      Merchant     @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  payment       Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  accessToken   AccessToken?  @relation(fields: [accessTokenId], references: [id], onDelete: SetNull)
+  referral      Referral?
+
+  @@index([walletAddress])
+  @@index([contentId])
+  @@index([merchantId])
+  @@index([purchasedAt])
+}
+
+model Bookmark {
+  id            String   @id @default(cuid())
+  walletAddress String
+  contentId     String
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  content       Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([walletAddress, contentId])
+  @@index([walletAddress])
+  @@index([contentId])
+}
+
+model MerchantFollow {
+  id            String   @id @default(cuid())
+  walletAddress String
+  merchantId    String
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  merchant      Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([walletAddress, merchantId])
+  @@index([walletAddress])
+  @@index([merchantId])
 }
 
 // ============================================================================
@@ -221,5 +295,98 @@ model LedgerEvent {
   @@index([eventType])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+// ============================================================================
+// Referral System
+// ============================================================================
+
+model ReferralCode {
+  id            String   @id @default(cuid())
+  code          String   @unique // Unique referral code
+  merchantId    String?  // Optional: merchant-specific code
+  referrerWallet String?  // Optional: wallet that created this code
+  discountPercent Int?    // Discount percentage (0-100)
+  discountAmount BigInt?  // Fixed discount amount in lamports
+  maxUses       Int?      // Maximum number of uses (null = unlimited)
+  currentUses   Int       @default(0)
+  expiresAt     DateTime? // Optional expiration date
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  merchant      Merchant? @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  referrals     Referral[]
+
+  @@index([code])
+  @@index([merchantId])
+  @@index([referrerWallet])
+  @@index([isActive])
+}
+
+model Referral {
+  id            String   @id @default(cuid())
+  referralCodeId String
+  referrerWallet String  // Wallet that shared the code
+  refereeWallet  String  // Wallet that used the code
+  purchaseId     String? @unique // Purchase made with referral
+  rewardAmount   BigInt?  // Reward given to referrer (in lamports)
+  discountAmount BigInt?  // Discount applied to referee (in lamports)
+  createdAt      DateTime @default(now())
+
+  // Relations
+  referralCode  ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  purchase      Purchase?    @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+
+  @@index([referralCodeId])
+  @@index([referrerWallet])
+  @@index([refereeWallet])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// API Keys System
+// ============================================================================
+
+model ApiKey {
+  id            String   @id @default(cuid())
+  merchantId    String
+  name          String   // User-friendly name for the key
+  keyHash       String   @unique // Hashed API key (never store plain text)
+  keyPrefix     String   // First 8 chars for display (e.g., "sk_live_...")
+  isActive      Boolean  @default(true)
+  lastUsedAt    DateTime? // Last time the key was used
+  rateLimit     Int?     // Custom rate limit (requests per minute)
+  allowedIps    String[] @default([]) // Optional IP whitelist
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime? // Optional expiration date
+
+  // Relations
+  merchant      Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  usageLogs     ApiKeyUsage[]
+
+  @@index([merchantId])
+  @@index([keyHash])
+  @@index([isActive])
+}
+
+model ApiKeyUsage {
+  id            String   @id @default(cuid())
+  apiKeyId      String
+  endpoint      String   // API endpoint accessed
+  method        String   // HTTP method
+  statusCode    Int      // HTTP status code
+  responseTime  Int?     // Response time in ms
+  ipAddress     String?  // Client IP address
+  userAgent     String?  // User agent
+  createdAt     DateTime @default(now())
+
+  // Relations
+  apiKey        ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([apiKeyId])
+  @@index([createdAt])
+  @@index([endpoint])
 }
 

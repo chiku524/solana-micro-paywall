@@ -1,0 +1,31 @@
+{
+  "name": "@solana-micro-paywall/backend-workers",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Workers backend for Solana Micro-Paywall",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "db:migrate": "wrangler d1 execute micropaywall-db --file=../../migrations/d1-schema.sql",
+    "db:query": "wrangler d1 execute micropaywall-db",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "@hono/node-server": "^1.8.0",
+    "wrangler": "^3.19.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "@types/node": "^20.11.17",
+    "typescript": "^5.3.3",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5"
+  }
+}
+

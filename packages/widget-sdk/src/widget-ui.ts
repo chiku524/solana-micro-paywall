@@ -40,31 +40,63 @@ export class PaymentWidgetUI {
   }
 
   /**
-   * Render payment button
+   * Render payment button with customization
    */
   renderButton(paymentConfig: PaymentRequestConfig): void {
     const button = document.createElement('button');
     button.className = this.config.buttonClass || 'solana-pay-button';
-    button.textContent = this.config.buttonText || 'Pay with Solana';
+    
+    // Get customization values
+    const colors = this.config.colors || {};
+    const primaryColor = colors.primary || '#10b981'; // Default emerald
+    const primaryHover = colors.primaryHover || colors.primary || '#059669';
+    const textColor = colors.text || '#ffffff';
+    const borderRadius = this.config.borderRadius || 8;
+    const fontFamily = this.config.fontFamily || 'inherit';
+    const ctaText = this.config.ctaText || this.config.buttonText || 'Pay with Solana';
+    
+    button.textContent = ctaText;
+    
+    // Apply custom styles
     button.style.cssText = `
       padding: 12px 24px;
       font-size: 16px;
       font-weight: 600;
       border: none;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
-      color: white;
+      border-radius: ${borderRadius}px;
+      background: ${primaryColor};
+      color: ${textColor};
+      font-family: ${fontFamily};
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     `;
+
+    // Add logo if configured
+    if (this.config.logo?.url) {
+      const logo = document.createElement('img');
+      logo.src = this.config.logo.url;
+      logo.alt = this.config.logo.alt || 'Logo';
+      logo.style.cssText = `
+        width: ${this.config.logo.width || 20}px;
+        height: ${this.config.logo.height || this.config.logo.width || 20}px;
+        object-fit: contain;
+      `;
+      button.insertBefore(logo, button.firstChild);
+    }
 
     button.addEventListener('mouseenter', () => {
       button.style.transform = 'translateY(-2px)';
-      button.style.boxShadow = '0 4px 12px rgba(153, 69, 255, 0.4)';
+      button.style.background = primaryHover;
+      button.style.boxShadow = `0 4px 12px ${primaryColor}40`;
     });
 
     button.addEventListener('mouseleave', () => {
       button.style.transform = 'translateY(0)';
+      button.style.background = primaryColor;
       button.style.boxShadow = 'none';
     });
 
@@ -94,16 +126,24 @@ export class PaymentWidgetUI {
       z-index: 10000;
     `;
 
-    // Create modal content
+    // Create modal content with customization
+    const colors = this.config.colors || {};
+    const backgroundColor = colors.background || '#ffffff';
+    const textColor = colors.text || '#000000';
+    const borderRadius = this.config.borderRadius || 16;
+    const fontFamily = this.config.fontFamily || 'inherit';
+    
     const modal = document.createElement('div');
     modal.className = 'solana-pay-modal';
     modal.style.cssText = `
-      background: white;
-      border-radius: 16px;
+      background: ${backgroundColor};
+      color: ${textColor};
+      border-radius: ${borderRadius}px;
       padding: 24px;
       max-width: 400px;
       width: 90%;
       position: relative;
+      font-family: ${fontFamily};
     `;
 
     // Close button
@@ -139,17 +179,21 @@ export class PaymentWidgetUI {
       margin: 16px 0;
     `;
 
-    // Amount display
-    const amount = document.createElement('div');
-    const amountInSol = (Number(paymentRequest.amount) / 1e9).toFixed(4);
-    amount.textContent = `${amountInSol} ${paymentRequest.currency}`;
-    amount.style.cssText = `
-      text-align: center;
-      font-size: 24px;
-      font-weight: 600;
-      margin: 16px 0;
-      color: #9945FF;
-    `;
+    // Amount display (only if showPrice is not false)
+    let amount: HTMLElement | null = null;
+    if (this.config.showPrice !== false) {
+      amount = document.createElement('div');
+      const amountInSol = (Number(paymentRequest.amount) / 1e9).toFixed(4);
+      amount.textContent = `${amountInSol} ${paymentRequest.currency}`;
+      const primaryColor = colors.primary || '#10b981';
+      amount.style.cssText = `
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 16px 0;
+        color: ${primaryColor};
+      `;
+    }
 
     // Instructions
     const instructions = document.createElement('p');
@@ -161,21 +205,31 @@ export class PaymentWidgetUI {
       margin: 16px 0;
     `;
 
-    // Wallet button
+    // Wallet button with customization
     const walletBtn = document.createElement('button');
-    walletBtn.textContent = 'Connect Wallet & Pay';
+    const ctaText = this.config.ctaText || 'Connect Wallet & Pay';
+    walletBtn.textContent = ctaText;
+    const primaryColor = colors.primary || '#10b981';
+    const primaryHover = colors.primaryHover || colors.primary || '#059669';
     walletBtn.style.cssText = `
       width: 100%;
       padding: 12px;
       font-size: 16px;
       font-weight: 600;
       border: none;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
-      color: white;
+      border-radius: ${borderRadius}px;
+      background: ${primaryColor};
+      color: ${textColor};
       cursor: pointer;
       margin-top: 16px;
+      transition: background-color 0.2s;
     `;
+    walletBtn.addEventListener('mouseenter', () => {
+      walletBtn.style.background = primaryHover;
+    });
+    walletBtn.addEventListener('mouseleave', () => {
+      walletBtn.style.background = primaryColor;
+    });
     walletBtn.addEventListener('click', async () => {
       try {
         walletBtn.disabled = true;
@@ -190,7 +244,7 @@ export class PaymentWidgetUI {
 
     modal.appendChild(closeBtn);
     modal.appendChild(title);
-    modal.appendChild(amount);
+    if (amount) modal.appendChild(amount);
     modal.appendChild(qrContainer);
     modal.appendChild(instructions);
     modal.appendChild(walletBtn);

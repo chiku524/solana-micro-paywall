@@ -36,6 +36,25 @@ export interface WidgetConfig {
   theme?: 'light' | 'dark' | 'auto';
   buttonText?: string;
   buttonClass?: string;
+  // Enhanced customization
+  colors?: {
+    primary?: string; // Primary button color (e.g., '#10b981')
+    primaryHover?: string; // Hover state color
+    text?: string; // Text color
+    background?: string; // Background color
+    border?: string; // Border color
+  };
+  logo?: {
+    url?: string; // Logo image URL
+    alt?: string; // Alt text
+    width?: number; // Logo width in pixels
+    height?: number; // Logo height in pixels
+  };
+  ctaText?: string; // Custom CTA text (e.g., "Unlock Now", "Get Access")
+  showPrice?: boolean; // Show/hide price
+  showDuration?: boolean; // Show/hide access duration
+  borderRadius?: number; // Border radius in pixels
+  fontFamily?: string; // Custom font family
   onPaymentSuccess?: (token: string) => void;
   onPaymentError?: (error: Error) => void;
 }

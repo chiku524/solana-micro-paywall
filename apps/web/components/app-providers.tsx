@@ -15,6 +15,7 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   const [mounted, setMounted] = useState(false);
+  const [rpcEndpoint, setRpcEndpoint] = useState(DEFAULT_RPC_ENDPOINT);
 
   const wallets = useMemo(
     () => {
@@ -25,11 +26,30 @@ export function AppProviders({ children }: AppProvidersProps) {
 
   useEffect(() => {
     setMounted(true);
+    
+    // Load network from localStorage
+    const savedNetwork = localStorage.getItem('solana-network');
+    if (savedNetwork === 'mainnet-beta') {
+      const mainnetRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_MAINNET || 'https://api.mainnet-beta.solana.com';
+      setRpcEndpoint(mainnetRpc);
+    } else {
+      setRpcEndpoint(DEFAULT_RPC_ENDPOINT);
+    }
+
+    // Listen for network changes
+    const handleNetworkChange = (event: CustomEvent) => {
+      setRpcEndpoint(event.detail.rpc);
+    };
+
+    window.addEventListener('solana-network-changed', handleNetworkChange as EventListener);
+    return () => {
+      window.removeEventListener('solana-network-changed', handleNetworkChange as EventListener);
+    };
   }, []);
 
   return (
     <SWRProvider>
-      <ConnectionProvider endpoint={DEFAULT_RPC_ENDPOINT}>
+      <ConnectionProvider endpoint={rpcEndpoint}>
         <WalletProvider wallets={mounted ? wallets : []} autoConnect={mounted}>
           <WalletModalProvider>{children}</WalletModalProvider>
         </WalletProvider>

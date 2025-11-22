@@ -4,9 +4,11 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { PaymentVerificationProcessor } from './payment-verification.processor';
 import { CleanupProcessor } from './cleanup.processor';
+import { WebhookProcessor } from './webhook.processor';
 import { PaymentsModule } from '../payments/payments.module';
 import { SolanaModule } from '../solana/solana.module';
 import { DatabaseModule } from '../database/database.module';
+import { WebhooksModule } from '../webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -47,11 +49,15 @@ import { DatabaseModule } from '../database/database.module';
     BullModule.registerQueue({
       name: 'payment-verification',
     }),
+    BullModule.registerQueue({
+      name: 'webhooks',
+    }),
     forwardRef(() => PaymentsModule),
     SolanaModule,
     DatabaseModule,
+    WebhooksModule,
   ],
-  providers: [PaymentVerificationProcessor, CleanupProcessor],
+  providers: [PaymentVerificationProcessor, CleanupProcessor, WebhookProcessor],
 })
 export class JobsModule {}
 

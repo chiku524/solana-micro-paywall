@@ -16,20 +16,21 @@ export class PaymentsController {
   ) {}
 
   @Post('create-payment-request')
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  @Throttle({ payment: { limit: 10, ttl: 60000 } }) // 10 requests per minute (payment tier)
   @UsePipes(new ValidationPipe({ transform: true }))
   async createPaymentRequest(@Body() dto: CreatePaymentRequestDto) {
     return this.paymentsService.createPaymentRequest(dto);
   }
 
   @Post('verify-payment')
-  @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute
+  @Throttle({ payment: { limit: 20, ttl: 60000 } }) // 20 requests per minute (payment tier)
   @UsePipes(new ValidationPipe({ transform: true }))
   async verifyPayment(@Body() dto: VerifyPaymentDto) {
     return this.paymentsService.verifyPayment(dto);
   }
 
   @Get('payment-status')
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests per minute
   async getPaymentStatus(@Query('tx') txSignature: string) {
     if (!txSignature) {
       throw new Error('Transaction signature is required');

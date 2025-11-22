@@ -17,6 +17,7 @@ import {
   Bars3Icon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { NetworkToggle } from '../ui/network-toggle';
 
 // Dynamically import WalletMultiButton to prevent hydration errors
 const WalletMultiButton = dynamic(
@@ -274,6 +275,9 @@ function NavbarContent() {
             </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="hidden sm:block">
+              <NetworkToggle />
+            </div>
             <div className="hidden sm:block">
               <WalletMultiButton />
             </div>

@@ -6,6 +6,8 @@ const nextConfig = {
   experimental: {
     typedRoutes: true,
   },
+  // Cloudflare Pages compatibility
+  output: 'standalone', // For better compatibility
   images: {
     domains: [],
     remotePatterns: [
@@ -19,6 +21,45 @@ const nextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'],
+  },
+  // Code splitting optimizations
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Optimize chunks for better code splitting
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Vendor chunk for node_modules
+            vendor: {
+              name: 'vendor',
+              chunks: 'all',
+              test: /node_modules/,
+              priority: 20,
+            },
+            // Common chunk for shared code
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+            // Solana Web3.js in separate chunk (large library)
+            solana: {
+              name: 'solana',
+              test: /[\\/]node_modules[\\/]@solana[\\/]/,
+              chunks: 'all',
+              priority: 30,
+            },
+          },
+        },
+      };
+    }
+    return config;
   },
 };
 

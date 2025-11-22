@@ -7,6 +7,9 @@ import Link from 'next/link';
 import { apiClient, Content } from '../../lib/api-client';
 import { showSuccess, showError, showLoading, updateToast } from '../../lib/toast';
 import { logger } from '../../lib/logger';
+import { BookmarkButton } from './bookmark-button';
+import { RecommendationsSection } from './recommendations-section';
+import { ShareButtons } from './share-buttons';
 
 interface ContentDetailProps {
   content: Content;
@@ -28,12 +31,22 @@ export function ContentDetail({ content }: ContentDetailProps) {
   };
 
   useEffect(() => {
-    // Check if user has access token
-    const token = localStorage.getItem(`access_${content.merchant.id}_${content.slug}`);
-    if (token) {
-      // Verify token
-      // For now, just check if token exists
+    // Check URL for shareable token
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareToken = urlParams.get('token');
+    
+    if (shareToken) {
+      // Store token and grant access
+      localStorage.setItem(`access_${content.merchant.id}_${content.slug}`, shareToken);
       setHasAccess(true);
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else {
+      // Check if user has access token
+      const token = localStorage.getItem(`access_${content.merchant.id}_${content.slug}`);
+      if (token) {
+        setHasAccess(true);
+      }
     }
   }, [content]);
 
@@ -131,7 +144,14 @@ export function ContentDetail({ content }: ContentDetailProps) {
 
         <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 p-4 mb-6">
-            <p className="text-emerald-400">✓ You have access to this content</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <p className="text-emerald-400">✓ You have access to this content</p>
+              <ShareButtons
+                url={`${window.location.origin}/marketplace/content/${content.merchant.id}/${content.slug}`}
+                title={content.title || content.slug}
+                description={content.description}
+              />
+            </div>
           </div>
 
           <article className="prose prose-invert max-w-none">
@@ -176,13 +196,20 @@ export function ContentDetail({ content }: ContentDetailProps) {
         )}
 
         <div className="mb-8">
-          {content.category && (
-            <span className="mb-4 inline-block rounded-full bg-emerald-500/20 px-3 py-1 text-sm text-emerald-400">
-              {content.category}
-            </span>
-          )}
-          <h1 className="mb-4 text-4xl font-bold text-white">{content.title || content.slug}</h1>
-          {content.description && <p className="mb-6 text-xl text-neutral-300">{content.description}</p>}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              {content.category && (
+                <span className="mb-4 inline-block rounded-full bg-emerald-500/20 px-3 py-1 text-sm text-emerald-400">
+                  {content.category}
+                </span>
+              )}
+              <h1 className="mb-4 text-4xl font-bold text-white">{content.title || content.slug}</h1>
+              {content.description && <p className="mb-6 text-xl text-neutral-300">{content.description}</p>}
+            </div>
+            <div className="ml-4">
+              <BookmarkButton contentId={content.id} />
+            </div>
+          </div>
         </div>
 
         {/* Preview */}
@@ -228,6 +255,9 @@ export function ContentDetail({ content }: ContentDetailProps) {
           <h3 className="mb-2 text-lg font-semibold text-white">Merchant</h3>
           <p className="text-neutral-300">{content.merchant.email}</p>
         </div>
+
+        {/* Recommendations */}
+        <RecommendationsSection contentId={content.id} />
       </main>
     </div>
   );

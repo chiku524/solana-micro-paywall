@@ -1,10 +1,12 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, InternalServerErrorException, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { SolanaService } from '../solana/solana.service';
 import { TokensService } from '../tokens/tokens.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreatePaymentRequestDto } from './dto/create-payment-request.dto';
 import { VerifyPaymentDto } from './dto/verify-payment.dto';
 import { randomBytes } from 'crypto';
@@ -21,6 +23,10 @@ export class PaymentsService {
     private readonly tokensService: TokensService,
     private readonly webhooksService: WebhooksService,
     private readonly configService: ConfigService,
+    @Inject(forwardRef(() => AnalyticsService))
+    private readonly analyticsService?: AnalyticsService,
+    @Inject(forwardRef(() => NotificationsService))
+    private readonly notificationsService?: NotificationsService,
   ) {}
 
   /**
@@ -234,6 +240,33 @@ export class PaymentsService {
       });
 
       if (accessToken && new Date(accessToken.expiresAt) > new Date()) {
+        // Check if purchase record exists, create if not
+        let purchase = await this.prisma.purchase.findUnique({
+          where: { paymentId: existingPayment.id },
+        });
+
+        if (!purchase) {
+          // Get content to determine expiration
+          const content = await this.prisma.content.findUnique({
+            where: { id: contentId },
+          });
+
+          const expiresAt = content?.durationSecs
+            ? new Date(Date.now() + content.durationSecs * 1000)
+            : null;
+
+          purchase = await this.prisma.purchase.create({
+            data: {
+              walletAddress: existingPayment.payerWallet,
+              paymentId: existingPayment.id,
+              contentId,
+              merchantId,
+              accessTokenId: accessToken.id,
+              expiresAt,
+            },
+          });
+        }
+
         return {
           status: 'confirmed',
           accessToken: await this.tokensService.issueToken(accessToken.tokenJti),
@@ -275,12 +308,22 @@ export class PaymentsService {
         },
       });
 
+      // Get content to determine expiration
+      const content = await tx.content.findUnique({
+        where: { id: contentId },
+      });
+
+      // Calculate expiration time
+      const expiresAt = content?.durationSecs
+        ? new Date(Date.now() + content.durationSecs * 1000)
+        : null;
+
       // Issue access token
       const accessToken = await this.tokensService.createAccessToken({
         merchantId,
         contentId,
         paymentId: newPayment.id,
-        expiresAt: new Date(Date.now() + 86400 * 1000), // Default 24 hours
+        expiresAt: expiresAt || new Date(Date.now() + 86400 * 1000), // Default 24 hours if no duration
       });
 
       // Link payment to access token
@@ -289,22 +332,58 @@ export class PaymentsService {
         data: { paymentId: newPayment.id },
       });
 
-      return { payment: newPayment, accessToken };
+      // Create Purchase record linked to wallet address
+      const purchase = await tx.purchase.create({
+        data: {
+          walletAddress: payerWallet,
+          paymentId: newPayment.id,
+          contentId,
+          merchantId,
+          accessTokenId: accessToken.id,
+          expiresAt,
+        },
+      });
+
+      return { payment: newPayment, accessToken, purchase };
     });
 
     this.logger.log(`Payment verified and access token issued for transaction ${txSignature}`);
 
-    // Send webhook notification
+    // Send webhook notifications
     try {
-      await this.webhooksService.sendWebhook(merchantId, 'payment.confirmed', {
-        paymentId: payment.payment.id,
-        txSignature: payment.payment.txSignature,
-        amount: payment.payment.amount.toString(),
-        currency: payment.payment.currency,
-        payerWallet: payment.payment.payerWallet,
-      });
+      // Send payment confirmed webhook
+      await this.webhooksService.sendPaymentConfirmedWebhook(merchantId, payment.payment);
+      
+      // Send purchase completed webhook
+      await this.webhooksService.sendPurchaseWebhook(merchantId, payment.purchase);
     } catch (error) {
       this.logger.warn('Failed to send webhook notification', error);
+    }
+
+    // Track analytics (async, don't wait)
+    if (this.analyticsService) {
+      this.analyticsService.trackPurchase(payment.purchase).catch((err) => {
+        this.logger.warn('Failed to track purchase analytics', err);
+      });
+    }
+
+    // Send email notifications (async, don't wait)
+    if (this.notificationsService) {
+      // Notify buyer (if email available, would need to fetch from wallet or user profile)
+      this.notificationsService.sendPurchaseNotification(
+        { walletAddress: payment.purchase.walletAddress },
+        payment.purchase,
+      ).catch((err) => {
+        this.logger.debug('Failed to send purchase notification to buyer', err);
+      });
+
+      // Notify merchant
+      this.notificationsService.sendMerchantPaymentNotification(
+        merchantId,
+        payment.payment,
+      ).catch((err) => {
+        this.logger.warn('Failed to send payment notification to merchant', err);
+      });
     }
 
     return {

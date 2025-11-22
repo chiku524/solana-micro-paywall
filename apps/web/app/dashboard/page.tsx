@@ -82,7 +82,7 @@ function DashboardPageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-950">
+      <div className="min-h-screen bg-transparent relative z-10">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-8">
             <div className="mb-4 h-8 w-48 animate-pulse rounded bg-neutral-800" />
@@ -105,7 +105,7 @@ function DashboardPageContent() {
   // If no merchantId, show login form
   if (!currentMerchantId) {
     return (
-      <div className="min-h-screen bg-neutral-950">
+      <div className="min-h-screen bg-transparent relative z-10">
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
             <h1 className="text-4xl font-bold text-white mb-2">Merchant Dashboard</h1>
@@ -138,7 +138,7 @@ function DashboardPageContent() {
     // If no merchantId, show login form
     if (!hasMerchantId) {
       return (
-        <div className="min-h-screen bg-neutral-950">
+        <div className="min-h-screen bg-transparent">
           <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
             <div className="mb-8 text-center">
               <h1 className="text-4xl font-bold text-white mb-2">Merchant Dashboard</h1>
@@ -164,7 +164,7 @@ function DashboardPageContent() {
     
     // Show error state
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center relative z-10">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="mb-4 rounded-lg bg-red-900/20 border border-red-800 p-4 text-red-400">
             {errorMessage}
@@ -192,7 +192,7 @@ function DashboardPageContent() {
   };
 
   return (
-      <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-transparent relative z-10">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6 lg:py-8 sm:px-6 lg:px-8">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard</h1>

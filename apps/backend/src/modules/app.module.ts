@@ -14,6 +14,13 @@ import { RateLimitModule } from './rate-limit/rate-limit.module';
 import { JobsModule } from './jobs/jobs.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { AuthModule } from './auth/auth.module';
+import { PurchasesModule } from './purchases/purchases.module';
+import { BookmarksModule } from './bookmarks/bookmarks.module';
+import { RecommendationsModule } from './recommendations/recommendations.module';
+import { ReferralsModule } from './referrals/referrals.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { RequestIdMiddleware } from '../common/middleware/request-id.middleware';
 import { TimeoutMiddleware } from '../common/middleware/timeout.middleware';
 import { SanitizeMiddleware } from '../common/middleware/sanitize.middleware';
@@ -37,6 +44,13 @@ import { SanitizeMiddleware } from '../common/middleware/sanitize.middleware';
     JobsModule,
     WebhooksModule,
     AuthModule,
+    PurchasesModule,
+    BookmarksModule,
+    RecommendationsModule,
+    ReferralsModule,
+    ApiKeysModule,
+    NotificationsModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule implements NestModule {
