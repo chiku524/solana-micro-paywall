@@ -2,6 +2,13 @@
 node_modules/
 dist/
 build/
+*.tsbuildinfo
+
+# Build artifacts
+apps/backend/dist/
+apps/web/.next/
+apps/web/out/
+packages/*/dist/
 
 # Next.js
 .next/

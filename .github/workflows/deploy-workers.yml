@@ -24,7 +24,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: apps/backend-workers
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts --no-workspaces
 
       - name: Deploy to Cloudflare Workers
         working-directory: apps/backend-workers

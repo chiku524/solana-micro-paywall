@@ -12,6 +12,13 @@ import { prettyJSON } from 'hono/pretty-json';
 import { Env } from './types/env';
 import { errorHandler } from './middleware/error-handler';
 import { healthRoutes } from './routes/health';
+import { authRoutes } from './routes/auth';
+import { merchantsRoutes } from './routes/merchants';
+import { contentsRoutes } from './routes/contents';
+import { discoverRoutes } from './routes/discover';
+import { paymentsRoutes } from './routes/payments';
+import { purchasesRoutes } from './routes/purchases';
+import { bookmarksRoutes } from './routes/bookmarks';
 
 // Create Hono app with environment bindings
 const app = new Hono<{ Bindings: Env }>();
@@ -59,10 +66,20 @@ api.get('/', (c) => {
     status: 'operational',
     endpoints: {
       health: '/api/health',
+      auth: '/api/auth/login',
       docs: '/api/docs', // Will add Swagger/OpenAPI later
     },
   });
 });
+
+// Register route modules
+authRoutes(api);
+merchantsRoutes(api);
+contentsRoutes(api);
+discoverRoutes(api);
+paymentsRoutes(api);
+purchasesRoutes(api);
+bookmarksRoutes(api);
 
 // Mount API routes
 app.route('/api', api);
