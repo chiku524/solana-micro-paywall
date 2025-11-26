@@ -114,7 +114,7 @@ export default function DocsPage() {
     },
   ];
 
-  const quickLinks = [
+  const quickLinks: Array<{ name: string; href: string; description: string }> = [
     { name: 'Dashboard', href: '/dashboard', description: 'Merchant dashboard' },
     { name: 'API Documentation', href: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api`, description: 'REST API endpoints' },
     { name: 'Marketplace', href: '/marketplace', description: 'Browse content' },
@@ -161,16 +161,36 @@ export default function DocsPage() {
 
         {/* Quick Links */}
         <div className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {quickLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-6 transition hover:border-emerald-500 hover:bg-neutral-900"
-            >
-              <h3 className="mb-2 text-lg font-semibold text-white">{link.name}</h3>
-              <p className="text-sm text-neutral-400">{link.description}</p>
-            </Link>
-          ))}
+          {quickLinks.map((link) => {
+            const isExternal = link.href.startsWith('http');
+            const className = "rounded-lg border border-neutral-800 bg-neutral-900/60 p-6 transition hover:border-emerald-500 hover:bg-neutral-900";
+            
+            if (isExternal) {
+              return (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={className}
+                >
+                  <h3 className="mb-2 text-lg font-semibold text-white">{link.name}</h3>
+                  <p className="text-sm text-neutral-400">{link.description}</p>
+                </a>
+              );
+            }
+            
+            return (
+              <Link
+                key={link.name}
+                href={link.href as any}
+                className={className}
+              >
+                <h3 className="mb-2 text-lg font-semibold text-white">{link.name}</h3>
+                <p className="text-sm text-neutral-400">{link.description}</p>
+              </Link>
+            );
+          })}
         </div>
 
         {/* Documentation Sections */}

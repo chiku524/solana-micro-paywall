@@ -23,43 +23,33 @@ A Solana-native micro-paywall / pay-per-use SDK built on Solana Pay, targeting p
    # Edit .env with your configuration (already configured ✅)
    ```
 
-3. **Set up database (Manual Setup Required):**
+3. **Set up database:**
    
-   Due to network/firewall restrictions, run the SQL migration manually:
+   The database is managed via Cloudflare D1. For local development:
    
-   - Go to Supabase SQL Editor: https://boqdxdxkaszzfgfohdso.supabase.co
-   - Open `apps/backend/prisma/migrations/manual-setup.sql`
-   - Copy and paste the entire SQL into Supabase SQL Editor
-   - Click "Run"
-   - Verify tables were created in Table Editor
-   
-   **Note:** This is a one-time setup. After migration, all database operations use Prisma CLI or the API.
-
-4. **Generate Prisma client:**
    ```bash
-   cd apps/backend
-   npm run db:generate
+   cd apps/backend-workers
+   npm run db:migrate
    ```
 
-5. **Start development servers:**
+4. **Start development servers:**
    ```bash
-   # From project root - starts both backend and web app
-   npm run dev
+   # Start web app (frontend)
+   npm run dev:web
    
-   # Or start individually:
-   npm run dev:backend  # Backend API only
-   npm run dev:web      # Web app only
+   # Or start Workers locally (backend API)
+   npm run dev:workers
    ```
 
-The API will be available at `http://localhost:3000/api`  
-The Web App (Marketplace + Dashboard) will be available at `http://localhost:3001`
+The Web App (Marketplace + Dashboard) will be available at `http://localhost:3001`  
+The Workers API will be available at `http://localhost:8787` (when running locally)
 
 ## 📁 Project Structure
 
 ```
 solana-micro-paywall/
 ├── apps/
-│   ├── backend/          # NestJS API server
+│   ├── backend-workers/  # Cloudflare Workers API
 │   └── web/              # Next.js unified app (Marketplace + Dashboard)
 ├── packages/
 │   ├── widget-sdk/       # Embeddable payment widget
@@ -108,11 +98,11 @@ solana-micro-paywall/
 
 ## 🔧 Tech Stack
 
-- **Backend**: NestJS, TypeScript, Prisma, PostgreSQL (Supabase)
+- **Backend**: Cloudflare Workers, Hono, D1 Database, KV Cache
 - **Frontend**: Next.js 14, React, Tailwind CSS
-- **Blockchain**: Solana Web3.js, Solana Pay, Helius RPC
+- **Blockchain**: Solana Web3.js, Solana Pay
 - **Widget**: Vanilla JS/TypeScript with Solana Wallet Adapter
-- **Infrastructure**: Supabase, Redis, BullMQ
+- **Infrastructure**: Cloudflare Workers & Pages, D1, KV
 
 ## 📝 Quick API Examples
 

@@ -3,9 +3,10 @@ import { withSentryConfig } from '@sentry/nextjs';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    typedRoutes: true,
-  },
+  // Disabled typedRoutes due to external URL compatibility issues
+  // experimental: {
+  //   typedRoutes: true,
+  // },
   // Cloudflare Pages compatibility
   // Remove output: 'standalone' - Cloudflare Pages handles Next.js natively
   // output: 'standalone' is not compatible with Cloudflare Pages
