@@ -59,7 +59,9 @@ preview_id = "0ab7737d5e184851a1127d4ecc4b1102"
 # binding = "WEBHOOK_QUEUE"
 
 # Routes for custom domain
-[[env.production.routes]]
-pattern = "api.micropaywall.app/*"
-zone_name = "micropaywall.app"
+# NOTE: Routes are managed via Cloudflare Dashboard to avoid deployment conflicts
+# If you need to manage routes via wrangler.toml, first unassign them from the dashboard
+# [[env.production.routes]]
+# pattern = "api.micropaywall.app/*"
+# zone_name = "micropaywall.app"
 
