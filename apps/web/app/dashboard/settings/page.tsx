@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { apiClient } from '../../../lib/api-client';
+import { logger } from '../../../lib/logger';
 import { showSuccess, showError, showLoading, updateToast } from '../../../lib/toast';
 import { settingsSchema, type SettingsFormData } from '../../../lib/validations/settings';
 import { Button } from '../../../components/ui/button';
@@ -69,7 +70,7 @@ function SettingsPageContent() {
         });
       } catch (err: any) {
         logger.error('Failed to load merchant', err instanceof Error ? err : new Error(String(err)), {
-          merchantId,
+          merchantId: urlMerchantId || storedMerchantId,
         });
       } finally {
         setLoading(false);

@@ -67,8 +67,8 @@ function DashboardPageContent() {
   // Use SWR for data fetching with automatic caching and revalidation
   const { data: stats, error, isLoading } = useSWR<DashboardStats>(
     currentMerchantId ? `dashboard-${currentMerchantId}` : null,
-    async () => {
-      if (!currentMerchantId) return null;
+    async (): Promise<DashboardStats> => {
+      if (!currentMerchantId) throw new Error('Merchant ID required');
       return apiClient.getMerchantDashboard(currentMerchantId) as Promise<DashboardStats>;
     },
     {

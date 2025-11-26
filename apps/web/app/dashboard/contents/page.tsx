@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { apiClient } from '../../../lib/api-client';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { showSuccess, showError, showLoading, updateToast } from '../../../lib/toast';
+import { logger } from '../../../lib/logger';
 import { contentSchema, type ContentFormData } from '../../../lib/validations/content';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';

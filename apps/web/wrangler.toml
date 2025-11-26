@@ -1,0 +1,12 @@
+# Cloudflare Pages configuration for Next.js frontend
+# This file is used when deploying via Wrangler CLI
+# For GitHub Actions or Dashboard deployment, use the settings in the guide
+
+name = "micropaywall-pages"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = ".next"
+
+[env.production]
+name = "micropaywall-pages"
+compatibility_date = "2024-01-01"
+

@@ -42,8 +42,8 @@ function PaymentsPageContent() {
   // Get payment history
   const { data, error, isLoading, mutate } = useSWR<PaymentHistoryResponse>(
     merchantId ? `payments-${merchantId}-${page}` : null,
-    async () => {
-      if (!merchantId) return null;
+    async (): Promise<PaymentHistoryResponse> => {
+      if (!merchantId) throw new Error('Merchant ID required');
       // For now, we'll use the dashboard stats endpoint and extend it
       // In a real implementation, you'd have a dedicated payments endpoint
       const dashboard = await apiClient.getMerchantDashboard(merchantId) as any;

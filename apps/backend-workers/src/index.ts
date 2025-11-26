@@ -24,6 +24,7 @@ import { bookmarksRoutes } from './routes/bookmarks';
 const app = new Hono<{ Bindings: Env }>();
 
 // Global middleware
+// Logger and prettyJSON are lightweight, keep them enabled
 app.use('*', logger());
 app.use('*', prettyJSON());
 app.use('*', cors({

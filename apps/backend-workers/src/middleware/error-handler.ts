@@ -6,7 +6,17 @@ import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
 export async function errorHandler(err: Error, c: Context) {
-  console.error('Error:', err);
+  const env = c.env;
+  const isDevelopment = env.NODE_ENV === 'development';
+  
+  // Log error with context
+  console.error('Error:', {
+    message: err.message,
+    stack: isDevelopment ? err.stack : undefined,
+    path: c.req.path,
+    method: c.req.method,
+    timestamp: new Date().toISOString(),
+  });
 
   // Handle HTTP exceptions
   if (err instanceof HTTPException) {
@@ -15,6 +25,7 @@ export async function errorHandler(err: Error, c: Context) {
         error: err.message || 'An error occurred',
         status: err.status,
         path: c.req.path,
+        timestamp: new Date().toISOString(),
       },
       err.status
     );
@@ -27,20 +38,36 @@ export async function errorHandler(err: Error, c: Context) {
         error: 'Validation Error',
         message: err.message,
         path: c.req.path,
+        timestamp: new Date().toISOString(),
       },
       400
     );
   }
 
-  // Handle database errors
-  if (err.message?.includes('SQL') || err.message?.includes('database')) {
+  // Handle database errors (D1 specific)
+  if (err.message?.includes('SQL') || err.message?.includes('database') || err.message?.includes('D1')) {
+    // Don't expose database details in production
     return c.json(
       {
         error: 'Database Error',
-        message: 'An error occurred while processing your request',
+        message: isDevelopment ? err.message : 'An error occurred while processing your request',
         path: c.req.path,
+        timestamp: new Date().toISOString(),
       },
       500
+    );
+  }
+
+  // Handle timeout errors
+  if (err.message?.includes('timeout') || err.name === 'TimeoutError') {
+    return c.json(
+      {
+        error: 'Request Timeout',
+        message: 'The request took too long to process',
+        path: c.req.path,
+        timestamp: new Date().toISOString(),
+      },
+      504
     );
   }
 
@@ -48,8 +75,9 @@ export async function errorHandler(err: Error, c: Context) {
   return c.json(
     {
       error: 'Internal Server Error',
-      message: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred',
+      message: isDevelopment ? err.message : 'An unexpected error occurred',
       path: c.req.path,
+      timestamp: new Date().toISOString(),
     },
     500
   );

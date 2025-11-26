@@ -99,12 +99,12 @@ solana-micro-paywall/
 
 ## 📚 Documentation
 
+- [Deployment Guide](./DEPLOYMENT.md) - **Complete Cloudflare deployment instructions**
+- [Environment Variables](./ENVIRONMENT_VARIABLES.md) - Environment variable reference
 - [Product Blueprint](./docs/product-blueprint.md) - Full specification
-- [Setup Progress](./docs/setup-progress.md) - Development status
-- [Manual Database Setup](./docs/manual-database-setup.md) - **IMPORTANT: Database setup guide**
+- [API Guide](./docs/API_GUIDE.md) - API documentation
 - [Widget SDK Guide](./packages/widget-sdk/README.md) - Widget usage
-- [Merchant Module](./docs/merchant-module-complete.md) - Merchant API docs
-- [Widget SDK & Dashboard](./docs/widget-sdk-dashboard-complete.md) - Frontend docs
+- [Integration Guide](./docs/INTEGRATION_GUIDE.md) - Integration examples
 
 ## 🔧 Tech Stack
 

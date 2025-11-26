@@ -39,8 +39,8 @@ function AnalyticsPageContent() {
 
   const { data: stats, error, isLoading } = useSWR<DashboardStats>(
     merchantId ? `dashboard-${merchantId}` : null,
-    async () => {
-      if (!merchantId) return null;
+    async (): Promise<DashboardStats> => {
+      if (!merchantId) throw new Error('Merchant ID required');
       return apiClient.getMerchantDashboard(merchantId) as Promise<DashboardStats>;
     },
     {

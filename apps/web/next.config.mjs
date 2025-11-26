@@ -7,7 +7,8 @@ const nextConfig = {
     typedRoutes: true,
   },
   // Cloudflare Pages compatibility
-  output: 'standalone', // For better compatibility
+  // Remove output: 'standalone' - Cloudflare Pages handles Next.js natively
+  // output: 'standalone' is not compatible with Cloudflare Pages
   images: {
     domains: [],
     remotePatterns: [
