@@ -56,6 +56,11 @@ export function ContentDetail({ content }: ContentDetailProps) {
       return;
     }
 
+    if (!signTransaction) {
+      showError('Wallet sign function not available. Please reconnect your wallet.');
+      return;
+    }
+
     setLoading(true);
     const loadingToast = showLoading('Creating payment request...');
     
