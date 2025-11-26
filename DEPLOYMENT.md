@@ -85,7 +85,7 @@ Required variables:
 
 ### Pages (via Dashboard)
 
-Go to: **Workers & Pages** → **Pages** → **micropaywall-pages** → **Settings** → **Environment Variables**
+Go to: **Workers & Pages** → **Pages** → **micropaywall** → **Settings** → **Environment Variables**
 
 Add:
 - `NEXT_PUBLIC_API_URL` = `https://api.micropaywall.app`
@@ -108,7 +108,7 @@ git push origin main
 
 GitHub Actions will automatically:
 - Deploy Workers to `micropaywall-api`
-- Deploy Pages to `micropaywall-pages`
+- Deploy Pages to `micropaywall`
 
 ### Manual Deployment
 
@@ -130,7 +130,7 @@ Already configured in `wrangler.toml`:
 
 ### Pages (Frontend)
 
-1. Go to: **Workers & Pages** → **Pages** → **micropaywall-pages**
+1. Go to: **Workers & Pages** → **Pages** → **micropaywall**
 2. Click: **Custom domains** → **Set up a custom domain**
 3. Enter: `micropaywall.app`
 4. Cloudflare will configure DNS automatically
@@ -146,7 +146,7 @@ curl https://api.micropaywall.app/health
 
 ### Test Frontend
 
-Visit: `https://micropaywall-pages.pages.dev` (or `https://micropaywall.app` after domain setup)
+Visit: `https://micropaywall.pages.dev` (or `https://micropaywall.app` after domain setup)
 
 ## 🐛 Troubleshooting
 
