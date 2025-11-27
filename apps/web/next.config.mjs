@@ -1,8 +1,10 @@
-import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
-
 // Skip Sentry for Cloudflare Pages builds to avoid module resolution issues
 // Sentry tries to load 'next/constants' before Next.js is fully available during build
 const skipSentry = process.env.SKIP_SENTRY === 'true';
+
+// Skip setupDevPlatform during builds - it requires wrangler which isn't needed for builds
+// Only needed for local development with 'next dev'
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -74,10 +76,9 @@ const nextConfig = {
   },
 };
 
-// Setup Cloudflare dev platform for local development
-if (process.env.NODE_ENV === 'development') {
-  setupDevPlatform().catch(console.error);
-}
+// Skip setupDevPlatform during builds - it requires wrangler which isn't installed during builds
+// setupDevPlatform is only needed for local development with 'next dev'
+// During Cloudflare Pages builds (when SKIP_SENTRY is set), we skip this entirely
 
 // Skip Sentry wrapper for Cloudflare builds to avoid module loading errors
 // Sentry causes build failures because it tries to access Next.js modules
