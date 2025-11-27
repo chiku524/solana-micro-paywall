@@ -11,6 +11,7 @@ import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
 import { Env } from './types/env';
 import { errorHandler } from './middleware/error-handler';
+import { securityHeaders } from './middleware/security-headers';
 import { healthRoutes } from './routes/health';
 import { authRoutes } from './routes/auth';
 import { merchantsRoutes } from './routes/merchants';
@@ -19,11 +20,16 @@ import { discoverRoutes } from './routes/discover';
 import { paymentsRoutes } from './routes/payments';
 import { purchasesRoutes } from './routes/purchases';
 import { bookmarksRoutes } from './routes/bookmarks';
+import { analyticsRoutes } from './routes/analytics';
+import { recommendationsRoutes } from './routes/recommendations';
+import { referralsRoutes } from './routes/referrals';
 
 // Create Hono app with environment bindings
 const app = new Hono<{ Bindings: Env }>();
 
 // Global middleware
+// Security headers (apply first)
+app.use('*', securityHeaders());
 // Logger and prettyJSON are lightweight, keep them enabled
 app.use('*', logger());
 app.use('*', prettyJSON());
@@ -81,6 +87,9 @@ discoverRoutes(api);
 paymentsRoutes(api);
 purchasesRoutes(api);
 bookmarksRoutes(api);
+analyticsRoutes(api);
+recommendationsRoutes(api);
+referralsRoutes(api);
 
 // Mount API routes
 app.route('/api', api);

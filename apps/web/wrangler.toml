@@ -1,10 +1,13 @@
 # Cloudflare Pages configuration for Next.js frontend
 # This file is used when deploying via Wrangler CLI
 # For GitHub Actions or Dashboard deployment, use the settings in the guide
+#
+# Note: When using @cloudflare/next-on-pages, the output is in .vercel/output
+# which contains both static files and functions directory for routing
 
 name = "micropaywall"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = ".next"
+pages_build_output_dir = ".vercel/output"
 
 [env.production]
 name = "micropaywall"

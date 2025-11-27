@@ -5,10 +5,11 @@
 import { Hono } from 'hono';
 import { Env } from '../types/env';
 import { query, queryOne } from '../utils/db';
+import { cacheResponse } from '../middleware/cache';
 
 export function discoverRoutes(app: Hono<{ Bindings: Env }>) {
-  // Discover contents (public)
-  app.get('/discover/contents', async (c) => {
+  // Discover contents (public) - cache for 5 minutes
+  app.get('/discover/contents', cacheResponse({ ttl: 300 }), async (c) => {
     try {
       const category = c.req.query('category');
       const tags = c.req.query('tags')?.split(',') || [];
@@ -226,8 +227,8 @@ export function discoverRoutes(app: Hono<{ Bindings: Env }>) {
     }
   });
 
-  // Get categories (public)
-  app.get('/discover/categories', async (c) => {
+  // Get categories (public) - cache for 15 minutes (rarely changes)
+  app.get('/discover/categories', cacheResponse({ ttl: 900 }), async (c) => {
     try {
       const categories = await query<{ category: string; count: number }>(
         c.env.DB,
@@ -246,8 +247,8 @@ export function discoverRoutes(app: Hono<{ Bindings: Env }>) {
     }
   });
 
-  // Get trending (public)
-  app.get('/discover/trending', async (c) => {
+  // Get trending (public) - cache for 5 minutes
+  app.get('/discover/trending', cacheResponse({ ttl: 300 }), async (c) => {
     try {
       const limit = parseInt(c.req.query('limit') || '10');
 

@@ -35,7 +35,7 @@ jobs:
           rm -rf .next .cache
           echo "✅ Cleaned previous build artifacts"
 
-      - name: Build Next.js app
+      - name: Build Next.js app for Cloudflare Pages
         working-directory: apps/web
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://api.micropaywall.app' }}
@@ -46,37 +46,71 @@ jobs:
           # Disable all caching to prevent large cache files
           NEXT_CACHE: false
           WEBPACK_CACHE: false
-        run: npm run build
+        run: npm run pages:build
+
+      - name: Verify build output structure
+        working-directory: apps/web
+        run: |
+          echo "📁 Verifying .vercel/output structure..."
+          if [ ! -d ".vercel/output" ]; then
+            echo "❌ ERROR: .vercel/output directory not found after build!"
+            exit 1
+          fi
+          echo "✅ Found .vercel/output directory"
+          echo ""
+          echo "📂 Directory contents:"
+          ls -lah .vercel/output || echo "Cannot list directory"
+          echo ""
+          if [ -d ".vercel/output/static" ]; then
+            echo "✅ Found static directory"
+            echo "   Size: $(du -sh .vercel/output/static | cut -f1)"
+          else
+            echo "⚠️  WARNING: static directory not found"
+          fi
+          if [ -d ".vercel/output/functions" ]; then
+            echo "✅ Found functions directory (needed for routing)"
+            echo "   Size: $(du -sh .vercel/output/functions | cut -f1)"
+          else
+            echo "⚠️  WARNING: functions directory not found (routing may not work)"
+          fi
 
       - name: Clean build output for deployment
         working-directory: apps/web
         run: |
           echo "🧹 Cleaning build output..."
-          # Remove all cache directories (in .next, root, and nested)
+          # Remove cache directories from .next before Cloudflare build
           rm -rf .next/cache cache .cache node_modules/.cache 2>/dev/null || true
-          # Remove webpack cache directories recursively in .next
           find .next -type d -name "cache" -exec rm -rf {} + 2>/dev/null || true
-          # Remove any cache directories at root level
           find . -maxdepth 1 -type d -name "cache" -exec rm -rf {} + 2>/dev/null || true
-          # Remove webpack pack files everywhere
+          # Remove webpack pack files
           find .next -name "*.pack" -type f -delete 2>/dev/null || true
           find . -maxdepth 1 -name "*.pack" -type f -delete 2>/dev/null || true
+          echo "✅ Cleaned cache files before build"
+      
+      - name: Clean Cloudflare Pages output for deployment
+        working-directory: apps/web
+        run: |
+          echo "🧹 Cleaning Cloudflare Pages output..."
+          # Clean output directory if it exists
+          rm -rf .vercel/output/static/cache 2>/dev/null || true
           # Remove any files larger than 25MB (Cloudflare Pages limit)
-          find .next -type f -size +25M -exec rm -f {} + 2>/dev/null || true
-          find . -maxdepth 1 -type f -size +25M -exec rm -f {} + 2>/dev/null || true
+          find .vercel/output -type f -size +25M -exec rm -f {} + 2>/dev/null || true
           # Verify no large files remain
-          echo "✅ Cleaned cache files and large files"
           echo "📊 Checking for remaining large files (>20MB)..."
-          LARGE_FILES=$(find .next . -maxdepth 1 -type f -size +20M 2>/dev/null | wc -l)
-          if [ "$LARGE_FILES" -gt 0 ]; then
-            echo "⚠️  Found $LARGE_FILES large file(s):"
-            find .next . -maxdepth 1 -type f -size +20M -exec ls -lh {} \; 2>/dev/null | head -10
-            exit 1
-          else
-            echo "✅ No large files found"
+          if [ -d ".vercel/output" ]; then
+            LARGE_FILES=$(find .vercel/output -type f -size +20M 2>/dev/null | wc -l)
+            if [ "$LARGE_FILES" -gt 0 ]; then
+              echo "⚠️  Found $LARGE_FILES large file(s):"
+              find .vercel/output -type f -size +20M -exec ls -lh {} \; 2>/dev/null | head -10
+              exit 1
+            else
+              echo "✅ No large files found in output"
+            fi
+            echo "📁 Deployment directory structure (.vercel/output):"
+            du -sh .vercel/output 2>/dev/null || echo "No output directory"
+            echo "📁 Contents:"
+            ls -lah .vercel/output 2>/dev/null || echo "Cannot list output"
           fi
-          echo "📁 Deployment directory structure (.next):"
-          du -sh .next 2>/dev/null || echo "No .next directory"
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -84,7 +118,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: micropaywall
-          directory: apps/web/.next
+          directory: apps/web/.vercel/output
           wranglerVersion: '3'
           branch: ${{ github.ref_name }}
 

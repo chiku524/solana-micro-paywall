@@ -1,4 +1,5 @@
 import { withSentryConfig } from '@sentry/nextjs';
+import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -76,6 +77,11 @@ const sentryOptions = {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
 };
+
+// Setup Cloudflare dev platform for local development
+if (process.env.NODE_ENV === 'development') {
+  setupDevPlatform().catch(console.error);
+}
 
 export default process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(nextConfig, sentryOptions)
