@@ -46,6 +46,8 @@ jobs:
           # Disable all caching to prevent large cache files
           NEXT_CACHE: false
           WEBPACK_CACHE: false
+          # Skip Sentry during Cloudflare build to avoid module resolution errors
+          SKIP_SENTRY: 'true'
         run: npm run pages:build
 
       - name: Verify build output structure
