@@ -25,7 +25,12 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
   // Code splitting optimizations
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
+    // Disable webpack cache for production builds to avoid large cache files
+    if (!dev) {
+      config.cache = false;
+    }
+    
     if (!isServer) {
       // Optimize chunks for better code splitting
       config.optimization = {

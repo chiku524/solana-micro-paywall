@@ -29,6 +29,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Clean previous builds
+        working-directory: apps/web
+        run: |
+          rm -rf .next .cache
+          echo "✅ Cleaned previous build artifacts"
+
       - name: Build Next.js app
         working-directory: apps/web
         env:
@@ -37,7 +43,40 @@ jobs:
           NEXT_PUBLIC_SOLANA_RPC_MAINNET: ${{ secrets.NEXT_PUBLIC_SOLANA_RPC_MAINNET || 'https://api.mainnet-beta.solana.com' }}
           NEXT_PUBLIC_SOLANA_NETWORK: ${{ secrets.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet' }}
           NEXT_PUBLIC_WEB_URL: ${{ secrets.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app' }}
+          # Disable all caching to prevent large cache files
+          NEXT_CACHE: false
+          WEBPACK_CACHE: false
         run: npm run build
+
+      - name: Clean build output for deployment
+        working-directory: apps/web
+        run: |
+          echo "🧹 Cleaning build output..."
+          # Remove all cache directories (in .next, root, and nested)
+          rm -rf .next/cache cache .cache node_modules/.cache 2>/dev/null || true
+          # Remove webpack cache directories recursively in .next
+          find .next -type d -name "cache" -exec rm -rf {} + 2>/dev/null || true
+          # Remove any cache directories at root level
+          find . -maxdepth 1 -type d -name "cache" -exec rm -rf {} + 2>/dev/null || true
+          # Remove webpack pack files everywhere
+          find .next -name "*.pack" -type f -delete 2>/dev/null || true
+          find . -maxdepth 1 -name "*.pack" -type f -delete 2>/dev/null || true
+          # Remove any files larger than 25MB (Cloudflare Pages limit)
+          find .next -type f -size +25M -exec rm -f {} + 2>/dev/null || true
+          find . -maxdepth 1 -type f -size +25M -exec rm -f {} + 2>/dev/null || true
+          # Verify no large files remain
+          echo "✅ Cleaned cache files and large files"
+          echo "📊 Checking for remaining large files (>20MB)..."
+          LARGE_FILES=$(find .next . -maxdepth 1 -type f -size +20M 2>/dev/null | wc -l)
+          if [ "$LARGE_FILES" -gt 0 ]; then
+            echo "⚠️  Found $LARGE_FILES large file(s):"
+            find .next . -maxdepth 1 -type f -size +20M -exec ls -lh {} \; 2>/dev/null | head -10
+            exit 1
+          else
+            echo "✅ No large files found"
+          fi
+          echo "📁 Deployment directory structure (.next):"
+          du -sh .next 2>/dev/null || echo "No .next directory"
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
