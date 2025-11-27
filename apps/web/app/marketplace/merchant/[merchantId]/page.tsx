@@ -26,6 +26,7 @@ interface MerchantProfilePageProps {
   };
 }
 
+export const runtime = 'edge'; // Required for Cloudflare Pages
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
 export default async function MerchantProfilePage({ params }: MerchantProfilePageProps) {

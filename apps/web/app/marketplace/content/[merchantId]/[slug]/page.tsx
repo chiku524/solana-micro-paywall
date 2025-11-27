@@ -11,6 +11,7 @@ interface ContentPageProps {
   };
 }
 
+export const runtime = 'edge'; // Required for Cloudflare Pages
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
 export default async function ContentPage({ params }: ContentPageProps) {
