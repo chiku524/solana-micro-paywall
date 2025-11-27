@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
-    "build:cloudflare": "next build && @cloudflare/next-on-pages",
-    "pages:build": "next build && @cloudflare/next-on-pages",
+    "build:cloudflare": "next build && npx @cloudflare/next-on-pages",
+    "pages:build": "next build && npx @cloudflare/next-on-pages",
     "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output --project-name=micropaywall",
     "start": "next start -p 3001",
     "lint": "next lint",
