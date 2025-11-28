@@ -293,15 +293,26 @@ jobs:
           echo "🔧 Applying fix strategy..."
           
           # Strategy: Since homepage is a pre-rendered client component, 
-          # remove the function route handler and let Cloudflare serve the static file
+          # remove ALL function route handlers (both symlink and directory) and let Cloudflare serve the static file
           # This is more reliable for pre-rendered pages
           
+          # Remove the symlink if it exists
           if [ -L ".vercel/output/functions/index.func" ] || [ -d ".vercel/output/functions/index.func" ]; then
-            echo "   Removing index.func (function route handler)"
+            echo "   Removing index.func (function route handler symlink/directory)"
             rm -rf .vercel/output/functions/index.func
             echo "   ✅ Removed index.func"
-            echo "   ℹ️  Cloudflare will now serve static/index.html for the homepage"
           fi
+          
+          # CRITICAL: Also remove index.rsc.func directory - Cloudflare Pages will try to use it
+          # even if index.func is removed, causing 404 errors
+          if [ -d ".vercel/output/functions/index.rsc.func" ]; then
+            echo "   Removing index.rsc.func directory (function route handler)"
+            rm -rf .vercel/output/functions/index.rsc.func
+            echo "   ✅ Removed index.rsc.func directory"
+            echo "   ℹ️  This prevents Cloudflare from trying to use a broken function route"
+          fi
+          
+          echo "   ℹ️  Cloudflare will now serve static/index.html for the homepage"
           
           # Also check and fix dashboard.func if it has the same issue
           if [ -L ".vercel/output/functions/dashboard.func" ]; then
@@ -337,6 +348,17 @@ jobs:
           else
             echo "   ✅ index.func removed - using static file serving"
           fi
+          
+          if [ -d ".vercel/output/functions/index.rsc.func" ]; then
+            echo "   ⚠️  index.rsc.func still exists (should have been removed)"
+          else
+            echo "   ✅ index.rsc.func removed - using static file serving"
+          fi
+          
+          # Verify no index-related functions remain
+          echo ""
+          echo "🔍 Checking for any remaining index-related functions:"
+          ls -la .vercel/output/functions/ | grep -E "^[^d].*index|^d.*index" || echo "   ✅ No index-related functions found"
 
       - name: Verify static file serving configuration
         working-directory: apps/web
@@ -351,6 +373,20 @@ jobs:
           else
             echo "⚠️  404.html not found"
             echo "   This might be needed for client-side routing"
+          fi
+          
+          # Verify index.html is in the correct location
+          echo ""
+          echo "📋 Verifying static/index.html:"
+          if [ -f ".vercel/output/static/index.html" ]; then
+            echo "   ✅ static/index.html exists"
+            echo "   Location: .vercel/output/static/index.html"
+            echo "   Size: $(wc -c < .vercel/output/static/index.html) bytes"
+            echo "   First 100 chars: $(head -c 100 .vercel/output/static/index.html)"
+          else
+            echo "   ❌ static/index.html NOT FOUND - this will cause 404!"
+            echo "   Listing static directory:"
+            ls -la .vercel/output/static/ | head -20
           fi
           
           # Check config.json routing rules
@@ -370,6 +406,19 @@ jobs:
               echo "   ⚠️  Found redirect rules - checking:"
               grep -B 2 -A 3 '"status": 30' .vercel/output/config.json | head -15
             fi
+          fi
+          
+          # Final check: Ensure no function routes interfere with homepage
+          echo ""
+          echo "🔍 Final check - ensuring no function routes for homepage:"
+          if [ -L ".vercel/output/functions/index.func" ] || [ -d ".vercel/output/functions/index.func" ] || [ -d ".vercel/output/functions/index.rsc.func" ]; then
+            echo "   ❌ ERROR: Function route handlers still exist for homepage!"
+            echo "   This will prevent static file serving"
+            echo "   Remaining files:"
+            ls -la .vercel/output/functions/ | grep index
+            exit 1
+          else
+            echo "   ✅ No function route handlers for homepage - static file will be served"
           fi
           
           echo ""
