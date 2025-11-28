@@ -340,6 +340,41 @@ jobs:
             exit 1
           fi
           
+          # CRITICAL: Ensure _next directory is accessible at root level for CSS/JS assets
+          # The HTML references /_next/static/... but files are in static/_next/static/...
+          # Cloudflare Pages needs _next at root level for assets to load
+          echo ""
+          echo "🔧 Ensuring _next directory is accessible for CSS/JS assets..."
+          if [ -d ".vercel/output/static/_next" ]; then
+            if [ -d ".vercel/output/_next" ]; then
+              echo "   ℹ️  Root-level _next already exists"
+            else
+              echo "   📋 Copying _next directory to root level (for CSS/JS assets)"
+              # Use cp -r to copy the directory (symlinks might not work in deployment)
+              cp -r .vercel/output/static/_next .vercel/output/_next
+              echo "   ✅ Copied _next directory to root level"
+              echo "   ℹ️  This ensures CSS/JS assets are accessible at /_next/static/..."
+            fi
+            # Verify it was created
+            if [ -d ".vercel/output/_next" ]; then
+              echo "   ✅ Verified: _next is accessible at root level"
+              if [ -d ".vercel/output/_next/static" ]; then
+                echo "   Checking _next/static structure:"
+                ls -la .vercel/output/_next/static/ 2>/dev/null | head -5
+                CSS_FILES=$(find .vercel/output/_next/static -name "*.css" 2>/dev/null | wc -l)
+                JS_FILES=$(find .vercel/output/_next/static -name "*.js" 2>/dev/null | wc -l)
+                echo "   Found: $CSS_FILES CSS files, $JS_FILES JS files in _next/static"
+              fi
+            else
+              echo "   ❌ ERROR: Failed to create _next directory - CSS/JS won't load"
+              exit 1
+            fi
+          else
+            echo "   ⚠️  WARNING: static/_next directory not found - CSS/JS files might be missing"
+            echo "   Listing static directory contents:"
+            ls -la .vercel/output/static/ | head -10
+          fi
+          
           # Also check and fix dashboard.func if it has the same issue
           if [ -L ".vercel/output/functions/dashboard.func" ]; then
             DASHBOARD_TARGET=$(readlink .vercel/output/functions/dashboard.func)
@@ -485,6 +520,29 @@ jobs:
           else
             echo "   ❌ ERROR: Root-level index.html missing!"
             echo "   This is required for Cloudflare Pages to serve the homepage"
+            exit 1
+          fi
+          
+          # Verify _next directory is accessible for CSS/JS
+          echo ""
+          echo "🔍 Verifying _next directory for CSS/JS assets..."
+          if [ -d ".vercel/output/_next" ] || [ -L ".vercel/output/_next" ]; then
+            echo "   ✅ _next directory is accessible at root level"
+            if [ -d ".vercel/output/_next/static" ]; then
+              CSS_COUNT=$(find .vercel/output/_next/static -name "*.css" 2>/dev/null | wc -l)
+              JS_COUNT=$(find .vercel/output/_next/static -name "*.js" 2>/dev/null | wc -l)
+              echo "   Found: $CSS_COUNT CSS files, $JS_COUNT JS files"
+              if [ "$CSS_COUNT" -eq 0 ]; then
+                echo "   ⚠️  WARNING: No CSS files found - styling won't work!"
+              fi
+            else
+              echo "   ⚠️  WARNING: _next/static directory not found"
+            fi
+          else
+            echo "   ❌ ERROR: _next directory not accessible at root level!"
+            echo "   CSS/JS assets won't load - this will cause styling issues"
+            echo "   Checking if static/_next exists:"
+            ls -la .vercel/output/static/ | grep _next || echo "   static/_next not found"
             exit 1
           fi
           
