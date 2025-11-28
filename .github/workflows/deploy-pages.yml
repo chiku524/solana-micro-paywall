@@ -161,6 +161,93 @@ jobs:
           echo ""
           echo "Checking for catch-all route:"
           ls -la .vercel/output/functions/ 2>/dev/null | grep -E "\[\[path\]\]|_worker|index" || echo "Catch-all route not found"
+          echo ""
+          echo "Checking for config.json:"
+          cat .vercel/output/config.json 2>/dev/null || echo "config.json not found or not readable"
+          echo ""
+          echo "Verifying index.html exists:"
+          ls -la .vercel/output/static/index.html 2>/dev/null || echo "index.html not found in static directory"
+
+      - name: Verify critical files for routing
+        working-directory: apps/web
+        run: |
+          echo "🔍 Verifying critical routing files..."
+          echo ""
+          
+          # Check for homepage files (index.html or prerender fallback)
+          if [ -f ".vercel/output/static/index.html" ]; then
+            echo "✅ Found index.html"
+          elif [ -f ".vercel/output/static/index.prerender-fallback.html" ]; then
+            echo "✅ Found index.prerender-fallback.html (homepage fallback)"
+          else
+            echo "⚠️  WARNING: No homepage file found (index.html or index.prerender-fallback.html)"
+            echo "   Static directory contents:"
+            ls -la .vercel/output/static/ | grep -E "index|404" | head -10
+          fi
+          
+          # Check for functions directory
+          if [ ! -d ".vercel/output/functions" ]; then
+            echo "❌ ERROR: functions directory not found!"
+            exit 1
+          fi
+          echo "✅ Found functions directory"
+          
+          # Check for index function (homepage route handler)
+          if [ -d ".vercel/output/functions/index.func" ] || [ -L ".vercel/output/functions/index.func" ]; then
+            echo "✅ Found index.func (homepage route handler)"
+            # Check if it's a symlink and where it points
+            if [ -L ".vercel/output/functions/index.func" ]; then
+              LINK_TARGET=$(readlink .vercel/output/functions/index.func)
+              echo "   ⚠️  WARNING: index.func is a symlink pointing to: $LINK_TARGET"
+              if [[ "$LINK_TARGET" != "index.rsc.func" ]] && [[ "$LINK_TARGET" != "./index.rsc.func" ]]; then
+                echo "   ❌ ERROR: index.func should point to index.rsc.func, not $LINK_TARGET"
+                echo "   This is likely causing the 404 error!"
+              fi
+            fi
+          else
+            echo "⚠️  WARNING: index.func not found - checking for alternative structure..."
+            ls -la .vercel/output/functions/ | grep -E "index|^\.\.?$" | head -10
+          fi
+          
+          # Check for catch-all route handler (may not exist if all routes are pre-rendered)
+          if [ -f ".vercel/output/functions/[[path]].js" ] || [ -d ".vercel/output/functions/[[path]].func" ] || [ -d ".vercel/output/functions/[[path]]" ]; then
+            echo "✅ Found catch-all route handler ([[path]])"
+          else
+            echo "⚠️  WARNING: Catch-all route handler ([[path]]) not found"
+            echo "   This may be OK if all routes are pre-rendered, but dynamic routes won't work"
+            echo "   Functions directory contents:"
+            ls -la .vercel/output/functions/ | head -15
+          fi
+          
+          # Check for config.json and examine routing configuration
+          if [ -f ".vercel/output/config.json" ]; then
+            echo "✅ Found config.json"
+            echo "   Checking routing configuration..."
+            if grep -q "routes" .vercel/output/config.json 2>/dev/null; then
+              echo "   Routing configuration found in config.json"
+            else
+              echo "   ⚠️  WARNING: No routing configuration found in config.json"
+            fi
+            echo "   Config.json preview (first 30 lines):"
+            cat .vercel/output/config.json | head -30
+          else
+            echo "❌ ERROR: config.json not found - this is required!"
+            exit 1
+          fi
+          
+          # Check for middleware function
+          if [ -d ".vercel/output/functions/middleware.func" ]; then
+            echo "✅ Found middleware.func"
+          else
+            echo "⚠️  WARNING: middleware.func not found (middleware may not be working)"
+          fi
+          
+          echo ""
+          echo "📊 Summary:"
+          echo "   Static files: $(find .vercel/output/static -type f 2>/dev/null | wc -l)"
+          echo "   Function directories: $(find .vercel/output/functions -type d -name "*.func" 2>/dev/null | wc -l)"
+          echo ""
+          echo "✅ Critical files verification complete"
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -171,4 +258,5 @@ jobs:
           directory: apps/web/.vercel/output
           wranglerVersion: '3'
           branch: ${{ github.ref_name }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
