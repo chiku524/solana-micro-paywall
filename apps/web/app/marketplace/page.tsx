@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { apiClient } from '../../lib/api-client';
+import { apiClient, type Content, type DiscoverResponse } from '../../lib/api-client';
 import { ContentCard } from '../../components/marketplace/content-card';
 import { TrendingSection } from '../../components/marketplace/trending-section';
 import { CategoriesSection } from '../../components/marketplace/categories-section';
@@ -49,13 +49,13 @@ export const metadata: Metadata = {
 
 export default async function MarketplacePage() {
   // Wrap API calls in try-catch to prevent 503 errors during prefetch
-  let trending = [];
-  let recent = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
+  let trending: Content[] = [];
+  let recent: DiscoverResponse = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
   
   try {
     [trending, recent] = await Promise.all([
-      apiClient.getTrending(6).catch(() => []),
-      apiClient.discoverContents({ sort: 'newest', limit: 12 }).catch(() => ({ contents: [], total: 0, page: 1, limit: 12, totalPages: 0 })),
+      apiClient.getTrending(6).catch(() => [] as Content[]),
+      apiClient.discoverContents({ sort: 'newest', limit: 12 }).catch(() => ({ contents: [], total: 0, page: 1, limit: 12, totalPages: 0 }) as DiscoverResponse),
     ]);
   } catch (error) {
     // If API calls fail, render page with empty data instead of throwing
