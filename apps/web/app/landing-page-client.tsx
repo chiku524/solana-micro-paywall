@@ -117,15 +117,24 @@ export function LandingPageClient() {
               Solana Micro-Paywall
             </Link>
             <div className="hidden md:flex items-center space-x-6">
-              <Link href="/marketplace" className="text-sm lg:text-base text-neutral-300 hover:text-white transition">
+              <Link 
+                href="/marketplace" 
+                className="text-sm lg:text-base text-neutral-300 hover:text-white transition"
+                prefetch={true}
+              >
                 Marketplace
               </Link>
-              <Link href="/docs" className="text-sm lg:text-base text-neutral-300 hover:text-white transition">
+              <Link 
+                href="/docs" 
+                className="text-sm lg:text-base text-neutral-300 hover:text-white transition"
+                prefetch={true}
+              >
                 Docs
               </Link>
               <Link
                 href="/dashboard"
                 className="text-sm lg:text-base text-emerald-400 hover:text-emerald-300 transition font-medium"
+                prefetch={true}
               >
                 For Merchants
               </Link>
@@ -184,6 +193,7 @@ export function LandingPageClient() {
               <Link
                 href="/dashboard"
                 className="group inline-flex items-center justify-center rounded-lg bg-emerald-500 px-8 py-4 text-lg font-semibold text-emerald-950 transition-all hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/25"
+                prefetch={true}
               >
                 Start Selling
                 <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -191,6 +201,7 @@ export function LandingPageClient() {
               <Link
                 href="/marketplace"
                 className="inline-flex items-center justify-center rounded-lg border-2 border-neutral-700 px-8 py-4 text-lg font-semibold text-neutral-100 transition-all hover:border-neutral-600 hover:bg-neutral-800/50"
+                prefetch={true}
               >
                 Browse Marketplace
               </Link>
@@ -364,6 +375,7 @@ export function LandingPageClient() {
               <Link
                 href="/dashboard"
                 className="group inline-flex items-center justify-center rounded-lg bg-emerald-500 px-8 py-4 text-lg font-semibold text-emerald-950 transition-all hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/25"
+                prefetch={true}
               >
                 Get Started Free
                 <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -371,6 +383,7 @@ export function LandingPageClient() {
               <Link
                 href="/marketplace"
                 className="inline-flex items-center justify-center rounded-lg border-2 border-neutral-700 px-8 py-4 text-lg font-semibold text-neutral-100 transition-all hover:border-neutral-600 hover:bg-neutral-800/50"
+                prefetch={true}
               >
                 Explore Marketplace
               </Link>
