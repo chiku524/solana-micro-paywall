@@ -477,6 +477,31 @@ export class ApiClient {
     );
   }
 
+  // Analytics
+  async exportPayments(merchantId: string, params?: { startDate?: string; endDate?: string }): Promise<Blob> {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.append('startDate', params.startDate);
+    if (params?.endDate) query.append('endDate', params.endDate);
+    
+    const authHeaders = getAuthHeader();
+    
+    const response = await fetch(
+      `${this.baseUrl}/analytics/export/${merchantId}?${query.toString()}`,
+      {
+        headers: {
+          ...authHeaders,
+        },
+      }
+    );
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Export failed: ${response.statusText} - ${errorText}`);
+    }
+    
+    return response.blob();
+  }
+
   // Referrals
   async createReferralCode(data: {
     merchantId?: string;

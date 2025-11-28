@@ -4,6 +4,7 @@ import './globals.css';
 import { AppProviders } from '../components/app-providers';
 import { ToastProvider } from '../components/ui/toast-provider';
 import { BackgroundAnimation } from '../components/ui/background-animation';
+import { ErrorBoundary } from '../components/ui/error-boundary';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -98,10 +99,12 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`}>
         <BackgroundAnimation />
-        <AppProviders>
-          {children}
-          <ToastProvider />
-        </AppProviders>
+        <ErrorBoundary>
+          <AppProviders>
+            {children}
+            <ToastProvider />
+          </AppProviders>
+        </ErrorBoundary>
       </body>
     </html>
   );

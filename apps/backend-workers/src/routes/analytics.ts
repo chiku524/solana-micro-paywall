@@ -205,5 +205,77 @@ export function analyticsRoutes(app: Hono<{ Bindings: Env }>) {
       return c.json({ error: 'Internal Server Error', message: error.message }, 500);
     }
   });
+
+  // Export payments data as CSV (authenticated)
+  app.get('/analytics/export/:merchantId', authMiddleware, async (c) => {
+    try {
+      const merchantId = c.req.param('merchantId');
+      const startDate = c.req.query('startDate');
+      const endDate = c.req.query('endDate');
+      const user = c.get('merchant');
+
+      // Merchants can only export their own data
+      if (user && merchantId !== user.merchantId) {
+        return c.json({ error: 'Unauthorized', message: 'Cannot export another merchant\'s data' }, 403);
+      }
+
+      let where = 'PaymentIntent.merchantId = ?';
+      const params: any[] = [merchantId];
+
+      if (startDate) {
+        where += ' AND Payment.confirmedAt >= ?';
+        params.push(startDate);
+      }
+      if (endDate) {
+        where += ' AND Payment.confirmedAt <= ?';
+        params.push(endDate);
+      }
+
+      const payments = await query(
+        c.env.DB,
+        `SELECT 
+          Payment.id,
+          Payment.txSignature,
+          Payment.amount,
+          Payment.currency,
+          Payment.payerWallet,
+          Payment.confirmedAt,
+          Content.slug as contentSlug,
+          Content.title as contentTitle,
+          PaymentIntent.memo
+         FROM Payment
+         INNER JOIN PaymentIntent ON Payment.intentId = PaymentIntent.id
+         LEFT JOIN Content ON PaymentIntent.contentId = Content.id
+         WHERE ${where}
+         ORDER BY Payment.confirmedAt DESC`,
+        params
+      );
+
+      // Generate CSV
+      const headers = ['Date', 'Transaction', 'Content', 'Amount (SOL)', 'Currency', 'Payer Wallet', 'Memo'];
+      const rows = payments.map((p: any) => [
+        new Date(p.confirmedAt).toISOString(),
+        p.txSignature,
+        p.contentTitle || p.contentSlug || 'N/A',
+        (Number(p.amount) / 1e9).toFixed(9),
+        p.currency || 'SOL',
+        p.payerWallet,
+        p.memo || '',
+      ]);
+
+      const csv = [
+        headers.join(','),
+        ...rows.map((row: any[]) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+      ].join('\n');
+
+      return c.text(csv, 200, {
+        'Content-Type': 'text/csv',
+        'Content-Disposition': `attachment; filename="payments-export-${merchantId}-${Date.now()}.csv"`,
+      });
+    } catch (error: any) {
+      console.error('Export payments error:', error);
+      return c.json({ error: 'Internal Server Error', message: error.message }, 500);
+    }
+  });
 }
 

@@ -5,7 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { apiClient } from '../../../lib/api-client';
 import { SkeletonTable } from '../../../components/ui/skeleton';
+import { showSuccess, showError, showLoading, updateToast } from '../../../lib/toast';
 import Link from 'next/link';
+import { ArrowDownTrayIcon, CalendarIcon } from '@heroicons/react/24/outline';
 
 interface DashboardStats {
   merchant: {
@@ -36,6 +38,10 @@ interface DashboardStats {
 function AnalyticsPageContent() {
   const searchParams = useSearchParams();
   const merchantId = searchParams.get('merchantId') || '';
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all' | 'custom'>('30d');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [exporting, setExporting] = useState(false);
 
   const { data: stats, error, isLoading } = useSWR<DashboardStats>(
     merchantId ? `dashboard-${merchantId}` : null,
@@ -49,6 +55,58 @@ function AnalyticsPageContent() {
       dedupingInterval: 2000,
     }
   );
+
+  const handleExport = async () => {
+    if (!merchantId) {
+      showError('Merchant ID is required');
+      return;
+    }
+
+    setExporting(true);
+    const loadingToast = showLoading('Preparing export...');
+
+    try {
+      let startDate: string | undefined;
+      let endDate: string | undefined;
+
+      if (dateRange === 'custom') {
+        if (!customStartDate || !customEndDate) {
+          updateToast(loadingToast, 'Please select both start and end dates', 'error');
+          setExporting(false);
+          return;
+        }
+        startDate = customStartDate;
+        endDate = customEndDate;
+      } else if (dateRange !== 'all') {
+        const end = new Date();
+        const start = new Date();
+        const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+        start.setDate(start.getDate() - days);
+        startDate = start.toISOString().split('T')[0];
+        endDate = end.toISOString().split('T')[0];
+      }
+
+      updateToast(loadingToast, 'Generating CSV file...', 'loading');
+      const blob = await apiClient.exportPayments(merchantId, { startDate, endDate });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `payments-export-${merchantId}-${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      updateToast(loadingToast, 'Export completed successfully!', 'success');
+    } catch (error: any) {
+      updateToast(loadingToast, `Export failed: ${error.message}`, 'error');
+      showError(error.message || 'Failed to export payments');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -94,11 +152,56 @@ function AnalyticsPageContent() {
   return (
     <div className="min-h-screen bg-transparent relative z-10">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Analytics</h1>
-          <p className="mt-2 text-neutral-400">
-            Detailed insights and performance metrics
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Analytics</h1>
+            <p className="mt-2 text-neutral-400">
+              Detailed insights and performance metrics
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Date Range Filter */}
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-neutral-400" />
+              <select
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value as any)}
+                className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-white"
+              >
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="90d">Last 90 days</option>
+                <option value="all">All time</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </div>
+            {dateRange === 'custom' && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-white"
+                />
+                <span className="text-neutral-400">to</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-white"
+                />
+              </div>
+            )}
+            {/* Export Button */}
+            <button
+              onClick={handleExport}
+              disabled={exporting || !merchantId}
+              className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-emerald-950 transition hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
+          </div>
         </div>
 
         {/* Stats Grid with Growth Indicators */}

@@ -145,27 +145,116 @@ export function merchantsRoutes(app: Hono<{ Bindings: Env }>) {
         return c.json({ error: 'Unauthorized', message: 'Cannot access another merchant\'s dashboard' }, 403);
       }
 
-      // Get stats
-      const [contentsCount, paymentsCount, purchasesCount] = await Promise.all([
-        queryOne<{ count: number }>(c.env.DB, 'SELECT COUNT(*) as count FROM Content WHERE merchantId = ?', [id]),
-        queryOne<{ count: number }>(c.env.DB, 'SELECT COUNT(*) as count FROM Payment WHERE merchantId = ?', [id]),
-        queryOne<{ count: number }>(c.env.DB, 'SELECT COUNT(*) as count FROM Purchase WHERE merchantId = ?', [id]),
+      // Get merchant info
+      const merchantInfo = await queryOne(c.env.DB, 'SELECT * FROM Merchant WHERE id = ?', [id]);
+      if (!merchantInfo) {
+        return c.json({ error: 'Not Found', message: 'Merchant not found' }, 404);
+      }
+
+      // Calculate date ranges
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Get payment stats
+      const [totalPayments, todayPayments, weekPayments, monthPayments] = await Promise.all([
+        queryOne<{ count: number }>(
+          c.env.DB,
+          `SELECT COUNT(*) as count FROM Payment 
+           INNER JOIN PaymentIntent ON Payment.intentId = PaymentIntent.id
+           WHERE PaymentIntent.merchantId = ?`,
+          [id]
+        ),
+        queryOne<{ count: number }>(
+          c.env.DB,
+          `SELECT COUNT(*) as count FROM Payment 
+           INNER JOIN PaymentIntent ON Payment.intentId = PaymentIntent.id
+           WHERE PaymentIntent.merchantId = ? AND Payment.confirmedAt >= ?`,
+          [id, todayStart.toISOString()]
+        ),
+        queryOne<{ count: number }>(
+          c.env.DB,
+          `SELECT COUNT(*) as count FROM Payment 
+           INNER JOIN PaymentIntent ON Payment.intentId = PaymentIntent.id
+           WHERE PaymentIntent.merchantId = ? AND Payment.confirmedAt >= ?`,
+          [id, weekStart.toISOString()]
+        ),
+        queryOne<{ count: number }>(
+          c.env.DB,
+          `SELECT COUNT(*) as count FROM Payment 
+           INNER JOIN PaymentIntent ON Payment.intentId = PaymentIntent.id
+           WHERE PaymentIntent.merchantId = ? AND Payment.confirmedAt >= ?`,
+          [id, monthStart.toISOString()]
+        ),
       ]);
 
-      const totalRevenue = await queryOne<{ total: number }>(
+      // Get revenue stats
+      const [totalRevenueResult, avgPaymentResult] = await Promise.all([
+        queryOne<{ total: string }>(
+          c.env.DB,
+          `SELECT SUM(Payment.amount) as total FROM Payment
+           INNER JOIN PaymentIntent ON Payment.intentId = PaymentIntent.id
+           WHERE PaymentIntent.merchantId = ?`,
+          [id]
+        ),
+        queryOne<{ avg: string }>(
+          c.env.DB,
+          `SELECT AVG(Payment.amount) as avg FROM Payment
+           INNER JOIN PaymentIntent ON Payment.intentId = PaymentIntent.id
+           WHERE PaymentIntent.merchantId = ?`,
+          [id]
+        ),
+      ]);
+
+      // Get recent payments
+      const recentPayments = await query(
         c.env.DB,
-        'SELECT SUM(amount) as total FROM Payment WHERE merchantId = ? AND status = ?',
-        [id, 'confirmed']
+        `SELECT 
+          Payment.id,
+          Payment.txSignature,
+          Payment.amount,
+          Payment.currency,
+          Payment.payerWallet,
+          Payment.confirmedAt,
+          Content.slug as contentSlug,
+          Content.title as contentTitle
+         FROM Payment
+         INNER JOIN PaymentIntent ON Payment.intentId = PaymentIntent.id
+         LEFT JOIN Content ON PaymentIntent.contentId = Content.id
+         WHERE PaymentIntent.merchantId = ?
+         ORDER BY Payment.confirmedAt DESC
+         LIMIT 10`,
+        [id]
       );
 
+      const totalRevenue = totalRevenueResult?.total || '0';
+      const avgPaymentAmount = avgPaymentResult?.avg || '0';
+
       return c.json({
-        merchantId: id,
-        stats: {
-          contents: contentsCount?.count || 0,
-          payments: paymentsCount?.count || 0,
-          purchases: purchasesCount?.count || 0,
-          totalRevenue: totalRevenue?.total || 0,
+        merchant: {
+          id: merchantInfo.id,
+          email: merchantInfo.email,
+          status: merchantInfo.status,
+          payoutAddress: merchantInfo.payoutAddress,
         },
+        stats: {
+          totalPayments: totalPayments?.count || 0,
+          todayPayments: todayPayments?.count || 0,
+          weekPayments: weekPayments?.count || 0,
+          monthPayments: monthPayments?.count || 0,
+          totalRevenue: totalRevenue,
+          avgPaymentAmount: avgPaymentAmount,
+        },
+        recentPayments: recentPayments.map((p: any) => ({
+          id: p.id,
+          txSignature: p.txSignature,
+          amount: p.amount?.toString() || '0',
+          currency: p.currency || 'SOL',
+          payerWallet: p.payerWallet,
+          confirmedAt: p.confirmedAt,
+          content: p.contentTitle || p.contentSlug || 'Unknown',
+        })),
       });
     } catch (error: any) {
       console.error('Get dashboard error:', error);

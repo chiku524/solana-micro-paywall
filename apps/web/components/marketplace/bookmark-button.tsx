@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { apiClient } from '../../lib/api-client';
+import { showSuccess, showError } from '../../lib/toast';
 import { HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 
@@ -54,12 +55,15 @@ export function BookmarkButton({ contentId, className = '' }: BookmarkButtonProp
     try {
       if (previousState) {
         await apiClient.removeBookmark(publicKey.toString(), contentId);
+        showSuccess('Removed from bookmarks');
       } else {
         await apiClient.addBookmark(publicKey.toString(), contentId);
+        showSuccess('Added to bookmarks');
       }
     } catch (error) {
       // Rollback on error
       setIsBookmarked(previousState);
+      showError(previousState ? 'Failed to remove bookmark' : 'Failed to add bookmark');
       console.error('Error toggling bookmark:', error);
     } finally {
       setLoading(false);
