@@ -3,7 +3,9 @@
 import { useMemo, useEffect, useState } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { SolflareWalletAdapter, TorusWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+// Note: TorusWalletAdapter removed due to Edge Runtime compatibility issues
+// It uses Node.js modules (crypto, stream) that aren't available in Edge Runtime
 import { SWRProvider } from '../lib/swr-config';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
@@ -19,7 +21,9 @@ export function AppProviders({ children }: AppProvidersProps) {
 
   const wallets = useMemo(
     () => {
-      return [new SolflareWalletAdapter(), new TorusWalletAdapter()];
+      // Only include wallets that are compatible with Edge Runtime
+      // TorusWalletAdapter uses Node.js modules and causes build errors
+      return [new SolflareWalletAdapter()];
     },
     [],
   );

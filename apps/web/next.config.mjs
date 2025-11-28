@@ -37,6 +37,50 @@ const nextConfig = {
       config.cache = false;
     }
     
+    // Fix for Edge Runtime: Resolve Node.js modules to empty stubs or browser alternatives
+    // Some wallet adapters try to import Node.js modules that don't exist in Edge Runtime
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      crypto: false,
+      stream: false,
+      util: false,
+      path: false,
+      fs: false,
+      net: false,
+      tls: false,
+      os: false,
+      http: false,
+      https: false,
+      zlib: false,
+      url: false,
+      assert: false,
+      buffer: false,
+      process: false,
+    };
+
+    // Ignore problematic modules that use Node.js APIs
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      // These adapters use Node.js APIs and should only run client-side
+      '@toruslabs/eccrypto': false,
+      '@keystonehq/sol-keyring': false,
+    };
+
+    // Exclude problematic packages from being processed
+    if (isServer) {
+      config.externals = [
+        ...(config.externals || []),
+        // Exclude wallet adapters that use Node.js APIs from server bundle
+        '@toruslabs/eccrypto',
+        '@keystonehq/sol-keyring',
+        '@keystonehq/bc-ur-registry',
+        'cipher-base',
+        'hash-base',
+        'create-hash',
+        'bs58check',
+      ];
+    }
+    
     if (!isServer) {
       // Optimize chunks for better code splitting
       config.optimization = {
