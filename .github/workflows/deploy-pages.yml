@@ -555,6 +555,20 @@ jobs:
             echo "   ℹ️  No catch-all route handler (this is OK if index.html is at root)"
           fi
           
+          # Verify key routes exist
+          echo ""
+          echo "🔍 Verifying key routes are built..."
+          ROUTES=("marketplace" "docs" "dashboard")
+          for route in "${ROUTES[@]}"; do
+            if [ -f ".vercel/output/static/${route}.html" ] || [ -d ".vercel/output/functions/${route}.func" ] || [ -d ".vercel/output/functions/${route}.rsc.func" ]; then
+              echo "   ✅ Route /${route} exists"
+            else
+              echo "   ⚠️  WARNING: Route /${route} not found in build output"
+              echo "      Checking functions directory:"
+              ls -la .vercel/output/functions/ | grep -i "${route}" || echo "      No ${route} function found"
+            fi
+          done
+          
           echo ""
           echo "✅ Verification complete - ready to deploy"
 
