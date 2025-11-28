@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Discover Content - Browse All Premium Content | Solana Micro-Paywall',
-    description: 'Search and filter through all available premium content. Find exactly what you're looking for.',
+    description: 'Search and filter through all available premium content. Find exactly what you are looking for.',
     url: `${baseUrl}/marketplace/discover`,
     type: 'website',
     images: [
