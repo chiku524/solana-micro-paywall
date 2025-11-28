@@ -9,12 +9,10 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Disable prefetching to prevent 503 errors on Cloudflare Pages
+  // Disable prefetching globally to prevent 503 errors on Cloudflare Pages
   // Prefetching can cause issues when server components fail during build/prefetch
-  experimental: {
-    // Disable automatic prefetching for better compatibility with Cloudflare Pages
-    // Links will still work, but won't prefetch until clicked
-  },
+  // This is handled via prefetch={false} on individual Link components
+  // and by ensuring server components handle errors gracefully
   // Disabled typedRoutes due to external URL compatibility issues
   // experimental: {
   //   typedRoutes: true,

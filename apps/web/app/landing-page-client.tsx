@@ -403,16 +403,16 @@ export function LandingPageClient() {
               <p className="text-sm text-neutral-400 mt-2">Built for the Solana ecosystem</p>
             </div>
             <div className="flex items-center space-x-6">
-              <Link href="/marketplace" className="text-sm text-neutral-400 hover:text-white transition">
+              <Link href="/marketplace" prefetch={false} className="text-sm text-neutral-400 hover:text-white transition">
                 Marketplace
               </Link>
-              <Link href="/library" className="text-sm text-neutral-400 hover:text-white transition">
+              <Link href="/library" prefetch={false} className="text-sm text-neutral-400 hover:text-white transition">
                 My Library
               </Link>
-              <Link href="/docs" className="text-sm text-neutral-400 hover:text-white transition">
+              <Link href="/docs" prefetch={false} className="text-sm text-neutral-400 hover:text-white transition">
                 Documentation
               </Link>
-              <Link href="/dashboard" className="text-sm text-emerald-400 hover:text-emerald-300 transition">
+              <Link href="/dashboard" prefetch={false} className="text-sm text-emerald-400 hover:text-emerald-300 transition">
                 Dashboard
               </Link>
             </div>
