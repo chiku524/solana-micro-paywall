@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '../ui/link';
 import Image from 'next/image';
 import { Content } from '../../lib/api-client';
 import { BookmarkButton } from './bookmark-button';

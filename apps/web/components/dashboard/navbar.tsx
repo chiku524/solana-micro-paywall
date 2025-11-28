@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '../ui/link';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Suspense, useState, useRef, useEffect } from 'react';

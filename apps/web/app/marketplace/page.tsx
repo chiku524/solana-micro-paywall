@@ -6,7 +6,10 @@ import { TrendingSection } from '../../components/marketplace/trending-section';
 import { CategoriesSection } from '../../components/marketplace/categories-section';
 import { RecommendationsSection } from '../../components/marketplace/recommendations-section';
 
-export const revalidate = 60; // ISR: Revalidate every 60 seconds
+// Force dynamic rendering to prevent prefetch issues on Cloudflare Pages
+// This ensures the page is always rendered server-side and not statically prefetched
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable ISR to prevent prefetch cache issues
 
 const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
 

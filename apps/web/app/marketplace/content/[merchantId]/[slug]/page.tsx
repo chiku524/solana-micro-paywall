@@ -13,7 +13,9 @@ interface ContentPageProps {
 }
 
 export const runtime = 'edge'; // Required for Cloudflare Pages
-export const revalidate = 60; // ISR: Revalidate every 60 seconds
+// Force dynamic rendering to prevent prefetch issues on Cloudflare Pages
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable ISR to prevent prefetch cache issues
 
 const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
 
@@ -22,7 +24,7 @@ export async function generateMetadata({ params }: ContentPageProps): Promise<Me
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/contents/merchant/${params.merchantId}/slug/${params.slug}`,
       {
-        next: { revalidate: 60 },
+        cache: 'no-store', // Disable caching to prevent prefetch issues
       },
     );
     

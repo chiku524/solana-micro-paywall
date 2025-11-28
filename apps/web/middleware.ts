@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  // Skip middleware for prefetch requests to prevent 503 errors
+  // Prefetch requests have 'x-middleware-prefetch' header or are from Next.js router
+  const isPrefetch = request.headers.get('x-middleware-prefetch') === '1' ||
+                     request.headers.get('purpose') === 'prefetch' ||
+                     request.nextUrl.searchParams.has('_nextData');
+  
+  if (isPrefetch) {
+    return NextResponse.next();
+  }
+
   const { pathname } = request.nextUrl;
 
   // Protect dashboard routes - require merchantId in URL or cookie
