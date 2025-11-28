@@ -22,14 +22,9 @@ export function middleware(request: NextRequest) {
     return response;
   }
   
-  // For non-prefetch requests, create response and add anti-prefetch headers
-  const response = NextResponse.next();
+  // For non-prefetch requests, handle dashboard routes and add anti-prefetch headers
+  let response: NextResponse;
   
-  // Add headers to prevent prefetching and aggressive caching
-  response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');
-  response.headers.set('Pragma', 'no-cache');
-  response.headers.set('Expires', '0');
-
   // Protect dashboard routes - require merchantId in URL or cookie
   if (pathname.startsWith('/dashboard')) {
     const merchantId = request.nextUrl.searchParams.get('merchantId');
@@ -39,35 +34,40 @@ export function middleware(request: NextRequest) {
     if (pathname === '/dashboard') {
       // If merchantId is in URL, set it as a cookie for future requests
       if (merchantId && !merchantIdCookie) {
-        const response = NextResponse.next();
+        response = NextResponse.next();
         response.cookies.set('merchantId', merchantId, {
           path: '/',
           maxAge: 60 * 60 * 24 * 30, // 30 days
         });
-        return response;
+      } else {
+        response = NextResponse.next();
       }
-      // Allow access to /dashboard to show login form
-      return NextResponse.next();
+    } else {
+      // For sub-routes (like /dashboard/contents, /dashboard/settings), require merchantId
+      if (!merchantId && !merchantIdCookie) {
+        // Redirect to dashboard login page
+        response = NextResponse.redirect(new URL('/dashboard', request.url));
+      } else {
+        // If merchantId is in URL, set it as a cookie for future requests
+        response = NextResponse.next();
+        if (merchantId && !merchantIdCookie) {
+          response.cookies.set('merchantId', merchantId, {
+            path: '/',
+            maxAge: 60 * 60 * 24 * 30, // 30 days
+          });
+        }
+      }
     }
-
-    // For sub-routes (like /dashboard/contents, /dashboard/settings), require merchantId
-    if (!merchantId && !merchantIdCookie) {
-      // Redirect to dashboard login page
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-
-    // If merchantId is in URL, set it as a cookie for future requests
-    if (merchantId && !merchantIdCookie) {
-      const response = NextResponse.next();
-      response.cookies.set('merchantId', merchantId, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-      });
-      return response;
-    }
+  } else {
+    response = NextResponse.next();
   }
-
-  return NextResponse.next();
+  
+  // Add headers to prevent prefetching and aggressive caching on all responses
+  response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+  
+  return response;
 }
 
 // Match all routes to add anti-prefetch headers globally
