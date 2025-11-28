@@ -249,6 +249,78 @@ jobs:
           echo ""
           echo "✅ Critical files verification complete"
 
+      - name: Fix broken homepage route handler
+        working-directory: apps/web
+        run: |
+          echo "🔧 Fixing broken homepage route handler..."
+          echo ""
+          
+          # Check if index.func exists and is a broken symlink
+          if [ -L ".vercel/output/functions/index.func" ]; then
+            LINK_TARGET=$(readlink .vercel/output/functions/index.func)
+            echo "   Current symlink target: $LINK_TARGET"
+            
+            # If it's pointing to the wrong place (not index.rsc.func), fix it
+            if [[ "$LINK_TARGET" != "index.rsc.func" ]] && [[ "$LINK_TARGET" != "./index.rsc.func" ]]; then
+              echo "   ❌ Broken symlink detected - fixing..."
+              
+              # Check if index.rsc.func exists
+              if [ -d ".vercel/output/functions/index.rsc.func" ]; then
+                echo "   ✅ Found index.rsc.func - fixing symlink"
+                rm -f .vercel/output/functions/index.func
+                ln -s index.rsc.func .vercel/output/functions/index.func
+                echo "   ✅ Fixed: index.func now points to index.rsc.func"
+              else
+                echo "   ⚠️  index.rsc.func not found"
+                echo "   ℹ️  Removing broken symlink - Cloudflare will serve static index.html"
+                rm -f .vercel/output/functions/index.func
+                echo "   ✅ Removed broken symlink"
+                echo "   ℹ️  Since index.html exists in static/, Cloudflare will serve it directly"
+              fi
+            else
+              echo "   ✅ Symlink is already correct"
+            fi
+          elif [ -d ".vercel/output/functions/index.func" ]; then
+            echo "   ✅ index.func is a directory (not a symlink) - this is correct"
+          else
+            echo "   ℹ️  index.func doesn't exist - Cloudflare will serve static index.html"
+          fi
+          
+          # Also check and fix dashboard.func if it has the same issue
+          if [ -L ".vercel/output/functions/dashboard.func" ]; then
+            DASHBOARD_TARGET=$(readlink .vercel/output/functions/dashboard.func)
+            if [[ "$DASHBOARD_TARGET" == "bookmarks.rsc.func" ]]; then
+              echo "   🔧 Fixing dashboard.func symlink..."
+              rm -f .vercel/output/functions/dashboard.func
+              if [ -d ".vercel/output/functions/dashboard.rsc.func" ]; then
+                ln -s dashboard.rsc.func .vercel/output/functions/dashboard.func
+                echo "   ✅ Fixed dashboard.func"
+              elif [ -d ".vercel/output/functions/dashboard" ]; then
+                echo "   ℹ️  dashboard is a directory - no function symlink needed"
+              else
+                echo "   ⚠️  dashboard.rsc.func not found - removed broken symlink"
+              fi
+            fi
+          fi
+          
+          echo ""
+          echo "✅ Route handler fix complete"
+          echo ""
+          echo "📋 Verification after fix:"
+          if [ -L ".vercel/output/functions/index.func" ]; then
+            FINAL_TARGET=$(readlink .vercel/output/functions/index.func)
+            echo "   index.func → $FINAL_TARGET"
+            if [[ "$FINAL_TARGET" == "index.rsc.func" ]] || [[ "$FINAL_TARGET" == "./index.rsc.func" ]]; then
+              echo "   ✅ Homepage route handler is correct"
+            else
+              echo "   ⚠️  Still pointing to wrong target, but symlink removed if broken"
+            fi
+          elif [ -d ".vercel/output/functions/index.func" ]; then
+            echo "   ✅ index.func is a directory"
+          else
+            echo "   ℹ️  index.func removed - using static index.html"
+          fi
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
