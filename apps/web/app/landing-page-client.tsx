@@ -117,36 +117,27 @@ export function LandingPageClient() {
               Solana Micro-Paywall
             </Link>
             <div className="hidden md:flex items-center space-x-6">
-              <a
+              <Link
                 href="/marketplace"
+                prefetch={false}
                 className="text-sm lg:text-base text-neutral-300 hover:text-white transition"
-                onClick={(e) => {
-                  console.log('Marketplace link clicked');
-                  // Let browser handle navigation normally
-                }}
               >
                 Marketplace
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/docs"
+                prefetch={false}
                 className="text-sm lg:text-base text-neutral-300 hover:text-white transition"
-                onClick={(e) => {
-                  console.log('Docs link clicked');
-                  // Let browser handle navigation normally
-                }}
               >
                 Docs
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/dashboard"
+                prefetch={false}
                 className="text-sm lg:text-base text-emerald-400 hover:text-emerald-300 transition font-medium"
-                onClick={(e) => {
-                  console.log('Dashboard link clicked');
-                  // Let browser handle navigation normally
-                }}
               >
                 For Merchants
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -199,25 +190,21 @@ export function LandingPageClient() {
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
             >
-              <a
+              <Link
                 href="/dashboard"
+                prefetch={false}
                 className="group inline-flex items-center justify-center rounded-lg bg-emerald-500 px-8 py-4 text-lg font-semibold text-emerald-950 transition-all hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/25"
-                onClick={(e) => {
-                  console.log('Start Selling button clicked');
-                }}
               >
                 Start Selling
                 <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/marketplace"
+                prefetch={false}
                 className="inline-flex items-center justify-center rounded-lg border-2 border-neutral-700 px-8 py-4 text-lg font-semibold text-neutral-100 transition-all hover:border-neutral-600 hover:bg-neutral-800/50"
-                onClick={(e) => {
-                  console.log('Browse Marketplace button clicked');
-                }}
               >
                 Browse Marketplace
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -385,25 +372,21 @@ export function LandingPageClient() {
               Join creators and businesses already using Solana Micro-Paywall to accept instant payments and grow their revenue.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
+              <Link
                 href="/dashboard"
+                prefetch={false}
                 className="group inline-flex items-center justify-center rounded-lg bg-emerald-500 px-8 py-4 text-lg font-semibold text-emerald-950 transition-all hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/25"
-                onClick={(e) => {
-                  console.log('Get Started Free button clicked');
-                }}
               >
                 Get Started Free
                 <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/marketplace"
+                prefetch={false}
                 className="inline-flex items-center justify-center rounded-lg border-2 border-neutral-700 px-8 py-4 text-lg font-semibold text-neutral-100 transition-all hover:border-neutral-600 hover:bg-neutral-800/50"
-                onClick={(e) => {
-                  console.log('Explore Marketplace button clicked');
-                }}
               >
                 Explore Marketplace
-              </a>
+              </Link>
             </div>
           </div>
         </div>

@@ -48,10 +48,22 @@ export const metadata: Metadata = {
 };
 
 export default async function MarketplacePage() {
-  const [trending, recent] = await Promise.all([
-    apiClient.getTrending(6).catch(() => []),
-    apiClient.discoverContents({ sort: 'newest', limit: 12 }).catch(() => ({ contents: [], total: 0, page: 1, limit: 12, totalPages: 0 })),
-  ]);
+  // Wrap API calls in try-catch to prevent 503 errors during prefetch
+  let trending = [];
+  let recent = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
+  
+  try {
+    [trending, recent] = await Promise.all([
+      apiClient.getTrending(6).catch(() => []),
+      apiClient.discoverContents({ sort: 'newest', limit: 12 }).catch(() => ({ contents: [], total: 0, page: 1, limit: 12, totalPages: 0 })),
+    ]);
+  } catch (error) {
+    // If API calls fail, render page with empty data instead of throwing
+    // This prevents 503 errors during prefetch
+    console.error('Failed to load marketplace data:', error);
+    trending = [];
+    recent = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
+  }
 
   return (
     <div className="min-h-screen relative z-10">
