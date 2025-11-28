@@ -37,11 +37,16 @@ export async function generateMetadata({ params }: MerchantProfilePageProps): Pr
     const profile = await apiClient.getMerchantPublicProfile(params.merchantId);
     const merchantContents = await apiClient.getMerchantContents(params.merchantId, { limit: 1 });
     
-    const merchant = profile || {
+    const merchant: {
+      displayName?: string;
+      email?: string;
+      bio?: string;
+      avatarUrl?: string;
+    } = profile || {
       email: merchantContents.contents[0]?.merchant?.email || 'Merchant',
     };
     
-    const displayName = merchant.displayName || merchant.email;
+    const displayName = merchant.displayName || merchant.email || 'Merchant';
     const bio = merchant.bio || `Browse premium content from ${displayName} on Solana Micro-Paywall.`;
     
     return {
