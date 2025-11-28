@@ -255,35 +255,52 @@ jobs:
           echo "🔧 Fixing broken homepage route handler..."
           echo ""
           
-          # Check if index.func exists and is a broken symlink
+          # First, diagnose the current state
+          echo "📋 Current state:"
           if [ -L ".vercel/output/functions/index.func" ]; then
             LINK_TARGET=$(readlink .vercel/output/functions/index.func)
-            echo "   Current symlink target: $LINK_TARGET"
-            
-            # If it's pointing to the wrong place (not index.rsc.func), fix it
-            if [[ "$LINK_TARGET" != "index.rsc.func" ]] && [[ "$LINK_TARGET" != "./index.rsc.func" ]]; then
-              echo "   ❌ Broken symlink detected - fixing..."
-              
-              # Check if index.rsc.func exists
-              if [ -d ".vercel/output/functions/index.rsc.func" ]; then
-                echo "   ✅ Found index.rsc.func - fixing symlink"
-                rm -f .vercel/output/functions/index.func
-                ln -s index.rsc.func .vercel/output/functions/index.func
-                echo "   ✅ Fixed: index.func now points to index.rsc.func"
-              else
-                echo "   ⚠️  index.rsc.func not found"
-                echo "   ℹ️  Removing broken symlink - Cloudflare will serve static index.html"
-                rm -f .vercel/output/functions/index.func
-                echo "   ✅ Removed broken symlink"
-                echo "   ℹ️  Since index.html exists in static/, Cloudflare will serve it directly"
-              fi
-            else
-              echo "   ✅ Symlink is already correct"
-            fi
+            echo "   index.func is a symlink → $LINK_TARGET"
           elif [ -d ".vercel/output/functions/index.func" ]; then
-            echo "   ✅ index.func is a directory (not a symlink) - this is correct"
+            echo "   index.func is a directory"
           else
-            echo "   ℹ️  index.func doesn't exist - Cloudflare will serve static index.html"
+            echo "   index.func doesn't exist"
+          fi
+          
+          # Check if index.rsc.func exists and what's in it
+          if [ -d ".vercel/output/functions/index.rsc.func" ]; then
+            echo "   ✅ index.rsc.func directory exists"
+            echo "   Contents of index.rsc.func:"
+            ls -la .vercel/output/functions/index.rsc.func/ | head -10
+            if [ -f ".vercel/output/functions/index.rsc.func/index.js" ]; then
+              echo "   ✅ index.js exists in index.rsc.func"
+              echo "   First 20 lines of index.js:"
+              head -20 .vercel/output/functions/index.rsc.func/index.js || echo "   Could not read index.js"
+            else
+              echo "   ⚠️  index.js NOT found in index.rsc.func"
+            fi
+          else
+            echo "   ❌ index.rsc.func directory does NOT exist"
+          fi
+          
+          # Check static index.html
+          if [ -f ".vercel/output/static/index.html" ]; then
+            echo "   ✅ static/index.html exists ($(wc -c < .vercel/output/static/index.html) bytes)"
+          else
+            echo "   ❌ static/index.html NOT found"
+          fi
+          
+          echo ""
+          echo "🔧 Applying fix strategy..."
+          
+          # Strategy: Since homepage is a pre-rendered client component, 
+          # remove the function route handler and let Cloudflare serve the static file
+          # This is more reliable for pre-rendered pages
+          
+          if [ -L ".vercel/output/functions/index.func" ] || [ -d ".vercel/output/functions/index.func" ]; then
+            echo "   Removing index.func (function route handler)"
+            rm -rf .vercel/output/functions/index.func
+            echo "   ✅ Removed index.func"
+            echo "   ℹ️  Cloudflare will now serve static/index.html for the homepage"
           fi
           
           # Also check and fix dashboard.func if it has the same issue
@@ -306,20 +323,57 @@ jobs:
           echo ""
           echo "✅ Route handler fix complete"
           echo ""
-          echo "📋 Verification after fix:"
-          if [ -L ".vercel/output/functions/index.func" ]; then
-            FINAL_TARGET=$(readlink .vercel/output/functions/index.func)
-            echo "   index.func → $FINAL_TARGET"
-            if [[ "$FINAL_TARGET" == "index.rsc.func" ]] || [[ "$FINAL_TARGET" == "./index.rsc.func" ]]; then
-              echo "   ✅ Homepage route handler is correct"
-            else
-              echo "   ⚠️  Still pointing to wrong target, but symlink removed if broken"
-            fi
-          elif [ -d ".vercel/output/functions/index.func" ]; then
-            echo "   ✅ index.func is a directory"
+          echo "📋 Final state:"
+          if [ -f ".vercel/output/static/index.html" ]; then
+            echo "   ✅ static/index.html exists - homepage will be served as static file"
+            echo "   File size: $(wc -c < .vercel/output/static/index.html) bytes"
+            echo "   First line: $(head -1 .vercel/output/static/index.html | cut -c1-80)"
           else
-            echo "   ℹ️  index.func removed - using static index.html"
+            echo "   ❌ static/index.html missing - this will cause 404!"
           fi
+          
+          if [ -L ".vercel/output/functions/index.func" ] || [ -d ".vercel/output/functions/index.func" ]; then
+            echo "   ⚠️  index.func still exists (should have been removed)"
+          else
+            echo "   ✅ index.func removed - using static file serving"
+          fi
+
+      - name: Verify static file serving configuration
+        working-directory: apps/web
+        run: |
+          echo "🔍 Verifying static file serving configuration..."
+          echo ""
+          
+          # Check if 404.html exists (Cloudflare uses this for SPA routing)
+          if [ -f ".vercel/output/static/404.html" ]; then
+            echo "✅ Found 404.html"
+            echo "   This is used by Cloudflare Pages for handling unknown routes"
+          else
+            echo "⚠️  404.html not found"
+            echo "   This might be needed for client-side routing"
+          fi
+          
+          # Check config.json routing rules
+          if [ -f ".vercel/output/config.json" ]; then
+            echo ""
+            echo "📋 Checking config.json routing rules:"
+            # Look for rules that might interfere with homepage serving
+            if grep -q '"src": "/"' .vercel/output/config.json 2>/dev/null; then
+              echo "   ⚠️  Found routing rule for '/' - checking if it interferes:"
+              grep -A 5 '"src": "/"' .vercel/output/config.json | head -10
+            else
+              echo "   ✅ No explicit routing rule for '/' - static file will be served"
+            fi
+            
+            # Check for redirect rules
+            if grep -q '"status": 30' .vercel/output/config.json 2>/dev/null; then
+              echo "   ⚠️  Found redirect rules - checking:"
+              grep -B 2 -A 3 '"status": 30' .vercel/output/config.json | head -15
+            fi
+          fi
+          
+          echo ""
+          echo "✅ Configuration verification complete"
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
