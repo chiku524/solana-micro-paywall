@@ -8,6 +8,7 @@ import { RecommendationsSection } from '../../components/marketplace/recommendat
 
 // Force dynamic rendering to prevent prefetch issues on Cloudflare Pages
 // This ensures the page is always rendered server-side and not statically prefetched
+export const runtime = 'edge'; // Required for Cloudflare Pages
 export const dynamic = 'force-dynamic';
 export const revalidate = 0; // Disable ISR to prevent prefetch cache issues
 
