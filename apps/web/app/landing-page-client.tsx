@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '../../components/ui/link';
+import { Link } from '../components/ui/link';
 import { useEffect, useRef, useState } from 'react';
 import {
   BoltIcon,
