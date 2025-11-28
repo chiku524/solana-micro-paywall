@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import {
   BoltIcon,
@@ -16,10 +17,15 @@ import {
 export function LandingPageClient() {
   const [isVisible, setIsVisible] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  const handleNavigation = (path: string) => {
+    router.push(path);
+  };
 
   const features = [
     {
@@ -117,27 +123,24 @@ export function LandingPageClient() {
               Solana Micro-Paywall
             </Link>
             <div className="hidden md:flex items-center space-x-6">
-              <Link 
-                href="/marketplace" 
+              <button
+                onClick={() => handleNavigation('/marketplace')}
                 className="text-sm lg:text-base text-neutral-300 hover:text-white transition"
-                prefetch={true}
               >
                 Marketplace
-              </Link>
-              <Link 
-                href="/docs" 
+              </button>
+              <button
+                onClick={() => handleNavigation('/docs')}
                 className="text-sm lg:text-base text-neutral-300 hover:text-white transition"
-                prefetch={true}
               >
                 Docs
-              </Link>
-              <Link
-                href="/dashboard"
+              </button>
+              <button
+                onClick={() => handleNavigation('/dashboard')}
                 className="text-sm lg:text-base text-emerald-400 hover:text-emerald-300 transition font-medium"
-                prefetch={true}
               >
                 For Merchants
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -190,21 +193,19 @@ export function LandingPageClient() {
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
             >
-              <Link
-                href="/dashboard"
+              <button
+                onClick={() => handleNavigation('/dashboard')}
                 className="group inline-flex items-center justify-center rounded-lg bg-emerald-500 px-8 py-4 text-lg font-semibold text-emerald-950 transition-all hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/25"
-                prefetch={true}
               >
                 Start Selling
                 <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-              <Link
-                href="/marketplace"
+              </button>
+              <button
+                onClick={() => handleNavigation('/marketplace')}
                 className="inline-flex items-center justify-center rounded-lg border-2 border-neutral-700 px-8 py-4 text-lg font-semibold text-neutral-100 transition-all hover:border-neutral-600 hover:bg-neutral-800/50"
-                prefetch={true}
               >
                 Browse Marketplace
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -372,21 +373,19 @@ export function LandingPageClient() {
               Join creators and businesses already using Solana Micro-Paywall to accept instant payments and grow their revenue.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/dashboard"
+              <button
+                onClick={() => handleNavigation('/dashboard')}
                 className="group inline-flex items-center justify-center rounded-lg bg-emerald-500 px-8 py-4 text-lg font-semibold text-emerald-950 transition-all hover:bg-emerald-400 hover:scale-105 shadow-lg shadow-emerald-500/25"
-                prefetch={true}
               >
                 Get Started Free
                 <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-              <Link
-                href="/marketplace"
+              </button>
+              <button
+                onClick={() => handleNavigation('/marketplace')}
                 className="inline-flex items-center justify-center rounded-lg border-2 border-neutral-700 px-8 py-4 text-lg font-semibold text-neutral-100 transition-all hover:border-neutral-600 hover:bg-neutral-800/50"
-                prefetch={true}
               >
                 Explore Marketplace
-              </Link>
+              </button>
             </div>
           </div>
         </div>
