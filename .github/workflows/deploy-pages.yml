@@ -63,18 +63,49 @@ jobs:
           echo "📂 Directory contents:"
           ls -lah .vercel/output || echo "Cannot list directory"
           echo ""
-          if [ -d ".vercel/output/static" ]; then
-            echo "✅ Found static directory"
-            echo "   Size: $(du -sh .vercel/output/static | cut -f1)"
-          else
-            echo "⚠️  WARNING: static directory not found"
+          
+          # Check for static directory
+          if [ ! -d ".vercel/output/static" ]; then
+            echo "❌ ERROR: static directory not found in .vercel/output"
+            exit 1
           fi
-          if [ -d ".vercel/output/functions" ]; then
-            echo "✅ Found functions directory (needed for routing)"
-            echo "   Size: $(du -sh .vercel/output/functions | cut -f1)"
-          else
-            echo "⚠️  WARNING: functions directory not found (routing may not work)"
+          echo "✅ Found static directory"
+          echo "   Size: $(du -sh .vercel/output/static | cut -f1)"
+          
+          # Check for functions directory - CRITICAL for Next.js routing
+          if [ ! -d ".vercel/output/functions" ]; then
+            echo ""
+            echo "❌ ERROR: functions directory not found!"
+            echo "   This is required for Next.js routing on Cloudflare Pages"
+            echo "   Without it, all routes will return 404"
+            echo ""
+            echo "   Checking if @cloudflare/next-on-pages generated output correctly..."
+            exit 1
           fi
+          echo "✅ Found functions directory (needed for routing)"
+          echo "   Size: $(du -sh .vercel/output/functions | cut -f1)"
+          echo ""
+          
+          # Verify key files exist
+          echo "🔍 Verifying key routing files..."
+          if [ -f ".vercel/output/functions/[[path]].js" ] || [ -d ".vercel/output/functions/[[path]]" ]; then
+            echo "✅ Found catch-all route handler ([[path]])"
+          else
+            echo "⚠️  WARNING: Catch-all route handler not found - checking functions structure..."
+            echo "   Functions directory contents:"
+            ls -lah .vercel/output/functions | head -10
+          fi
+          
+          if [ -f ".vercel/output/config.json" ]; then
+            echo "✅ Found config.json"
+          else
+            echo "⚠️  WARNING: config.json not found"
+          fi
+          
+          echo ""
+          echo "📊 Build output summary:"
+          echo "   Static files: $(find .vercel/output/static -type f 2>/dev/null | wc -l) files"
+          echo "   Functions: $(find .vercel/output/functions -type f 2>/dev/null | wc -l) files"
 
       - name: Clean build output for deployment
         working-directory: apps/web
@@ -113,6 +144,23 @@ jobs:
             echo "📁 Contents:"
             ls -lah .vercel/output 2>/dev/null || echo "Cannot list output"
           fi
+
+      - name: List deployment structure before deploy
+        working-directory: apps/web
+        run: |
+          echo "📦 Final deployment structure check:"
+          echo ""
+          echo "Root of .vercel/output:"
+          ls -la .vercel/output/ | head -20
+          echo ""
+          echo "Static directory contents (first 10 items):"
+          ls -la .vercel/output/static/ | head -10 || echo "Static not found"
+          echo ""
+          echo "Functions directory structure:"
+          find .vercel/output/functions -type f -name "*.js" | head -10 || echo "No JS files in functions"
+          echo ""
+          echo "Checking for catch-all route:"
+          ls -la .vercel/output/functions/ 2>/dev/null | grep -E "\[\[path\]\]|_worker|index" || echo "Catch-all route not found"
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
