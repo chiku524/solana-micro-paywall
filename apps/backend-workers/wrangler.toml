@@ -26,42 +26,17 @@ preview_id = "0ab7737d5e184851a1127d4ecc4b1102"
 # queue = "webhooks"
 # binding = "WEBHOOK_QUEUE"
 
-# Environment variables
+# Production environment variables
+# This worker is used directly for production (no environment suffix)
 [vars]
-NODE_ENV = "development"
-
-[env.staging]
-vars = { NODE_ENV = "staging" }
-
-[env.production]
-vars = { NODE_ENV = "production", FRONTEND_URL = "https://micropaywall.app", CORS_ORIGIN = "https://micropaywall.app,https://www.micropaywall.app" }
-
-# D1 Database for production
-[[env.production.d1_databases]]
-binding = "DB"
-database_name = "micropaywall-db"
-database_id = "9fb849f1-b895-4670-baca-cdec2767f8c4"
-
-# KV Namespace for production
-[[env.production.kv_namespaces]]
-binding = "CACHE"
-id = "7b095fcc4cb74cc787c1e7a20bf895a0"
-preview_id = "0ab7737d5e184851a1127d4ecc4b1102"
-
-# Queues for production
-# NOTE: Queues require Workers Paid plan. Commented out for free tier.
-# [[env.production.queues.producers]]
-# queue = "payment-verification"
-# binding = "PAYMENT_QUEUE"
-
-# [[env.production.queues.producers]]
-# queue = "webhooks"
-# binding = "WEBHOOK_QUEUE"
+NODE_ENV = "production"
+FRONTEND_URL = "https://micropaywall.app"
+CORS_ORIGIN = "https://micropaywall.app,https://www.micropaywall.app"
 
 # Routes for custom domain
 # NOTE: Routes are managed via Cloudflare Dashboard to avoid deployment conflicts
 # If you need to manage routes via wrangler.toml, first unassign them from the dashboard
-# [[env.production.routes]]
+# [[routes]]
 # pattern = "api.micropaywall.app/*"
 # zone_name = "micropaywall.app"
 
