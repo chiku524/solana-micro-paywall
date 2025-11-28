@@ -24,7 +24,11 @@ export function LandingPageClient() {
   }, []);
 
   const handleNavigation = (path: string) => {
-    router.push(path);
+    // On Cloudflare Pages, use window.location for more reliable navigation
+    // This ensures the route is properly handled even if client-side routing has issues
+    if (typeof window !== 'undefined') {
+      window.location.href = path;
+    }
   };
 
   const features = [
