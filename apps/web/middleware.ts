@@ -2,17 +2,33 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Skip middleware for prefetch requests to prevent 503 errors
-  // Prefetch requests have 'x-middleware-prefetch' header or are from Next.js router
+  const { pathname } = request.nextUrl;
+  
+  // Detect prefetch requests (browser sends 'sec-purpose: prefetch' header)
   const isPrefetch = request.headers.get('x-middleware-prefetch') === '1' ||
                      request.headers.get('purpose') === 'prefetch' ||
+                     request.headers.get('sec-purpose') === 'prefetch' ||
+                     request.headers.get('sec-purpose')?.includes('prefetch') ||
                      request.nextUrl.searchParams.has('_nextData');
   
+  // If it's a prefetch request, return early with 200 and no content
+  // This prevents 503 errors from failed prefetch attempts
   if (isPrefetch) {
-    return NextResponse.next();
+    const response = new NextResponse(null, { status: 200 });
+    response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    return response;
   }
-
-  const { pathname } = request.nextUrl;
+  
+  // For non-prefetch requests, create response and add anti-prefetch headers
+  const response = NextResponse.next();
+  
+  // Add headers to prevent prefetching and aggressive caching
+  response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
 
   // Protect dashboard routes - require merchantId in URL or cookie
   if (pathname.startsWith('/dashboard')) {
@@ -54,9 +70,17 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+// Match all routes to add anti-prefetch headers globally
 export const config = {
   matcher: [
-    '/dashboard/:path*',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
 
