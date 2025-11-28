@@ -314,6 +314,32 @@ jobs:
           
           echo "   ℹ️  Cloudflare will now serve static/index.html for the homepage"
           
+          # CRITICAL FIX: Cloudflare Pages requires index.html at root OR a catch-all route handler
+          # Since we removed function handlers, ensure index.html is accessible at root level
+          # This is a fallback to ensure Cloudflare Pages can find the homepage
+          echo ""
+          echo "🔧 Creating root-level index.html (Cloudflare Pages requirement)..."
+          if [ -f ".vercel/output/static/index.html" ]; then
+            if [ -f ".vercel/output/index.html" ]; then
+              echo "   ℹ️  Root-level index.html already exists"
+            else
+              echo "   📋 Copying static/index.html to root level"
+              cp .vercel/output/static/index.html .vercel/output/index.html
+              echo "   ✅ Created root-level index.html"
+              echo "   ℹ️  This ensures Cloudflare Pages can serve the homepage"
+            fi
+            # Verify it was created
+            if [ -f ".vercel/output/index.html" ]; then
+              echo "   ✅ Verified: root-level index.html exists ($(wc -c < .vercel/output/index.html) bytes)"
+            else
+              echo "   ❌ ERROR: Failed to create root-level index.html"
+              exit 1
+            fi
+          else
+            echo "   ❌ ERROR: static/index.html not found - cannot create root-level index.html"
+            exit 1
+          fi
+          
           # Also check and fix dashboard.func if it has the same issue
           if [ -L ".vercel/output/functions/dashboard.func" ]; then
             DASHBOARD_TARGET=$(readlink .vercel/output/functions/dashboard.func)
@@ -353,6 +379,18 @@ jobs:
             echo "   ⚠️  index.rsc.func still exists (should have been removed)"
           else
             echo "   ✅ index.rsc.func removed - using static file serving"
+          fi
+          
+          # CRITICAL: Verify root-level index.html exists
+          echo ""
+          echo "🔍 Final verification - root-level index.html:"
+          if [ -f ".vercel/output/index.html" ]; then
+            echo "   ✅ Root-level index.html EXISTS - Cloudflare Pages can serve homepage"
+            echo "   File size: $(wc -c < .vercel/output/index.html) bytes"
+          else
+            echo "   ❌ ERROR: Root-level index.html MISSING!"
+            echo "   This will cause 404 errors - the copy step must have failed"
+            exit 1
           fi
           
           # Verify no index-related functions remain
@@ -423,6 +461,44 @@ jobs:
           
           echo ""
           echo "✅ Configuration verification complete"
+
+      - name: Pre-deployment structure verification
+        working-directory: apps/web
+        run: |
+          echo "🔍 Final pre-deployment verification..."
+          echo ""
+          echo "📁 Root of .vercel/output:"
+          ls -la .vercel/output/ | head -15
+          echo ""
+          echo "📁 Static directory (should contain index.html):"
+          ls -la .vercel/output/static/ | grep -E "index|^total|^d" | head -10
+          echo ""
+          echo "📁 Functions directory:"
+          ls -la .vercel/output/functions/ | head -10
+          echo ""
+          
+          # Verify root-level index.html exists (critical for Cloudflare Pages)
+          echo ""
+          echo "🔍 Verifying root-level index.html..."
+          if [ -f ".vercel/output/index.html" ]; then
+            echo "   ✅ Root-level index.html exists ($(wc -c < .vercel/output/index.html) bytes)"
+          else
+            echo "   ❌ ERROR: Root-level index.html missing!"
+            echo "   This is required for Cloudflare Pages to serve the homepage"
+            exit 1
+          fi
+          
+          # Check for catch-all route handler (optional but helpful)
+          echo ""
+          echo "🔍 Checking for catch-all route handler..."
+          if [ -f ".vercel/output/functions/[[path]].js" ] || [ -d ".vercel/output/functions/[[path]].func" ] || [ -d ".vercel/output/functions/[[path]]" ]; then
+            echo "   ✅ Catch-all route handler exists"
+          else
+            echo "   ℹ️  No catch-all route handler (this is OK if index.html is at root)"
+          fi
+          
+          echo ""
+          echo "✅ Verification complete - ready to deploy"
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
