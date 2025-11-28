@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { apiClient } from '../../../../../lib/api-client';
 import { ContentDetail } from '../../../../../components/marketplace/content-detail';
@@ -13,6 +14,80 @@ interface ContentPageProps {
 
 export const runtime = 'edge'; // Required for Cloudflare Pages
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
+
+const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
+
+export async function generateMetadata({ params }: ContentPageProps): Promise<Metadata> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/contents/merchant/${params.merchantId}/slug/${params.slug}`,
+      {
+        next: { revalidate: 60 },
+      },
+    );
+    
+    if (!response.ok) {
+      return {
+        title: 'Content Not Found',
+        description: 'The requested content could not be found.',
+      };
+    }
+    
+    const content = await response.json();
+    
+    if (content.visibility !== 'public') {
+      return {
+        title: 'Content Not Found',
+        description: 'The requested content could not be found.',
+      };
+    }
+    
+    const title = content.title || content.slug;
+    const description = content.description || `Purchase ${title} with instant Solana payments. Access premium content immediately after payment confirmation.`;
+    const price = content.priceLamports ? (Number(content.priceLamports) / 1e9).toFixed(4) : '0';
+    const imageUrl = content.thumbnailUrl || `${baseUrl}/og-image.svg`;
+    
+    return {
+      title: `${title} - Premium Content`,
+      description,
+      keywords: [
+        content.category,
+        'Solana payments',
+        'premium content',
+        'digital content',
+        content.slug,
+      ].filter(Boolean),
+      openGraph: {
+        title: `${title} | Solana Micro-Paywall`,
+        description,
+        url: `${baseUrl}/marketplace/content/${params.merchantId}/${params.slug}`,
+        type: 'website',
+        images: [
+          {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: title,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${title} | Solana Micro-Paywall`,
+        description,
+        images: [imageUrl],
+      },
+      alternates: {
+        canonical: `/marketplace/content/${params.merchantId}/${params.slug}`,
+      },
+    };
+  } catch {
+    return {
+      title: 'Content',
+      description: 'Premium content available for purchase with Solana payments.',
+    };
+  }
+}
 
 export default async function ContentPage({ params }: ContentPageProps) {
   // Get content by merchantId and slug using the contents API

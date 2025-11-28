@@ -1,50 +1,18 @@
-import type { Metadata } from 'next';
-import { LibraryPageClient } from './library-client';
+'use client';
 
-const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { apiClient } from '../../lib/api-client';
+import { 
+  BookOpenIcon, 
+  ClockIcon, 
+  CheckCircleIcon,
+  MagnifyingGlassIcon 
+} from '@heroicons/react/24/outline';
 
-export const metadata: Metadata = {
-  title: 'My Library - Purchased Content',
-  description: 'Access all your purchased premium content in one place. View active and expired purchases from the Solana Micro-Paywall marketplace.',
-  keywords: [
-    'purchased content',
-    'my library',
-    'premium content access',
-    'Solana purchases',
-    'content library',
-  ],
-  openGraph: {
-    title: 'My Library - Purchased Content | Solana Micro-Paywall',
-    description: 'Access all your purchased premium content in one place.',
-    url: `${baseUrl}/library`,
-    type: 'website',
-    images: [
-      {
-        url: `${baseUrl}/og-image.svg`,
-        width: 1200,
-        height: 630,
-        alt: 'My Library - Solana Micro-Paywall',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'My Library - Purchased Content',
-    description: 'Access all your purchased premium content in one place.',
-    images: [`${baseUrl}/og-image.svg`],
-  },
-  alternates: {
-    canonical: '/library',
-  },
-  robots: {
-    index: false, // Library is user-specific, don't index
-    follow: false,
-  },
-};
-
-export default function LibraryPage() {
-  return <LibraryPageClient />;
-}
+interface PurchasedContent {
   id: string;
   slug: string;
   title?: string;
@@ -62,7 +30,7 @@ export default function LibraryPage() {
   accessToken: string;
 }
 
-function LibraryPageContent() {
+export function LibraryPageContent() {
   const { publicKey, connected } = useWallet();
   const searchParams = useSearchParams();
   const [purchasedContent, setPurchasedContent] = useState<PurchasedContent[]>([]);
@@ -188,7 +156,6 @@ function LibraryPageContent() {
       setLoading(false);
     }
   };
-
 
   const filteredContent = purchasedContent.filter((item) => {
     const matchesSearch = 
@@ -376,7 +343,7 @@ function LibraryPageContent() {
   );
 }
 
-export default function LibraryPage() {
+export function LibraryPageClient() {
   return (
     <Suspense
       fallback={

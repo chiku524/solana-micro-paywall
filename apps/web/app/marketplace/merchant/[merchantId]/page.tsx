@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -28,6 +29,62 @@ interface MerchantProfilePageProps {
 
 export const runtime = 'edge'; // Required for Cloudflare Pages
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
+
+const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
+
+export async function generateMetadata({ params }: MerchantProfilePageProps): Promise<Metadata> {
+  try {
+    const profile = await apiClient.getMerchantPublicProfile(params.merchantId);
+    const merchantContents = await apiClient.getMerchantContents(params.merchantId, { limit: 1 });
+    
+    const merchant = profile || {
+      email: merchantContents.contents[0]?.merchant?.email || 'Merchant',
+    };
+    
+    const displayName = merchant.displayName || merchant.email;
+    const bio = merchant.bio || `Browse premium content from ${displayName} on Solana Micro-Paywall.`;
+    
+    return {
+      title: `${displayName} - Merchant Profile`,
+      description: bio,
+      keywords: [
+        displayName,
+        'Solana merchant',
+        'content creator',
+        'premium content',
+        'Solana payments',
+      ],
+      openGraph: {
+        title: `${displayName} | Solana Micro-Paywall`,
+        description: bio,
+        url: `${baseUrl}/marketplace/merchant/${params.merchantId}`,
+        type: 'profile',
+        images: [
+          {
+            url: merchant.avatarUrl || `${baseUrl}/og-image.svg`,
+            width: 1200,
+            height: 630,
+            alt: displayName,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${displayName} | Solana Micro-Paywall`,
+        description: bio,
+        images: [merchant.avatarUrl || `${baseUrl}/og-image.svg`],
+      },
+      alternates: {
+        canonical: `/marketplace/merchant/${params.merchantId}`,
+      },
+    };
+  } catch {
+    return {
+      title: 'Merchant Profile',
+      description: 'View merchant profile and browse their premium content on Solana Micro-Paywall.',
+    };
+  }
+}
 
 export default async function MerchantProfilePage({ params }: MerchantProfilePageProps) {
   let merchant: any;

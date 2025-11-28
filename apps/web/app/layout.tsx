@@ -7,41 +7,69 @@ import { BackgroundAnimation } from '../components/ui/background-animation';
 
 const inter = Inter({ subsets: ['latin'] });
 
+const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
+
 export const metadata: Metadata = {
   title: {
-    default: 'Solana Micro-Paywall',
+    default: 'Solana Micro-Paywall - Monetize Content with Instant Solana Payments',
     template: '%s | Solana Micro-Paywall',
   },
-  description: 'Micro-paywall platform for Solana Pay - Marketplace and Merchant Dashboard',
-  keywords: ['Solana', 'Paywall', 'Blockchain', 'Payments', 'Marketplace', 'Content'],
-  authors: [{ name: 'Solana Micro-Paywall' }],
+  description: 'The easiest way for creators, publishers, and API providers to accept instant Solana payments and grant access to premium content. Built for the Solana ecosystem with sub-second confirmations and near-zero fees.',
+  keywords: [
+    'Solana',
+    'Paywall',
+    'Blockchain',
+    'Payments',
+    'Marketplace',
+    'Content Monetization',
+    'Solana Pay',
+    'Web3',
+    'Cryptocurrency Payments',
+    'Digital Content',
+    'Creator Economy',
+    'Micropayments',
+    'SOL Payments',
+    'Instant Payments',
+  ],
+  authors: [{ name: 'Solana Micro-Paywall', url: baseUrl }],
   creator: 'Solana Micro-Paywall',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3001'),
+  publisher: 'Solana Micro-Paywall',
+  metadataBase: new URL(baseUrl),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: '/',
+    url: baseUrl,
     siteName: 'Solana Micro-Paywall',
-    title: 'Solana Micro-Paywall',
-    description: 'Micro-paywall platform for Solana Pay - Marketplace and Merchant Dashboard',
+    title: 'Solana Micro-Paywall - Monetize Content with Instant Solana Payments',
+    description: 'The easiest way for creators, publishers, and API providers to accept instant Solana payments and grant access to premium content. Built for the Solana ecosystem.',
     images: [
       {
-        url: '/og-image.png',
+        url: `${baseUrl}/og-image.svg`,
         width: 1200,
         height: 630,
-        alt: 'Solana Micro-Paywall',
+        alt: 'Solana Micro-Paywall - Instant Solana Payments for Content Creators',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Solana Micro-Paywall',
-    description: 'Micro-paywall platform for Solana Pay - Marketplace and Merchant Dashboard',
-    images: ['/og-image.png'],
+    title: 'Solana Micro-Paywall - Monetize Content with Instant Solana Payments',
+    description: 'The easiest way for creators to accept instant Solana payments. Sub-second confirmations, near-zero fees, global marketplace.',
+    images: [`${baseUrl}/og-image.svg`],
+    creator: '@solana',
   },
   icons: {
-    icon: '/icon.svg',
-    apple: '/apple-icon.png',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/apple-icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.svg',
   },
   robots: {
     index: true,
@@ -54,6 +82,11 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    // Add Google Search Console verification if you have it
+    // google: 'your-verification-code',
+  },
+  category: 'Technology',
 };
 
 export default function RootLayout({

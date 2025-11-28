@@ -1,50 +1,14 @@
-import type { Metadata } from 'next';
-import { BookmarksPageClient } from './bookmarks-client';
+'use client';
 
-const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { apiClient } from '../../lib/api-client';
+import { ContentCard } from '../../components/marketplace/content-card';
+import { HeartIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
-export const metadata: Metadata = {
-  title: 'My Bookmarks - Saved Content',
-  description: 'View and manage your bookmarked content. Access your saved premium content from the Solana Micro-Paywall marketplace.',
-  keywords: [
-    'bookmarks',
-    'saved content',
-    'favorites',
-    'Solana content',
-    'premium content',
-  ],
-  openGraph: {
-    title: 'My Bookmarks - Saved Content | Solana Micro-Paywall',
-    description: 'View and manage your bookmarked content from the marketplace.',
-    url: `${baseUrl}/bookmarks`,
-    type: 'website',
-    images: [
-      {
-        url: `${baseUrl}/og-image.svg`,
-        width: 1200,
-        height: 630,
-        alt: 'My Bookmarks - Solana Micro-Paywall',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'My Bookmarks - Saved Content',
-    description: 'View and manage your bookmarked content.',
-    images: [`${baseUrl}/og-image.svg`],
-  },
-  alternates: {
-    canonical: '/bookmarks',
-  },
-  robots: {
-    index: false, // Bookmarks are user-specific, don't index
-    follow: false,
-  },
-};
-
-export default function BookmarksPage() {
-  return <BookmarksPageClient />;
-}
+export function BookmarksPageContent() {
   const { publicKey, connected } = useWallet();
   const searchParams = useSearchParams();
   const [bookmarks, setBookmarks] = useState<any[]>([]);
@@ -177,7 +141,7 @@ export default function BookmarksPage() {
   );
 }
 
-export default function BookmarksPage() {
+export function BookmarksPageClient() {
   return (
     <Suspense
       fallback={
