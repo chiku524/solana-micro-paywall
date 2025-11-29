@@ -4,15 +4,27 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Detect prefetch requests (browser sends 'sec-purpose: prefetch' header)
-  const isPrefetch = request.headers.get('x-middleware-prefetch') === '1' ||
-                     request.headers.get('purpose') === 'prefetch' ||
-                     request.headers.get('sec-purpose') === 'prefetch' ||
-                     request.headers.get('sec-purpose')?.includes('prefetch') ||
-                     request.nextUrl.searchParams.has('_nextData');
+  // Detect prefetch requests more accurately
+  // Priority: Always allow navigation requests through, even if they have prefetch headers
+  const purpose = request.headers.get('purpose');
+  const secPurpose = request.headers.get('sec-purpose');
+  const secFetchMode = request.headers.get('sec-fetch-mode');
+  const secFetchDest = request.headers.get('sec-fetch-dest');
+  
+  // If it's a navigation request (user clicked a link), always allow it through
+  // This ensures actual clicks/navigation work properly
+  const isNavigation = secFetchMode === 'navigate' || secFetchDest === 'document';
+  
+  // Only treat as prefetch if:
+  // 1. It's NOT a navigation request AND
+  // 2. It has prefetch purpose headers
+  // This ensures actual clicks/navigation go through properly
+  const isPrefetch = !isNavigation && 
+                     (purpose === 'prefetch' || secPurpose === 'prefetch' || secPurpose?.includes('prefetch'));
   
   // If it's a prefetch request, return early with 200 and no content
   // This prevents 503 errors from failed prefetch attempts
+  // But allow actual navigation requests to proceed normally
   if (isPrefetch) {
     const response = new NextResponse(null, { status: 200 });
     response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');

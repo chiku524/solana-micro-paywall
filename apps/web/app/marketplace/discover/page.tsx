@@ -47,20 +47,20 @@ export default function DiscoverPage() {
       <header className="border-b border-neutral-800 bg-neutral-900/60">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <Link href="/marketplace" className="text-2xl font-bold text-white">
+            <Link href="/marketplace" prefetch={false} className="text-2xl font-bold text-white">
               Discover Content
             </Link>
             <nav className="flex items-center space-x-6">
-              <Link href="/" className="text-neutral-300 hover:text-white">
+              <Link href="/" prefetch={false} className="text-neutral-300 hover:text-white">
                 Home
               </Link>
-              <Link href="/marketplace" className="text-neutral-300 hover:text-white">
+              <Link href="/marketplace" prefetch={false} className="text-neutral-300 hover:text-white">
                 Marketplace
               </Link>
-              <Link href="/docs" className="text-neutral-300 hover:text-white">
+              <Link href="/docs" prefetch={false} className="text-neutral-300 hover:text-white">
                 Documentation
               </Link>
-              <Link href="/dashboard" className="text-emerald-400 hover:text-emerald-300">
+              <Link href="/dashboard" prefetch={false} className="text-emerald-400 hover:text-emerald-300">
                 For Merchants
               </Link>
             </nav>
