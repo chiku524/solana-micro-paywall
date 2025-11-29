@@ -13,6 +13,8 @@ export function middleware(request: NextRequest) {
   
   // If it's a navigation request (user clicked a link), always allow it through
   // This ensures actual clicks/navigation work properly
+  // Note: Some browsers send both sec-fetch-mode: navigate AND sec-purpose: prefetch
+  // In this case, we prioritize navigation mode to ensure clicks work
   const isNavigation = secFetchMode === 'navigate' || secFetchDest === 'document';
   
   // Only treat as prefetch if:
@@ -21,6 +23,10 @@ export function middleware(request: NextRequest) {
   // This ensures actual clicks/navigation go through properly
   const isPrefetch = !isNavigation && 
                      (purpose === 'prefetch' || secPurpose === 'prefetch' || secPurpose?.includes('prefetch'));
+  
+  // If it's a navigation request with prefetch headers (browser speculative prefetch),
+  // we need to ensure it bypasses any prefetch cache by adding a cache-busting header
+  const isNavigationWithPrefetch = isNavigation && (purpose === 'prefetch' || secPurpose === 'prefetch' || secPurpose?.includes('prefetch'));
   
   // If it's a prefetch request, return early with 200 and no content
   // This prevents 503 errors from failed prefetch attempts
@@ -31,6 +37,8 @@ export function middleware(request: NextRequest) {
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');
     response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    // Add Vary header to prevent browsers from using prefetch cache for navigation
+    response.headers.set('Vary', 'sec-fetch-mode, sec-purpose, sec-fetch-dest');
     return response;
   }
   
@@ -75,9 +83,25 @@ export function middleware(request: NextRequest) {
   }
   
   // Add headers to prevent prefetching and aggressive caching on all responses
-  response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');
+  // For navigation requests (especially those with prefetch headers), be extra aggressive
+  if (isNavigationWithPrefetch) {
+    // Navigation request with prefetch headers - force bypass of prefetch cache
+    response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0, no-transform, immutable');
+    response.headers.set('X-Request-Type', 'navigation-bypass-prefetch');
+  } else {
+    response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');
+  }
   response.headers.set('Pragma', 'no-cache');
   response.headers.set('Expires', '0');
+  // Add Vary header to ensure browsers don't use prefetch cache for navigation requests
+  // This is critical: browsers must treat prefetch and navigation requests as different
+  response.headers.set('Vary', 'sec-fetch-mode, sec-purpose, sec-fetch-dest, purpose');
+  
+  // For all navigation requests, add additional headers to prevent using prefetch cache
+  if (isNavigation) {
+    // Add a unique header to ensure this response is not confused with prefetch responses
+    response.headers.set('X-Request-Type', 'navigation');
+  }
   
   return response;
 }

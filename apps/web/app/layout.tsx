@@ -98,6 +98,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
+      <head>
+        {/* Disable browser-level speculative prefetching to prevent cached prefetch responses from interfering with navigation */}
+        <meta httpEquiv="x-dns-prefetch-control" content="off" />
+      </head>
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`}>
         <DisablePrefetch />
         <BackgroundAnimation />
