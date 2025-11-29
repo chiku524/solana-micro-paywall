@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 /**
  * Component to aggressively disable Next.js prefetching at the browser level.
  * This prevents 503 errors on Cloudflare Pages when routes are prefetched.
+ * Also intercepts navigation clicks to bypass cached prefetch responses.
  */
 export function DisablePrefetch() {
   useEffect(() => {
@@ -43,8 +44,40 @@ export function DisablePrefetch() {
       }
     };
 
+    // Intercept navigation to detect and handle cached prefetch 503 responses
+    if (typeof window !== 'undefined') {
+      // Listen for navigation errors and retry with hard navigation
+      const handleNavigationError = () => {
+        // If we detect a 503 error during navigation, it might be from prefetch cache
+        // We'll let the error boundary handle it, but we can also try a hard refresh
+        const currentUrl = window.location.href;
+        const url = new URL(currentUrl);
+        
+        // If we're stuck on the same page after a navigation attempt, try a hard refresh
+        // This will bypass any cached responses
+        if (url.searchParams.get('_retry') !== '1') {
+          url.searchParams.set('_retry', '1');
+          // Small delay to avoid infinite loops
+          setTimeout(() => {
+            window.location.href = url.toString();
+          }, 100);
+        }
+      };
+
+      // Monitor for failed navigations
+      window.addEventListener('error', (event) => {
+        if (event.message?.includes('503') || event.message?.includes('Service Unavailable')) {
+          console.log('[DisablePrefetch] Detected 503 error, attempting recovery...');
+          handleNavigationError();
+        }
+      }, true);
+    }
+
     // Run immediately
     disable();
+
+    // Intercept link clicks to bypass prefetch cache
+    document.addEventListener('click', handleLinkClick, true); // Use capture phase
 
     // Also observe DOM changes for dynamically added prefetch links
     const observer = new MutationObserver((mutations) => {
@@ -72,6 +105,7 @@ export function DisablePrefetch() {
     const interval = setInterval(disable, 1000);
 
     return () => {
+      document.removeEventListener('click', handleLinkClick, true);
       observer.disconnect();
       clearInterval(interval);
     };

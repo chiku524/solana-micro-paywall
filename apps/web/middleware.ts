@@ -42,6 +42,17 @@ export function middleware(request: NextRequest) {
     return response;
   }
   
+  // For navigation requests with prefetch headers, rewrite URL to add cache-busting parameter
+  // This ensures the browser treats it as a different request and doesn't use prefetch cache
+  if (isNavigationWithPrefetch) {
+    const url = request.nextUrl.clone();
+    // Only add cache-busting param if not already present to avoid URL pollution
+    if (!url.searchParams.has('_nav')) {
+      url.searchParams.set('_nav', '1');
+      return NextResponse.redirect(url);
+    }
+  }
+  
   // For non-prefetch requests, handle dashboard routes and add anti-prefetch headers
   let response: NextResponse;
   
