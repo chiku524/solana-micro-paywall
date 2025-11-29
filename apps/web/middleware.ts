@@ -42,20 +42,10 @@ export function middleware(request: NextRequest) {
     return response;
   }
   
-  // For navigation requests with prefetch headers, ALWAYS redirect to force fresh request
-  // This ensures the browser treats it as a different request and doesn't use prefetch cache
-  // We redirect even if _nav param exists to ensure middleware runs and cache headers are set
-  if (isNavigationWithPrefetch) {
-    const url = request.nextUrl.clone();
-    // Always add/update cache-busting param to ensure fresh request
-    url.searchParams.set('_nav', Date.now().toString());
-    const redirectResponse = NextResponse.redirect(url);
-    // Set aggressive no-cache headers on redirect response
-    redirectResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-    redirectResponse.headers.set('Pragma', 'no-cache');
-    redirectResponse.headers.set('Expires', '0');
-    return redirectResponse;
-  }
+  // For navigation requests with prefetch headers, DON'T redirect
+  // Instead, let them through but set aggressive cache headers
+  // Redirecting breaks Next.js client-side routing and causes redirect loops
+  // The cache headers will prevent browsers from using prefetch cache
   
   // For non-prefetch requests, handle dashboard routes and add anti-prefetch headers
   let response: NextResponse;

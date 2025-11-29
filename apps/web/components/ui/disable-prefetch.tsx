@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 /**
  * Component to aggressively disable Next.js prefetching at the browser level.
  * This prevents 503 errors on Cloudflare Pages when routes are prefetched.
- * Also intercepts navigation clicks to bypass cached prefetch responses.
  */
 export function DisablePrefetch() {
   useEffect(() => {
@@ -44,76 +43,39 @@ export function DisablePrefetch() {
       }
     };
 
-    // Intercept ALL link clicks to force hard navigation that bypasses browser cache
-    // This is necessary because browsers cache prefetch 503 responses at a lower level
-    // than middleware, so we need to intercept at the client level
-    let handleLinkClick: ((e: MouseEvent) => void) | null = null;
-    let handleError: ((event: ErrorEvent) => void) | null = null;
-    
+    // Monitor for navigation issues where browser uses cached 503 responses
+    // If we detect we're on the wrong page after a navigation attempt, force a hard refresh
     if (typeof window !== 'undefined') {
-      handleLinkClick = (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        const link = target.closest('a[href]') as HTMLAnchorElement;
+      // Check if we're stuck on landing page when we shouldn't be
+      // This happens when browser uses cached 503 response
+      const checkNavigation = () => {
+        const currentPath = window.location.pathname;
+        const referrer = document.referrer;
         
-        if (link && link.href) {
-          try {
-            const url = new URL(link.href);
-            // Only handle internal links (same origin)
-            if (url.origin === window.location.origin) {
-              // Check if it's a Next.js Link component or internal link
-              const isNextLink = link.hasAttribute('data-nextjs-link') || 
-                                link.closest('[data-nextjs-scroll-focus-boundary]') !== null ||
-                                link.getAttribute('href')?.startsWith('/');
-              
-              if (isNextLink) {
-                // Prevent default Next.js navigation
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Force a hard navigation with cache-busting to bypass prefetch cache
-                const targetPath = url.pathname + url.search + url.hash;
-                
-                // Always add fresh cache-busting parameter
-                const separator = url.search ? '&' : '?';
-                const finalUrl = `${targetPath}${separator}_nav=${Date.now()}`;
-                
-                // Use replace instead of href to avoid adding to history
-                // This ensures browser makes a fresh request
+        // If we're on landing page but came from another page, might be cached 503 issue
+        if (currentPath === '/' && referrer && referrer !== window.location.href) {
+          const referrerUrl = new URL(referrer);
+          // If we were trying to go to a different page but ended up on landing page
+          if (referrerUrl.pathname !== '/') {
+            const urlParams = new URLSearchParams(window.location.search);
+            // Only try once to avoid infinite loops
+            if (!urlParams.has('_retried')) {
+              console.warn('[DisablePrefetch] Detected redirect to landing page, might be cached 503. Retrying...');
+              // Force a hard navigation to the intended page with cache-busting
+              const targetPath = referrerUrl.pathname + referrerUrl.search + referrerUrl.hash;
+              const separator = referrerUrl.search ? '&' : '?';
+              const finalUrl = `${targetPath}${separator}_nav=${Date.now()}&_retried=1`;
+              // Small delay to ensure page has loaded
+              setTimeout(() => {
                 window.location.replace(finalUrl);
-                return false;
-              }
+              }, 100);
             }
-          } catch (err) {
-            // If URL parsing fails, let default behavior happen
-            console.warn('[DisablePrefetch] Failed to parse URL:', err);
           }
         }
       };
-
-      // Add click listener in capture phase to intercept before Next.js router
-      document.addEventListener('click', handleLinkClick, true);
       
-      // Also listen for navigation errors as fallback
-      const handleNavigationError = () => {
-        const currentUrl = window.location.href;
-        const url = new URL(currentUrl);
-        
-        if (url.searchParams.get('_retry') !== '1') {
-          url.searchParams.set('_retry', '1');
-          setTimeout(() => {
-            window.location.href = url.toString();
-          }, 100);
-        }
-      };
-
-      handleError = (event: ErrorEvent) => {
-        if (event.message?.includes('503') || event.message?.includes('Service Unavailable')) {
-          console.log('[DisablePrefetch] Detected 503 error, attempting recovery...');
-          handleNavigationError();
-        }
-      };
-
-      window.addEventListener('error', handleError, true);
+      // Run check after a short delay to allow page to load
+      setTimeout(checkNavigation, 500);
     }
 
     // Run immediately
@@ -145,15 +107,6 @@ export function DisablePrefetch() {
     const interval = setInterval(disable, 1000);
 
     return () => {
-      // Remove event listeners
-      if (typeof window !== 'undefined') {
-        if (handleLinkClick) {
-          document.removeEventListener('click', handleLinkClick, true);
-        }
-        if (handleError) {
-          window.removeEventListener('error', handleError, true);
-        }
-      }
       observer.disconnect();
       clearInterval(interval);
     };

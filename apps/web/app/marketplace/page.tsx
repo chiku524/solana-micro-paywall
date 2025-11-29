@@ -51,33 +51,62 @@ export const metadata: Metadata = {
   },
 };
 
+// Helper function to safely fetch data with timeout
+async function safeFetch<T>(
+  fetchFn: () => Promise<T>,
+  defaultValue: T,
+  timeout: number = 5000
+): Promise<T> {
+  try {
+    const timeoutPromise = new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), timeout);
+    });
+    return await Promise.race([fetchFn(), timeoutPromise]);
+  } catch (error) {
+    console.error('[Marketplace] Safe fetch error:', error);
+    return defaultValue;
+  }
+}
+
 export default async function MarketplacePage() {
   // Wrap API calls in try-catch to prevent 503 errors during prefetch
   // This page MUST always render successfully, even if API calls fail
+  // CRITICAL: Never throw errors - always render the page with empty data if needed
   let trending: Content[] = [];
   let recent: DiscoverResponse = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
   
-  // Use Promise.allSettled to ensure all promises complete, even if some fail
+  // Use safe fetch with timeout to prevent hanging requests
+  // This ensures the page always renders, even if API is slow or down
   try {
-    const results = await Promise.allSettled([
-      apiClient.getTrending(6).catch(() => [] as Content[]),
-      apiClient.discoverContents({ sort: 'newest', limit: 12 }).catch(() => ({ contents: [], total: 0, page: 1, limit: 12, totalPages: 0 }) as DiscoverResponse),
+    // Fetch data with individual error handling and timeouts
+    // Each call is independent - if one fails, others can still succeed
+    const [trendingResult, recentResult] = await Promise.allSettled([
+      safeFetch(() => apiClient.getTrending(6), [] as Content[], 5000),
+      safeFetch(
+        () => apiClient.discoverContents({ sort: 'newest', limit: 12 }),
+        { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 } as DiscoverResponse,
+        5000
+      ),
     ]);
     
-    // Extract results safely
-    if (results[0].status === 'fulfilled') {
-      trending = results[0].value || [];
+    // Extract results safely - use empty defaults if anything fails
+    if (trendingResult.status === 'fulfilled' && Array.isArray(trendingResult.value)) {
+      trending = trendingResult.value;
     }
-    if (results[1].status === 'fulfilled') {
-      recent = results[1].value || { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
+    
+    if (recentResult.status === 'fulfilled' && recentResult.value) {
+      recent = recentResult.value;
     }
   } catch (error) {
-    // Final safety net - if anything throws, use empty data
-    // This ensures the page ALWAYS renders successfully
-    console.error('Failed to load marketplace data:', error);
+    // Final safety net - if anything throws at the top level, use empty data
+    // This ensures the page ALWAYS renders successfully and never returns 503
+    console.error('[Marketplace] Top-level error in marketplace page:', error);
     trending = [];
     recent = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
   }
+  
+  // CRITICAL: This function must NEVER throw - it must always return JSX
+  // If we throw here, Next.js will return 503/500, which gets cached by browsers
 
   return (
     <div className="min-h-screen relative z-10">
