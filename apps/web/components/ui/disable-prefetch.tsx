@@ -44,33 +44,76 @@ export function DisablePrefetch() {
       }
     };
 
-    // Intercept navigation to detect and handle cached prefetch 503 responses
+    // Intercept ALL link clicks to force hard navigation that bypasses browser cache
+    // This is necessary because browsers cache prefetch 503 responses at a lower level
+    // than middleware, so we need to intercept at the client level
+    let handleLinkClick: ((e: MouseEvent) => void) | null = null;
+    let handleError: ((event: ErrorEvent) => void) | null = null;
+    
     if (typeof window !== 'undefined') {
-      // Listen for navigation errors and retry with hard navigation
+      handleLinkClick = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        const link = target.closest('a[href]') as HTMLAnchorElement;
+        
+        if (link && link.href) {
+          try {
+            const url = new URL(link.href);
+            // Only handle internal links (same origin)
+            if (url.origin === window.location.origin) {
+              // Check if it's a Next.js Link component or internal link
+              const isNextLink = link.hasAttribute('data-nextjs-link') || 
+                                link.closest('[data-nextjs-scroll-focus-boundary]') !== null ||
+                                link.getAttribute('href')?.startsWith('/');
+              
+              if (isNextLink) {
+                // Prevent default Next.js navigation
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Force a hard navigation with cache-busting to bypass prefetch cache
+                const targetPath = url.pathname + url.search + url.hash;
+                
+                // Add cache-busting parameter if not already present
+                const finalUrl = url.searchParams.has('_nav') 
+                  ? targetPath 
+                  : `${targetPath}${url.search ? '&' : '?'}_nav=${Date.now()}`;
+                
+                // Force hard navigation (bypasses all caches)
+                window.location.href = finalUrl;
+                return false;
+              }
+            }
+          } catch (err) {
+            // If URL parsing fails, let default behavior happen
+            console.warn('[DisablePrefetch] Failed to parse URL:', err);
+          }
+        }
+      };
+
+      // Add click listener in capture phase to intercept before Next.js router
+      document.addEventListener('click', handleLinkClick, true);
+      
+      // Also listen for navigation errors as fallback
       const handleNavigationError = () => {
-        // If we detect a 503 error during navigation, it might be from prefetch cache
-        // We'll let the error boundary handle it, but we can also try a hard refresh
         const currentUrl = window.location.href;
         const url = new URL(currentUrl);
         
-        // If we're stuck on the same page after a navigation attempt, try a hard refresh
-        // This will bypass any cached responses
         if (url.searchParams.get('_retry') !== '1') {
           url.searchParams.set('_retry', '1');
-          // Small delay to avoid infinite loops
           setTimeout(() => {
             window.location.href = url.toString();
           }, 100);
         }
       };
 
-      // Monitor for failed navigations
-      window.addEventListener('error', (event) => {
+      handleError = (event: ErrorEvent) => {
         if (event.message?.includes('503') || event.message?.includes('Service Unavailable')) {
           console.log('[DisablePrefetch] Detected 503 error, attempting recovery...');
           handleNavigationError();
         }
-      }, true);
+      };
+
+      window.addEventListener('error', handleError, true);
     }
 
     // Run immediately
@@ -102,6 +145,15 @@ export function DisablePrefetch() {
     const interval = setInterval(disable, 1000);
 
     return () => {
+      // Remove event listeners
+      if (typeof window !== 'undefined') {
+        if (handleLinkClick) {
+          document.removeEventListener('click', handleLinkClick, true);
+        }
+        if (handleError) {
+          window.removeEventListener('error', handleError, true);
+        }
+      }
       observer.disconnect();
       clearInterval(interval);
     };
