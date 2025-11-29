@@ -42,15 +42,19 @@ export function middleware(request: NextRequest) {
     return response;
   }
   
-  // For navigation requests with prefetch headers, rewrite URL to add cache-busting parameter
+  // For navigation requests with prefetch headers, ALWAYS redirect to force fresh request
   // This ensures the browser treats it as a different request and doesn't use prefetch cache
+  // We redirect even if _nav param exists to ensure middleware runs and cache headers are set
   if (isNavigationWithPrefetch) {
     const url = request.nextUrl.clone();
-    // Only add cache-busting param if not already present to avoid URL pollution
-    if (!url.searchParams.has('_nav')) {
-      url.searchParams.set('_nav', '1');
-      return NextResponse.redirect(url);
-    }
+    // Always add/update cache-busting param to ensure fresh request
+    url.searchParams.set('_nav', Date.now().toString());
+    const redirectResponse = NextResponse.redirect(url);
+    // Set aggressive no-cache headers on redirect response
+    redirectResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    redirectResponse.headers.set('Pragma', 'no-cache');
+    redirectResponse.headers.set('Expires', '0');
+    return redirectResponse;
   }
   
   // For non-prefetch requests, handle dashboard routes and add anti-prefetch headers

@@ -53,17 +53,27 @@ export const metadata: Metadata = {
 
 export default async function MarketplacePage() {
   // Wrap API calls in try-catch to prevent 503 errors during prefetch
+  // This page MUST always render successfully, even if API calls fail
   let trending: Content[] = [];
   let recent: DiscoverResponse = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
   
+  // Use Promise.allSettled to ensure all promises complete, even if some fail
   try {
-    [trending, recent] = await Promise.all([
+    const results = await Promise.allSettled([
       apiClient.getTrending(6).catch(() => [] as Content[]),
       apiClient.discoverContents({ sort: 'newest', limit: 12 }).catch(() => ({ contents: [], total: 0, page: 1, limit: 12, totalPages: 0 }) as DiscoverResponse),
     ]);
+    
+    // Extract results safely
+    if (results[0].status === 'fulfilled') {
+      trending = results[0].value || [];
+    }
+    if (results[1].status === 'fulfilled') {
+      recent = results[1].value || { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
+    }
   } catch (error) {
-    // If API calls fail, render page with empty data instead of throwing
-    // This prevents 503 errors during prefetch
+    // Final safety net - if anything throws, use empty data
+    // This ensures the page ALWAYS renders successfully
     console.error('Failed to load marketplace data:', error);
     trending = [];
     recent = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };

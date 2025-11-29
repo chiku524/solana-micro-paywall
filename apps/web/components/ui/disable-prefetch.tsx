@@ -73,13 +73,13 @@ export function DisablePrefetch() {
                 // Force a hard navigation with cache-busting to bypass prefetch cache
                 const targetPath = url.pathname + url.search + url.hash;
                 
-                // Add cache-busting parameter if not already present
-                const finalUrl = url.searchParams.has('_nav') 
-                  ? targetPath 
-                  : `${targetPath}${url.search ? '&' : '?'}_nav=${Date.now()}`;
+                // Always add fresh cache-busting parameter
+                const separator = url.search ? '&' : '?';
+                const finalUrl = `${targetPath}${separator}_nav=${Date.now()}`;
                 
-                // Force hard navigation (bypasses all caches)
-                window.location.href = finalUrl;
+                // Use replace instead of href to avoid adding to history
+                // This ensures browser makes a fresh request
+                window.location.replace(finalUrl);
                 return false;
               }
             }
