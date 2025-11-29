@@ -583,3 +583,74 @@ jobs:
           branch: ${{ github.ref_name }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Purge Cloudflare Cache
+        run: |
+          echo "🧹 Purging Cloudflare cache to clear cached 503 responses..."
+          
+          # Check if jq is available, install if not
+          if ! command -v jq &> /dev/null; then
+            echo "   Installing jq for JSON parsing..."
+            sudo apt-get update && sudo apt-get install -y jq || {
+              echo "   ⚠️  Could not install jq, using alternative method..."
+              USE_JQ=false
+            }
+          else
+            USE_JQ=true
+          fi
+          
+          # Get zone ID from domain (micropaywall.app)
+          if [ "$USE_JQ" = "true" ]; then
+            ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=micropaywall.app" \
+              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+              -H "Content-Type: application/json" | jq -r '.result[0].id')
+          else
+            # Fallback: parse JSON without jq using grep/sed
+            ZONE_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=micropaywall.app" \
+              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+              -H "Content-Type: application/json")
+            ZONE_ID=$(echo "$ZONE_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"\([^"]*\)"/\1/')
+          fi
+          
+          if [ -z "$ZONE_ID" ] || [ "$ZONE_ID" = "null" ] || [ "$ZONE_ID" = "" ]; then
+            echo "   ⚠️  WARNING: Could not find zone ID for micropaywall.app"
+            echo "   Cache purge skipped. You may need to purge manually from Cloudflare dashboard."
+            echo "   To purge manually:"
+            echo "   1. Go to https://dash.cloudflare.com/"
+            echo "   2. Select micropaywall.app domain"
+            echo "   3. Go to Caching → Configuration → Purge Everything"
+            exit 0
+          fi
+          
+          echo "   ✅ Found zone ID: $ZONE_ID"
+          
+          # Purge everything (most aggressive - ensures all cached 503s are cleared)
+          echo "   Purging all cached content..."
+          RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+          
+          if [ "$USE_JQ" = "true" ]; then
+            SUCCESS=$(echo "$RESPONSE" | jq -r '.success')
+            if [ "$SUCCESS" = "true" ]; then
+              echo "   ✅ Cache purge successful"
+              echo "   All cached responses (including 503 prefetch cache) have been cleared"
+            else
+              ERROR=$(echo "$RESPONSE" | jq -r '.errors[0].message // "Unknown error"')
+              echo "   ⚠️  WARNING: Cache purge failed: $ERROR"
+              echo "   You may need to purge manually from Cloudflare dashboard"
+            fi
+          else
+            # Check success without jq
+            if echo "$RESPONSE" | grep -q '"success":true'; then
+              echo "   ✅ Cache purge successful"
+              echo "   All cached responses (including 503 prefetch cache) have been cleared"
+            else
+              echo "   ⚠️  WARNING: Cache purge may have failed"
+              echo "   Response: $RESPONSE"
+              echo "   You may need to purge manually from Cloudflare dashboard"
+            fi
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
