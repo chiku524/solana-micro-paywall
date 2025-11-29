@@ -76,9 +76,6 @@ export function DisablePrefetch() {
     // Run immediately
     disable();
 
-    // Intercept link clicks to bypass prefetch cache
-    document.addEventListener('click', handleLinkClick, true); // Use capture phase
-
     // Also observe DOM changes for dynamically added prefetch links
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -105,7 +102,6 @@ export function DisablePrefetch() {
     const interval = setInterval(disable, 1000);
 
     return () => {
-      document.removeEventListener('click', handleLinkClick, true);
       observer.disconnect();
       clearInterval(interval);
     };
