@@ -8,7 +8,8 @@ import { RecommendationsSection } from '../../components/marketplace/recommendat
 
 // Force dynamic rendering to prevent prefetch issues on Cloudflare Pages
 // This ensures the page is always rendered server-side and not statically prefetched
-export const runtime = 'edge'; // Required for Cloudflare Pages
+// NOTE: Using nodejs runtime instead of edge to avoid timeout issues with API calls
+export const runtime = 'nodejs'; // Use nodejs runtime to avoid edge runtime timeout issues
 export const dynamic = 'force-dynamic';
 export const revalidate = 0; // Disable ISR to prevent prefetch cache issues
 
@@ -51,56 +52,69 @@ export const metadata: Metadata = {
   },
 };
 
-// Helper function to safely fetch data with timeout
-async function safeFetch<T>(
-  fetchFn: () => Promise<T>,
-  defaultValue: T,
-  timeout: number = 5000
-): Promise<T> {
-  try {
-    const timeoutPromise = new Promise<T>((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), timeout);
-    });
-    return await Promise.race([fetchFn(), timeoutPromise]);
-  } catch (error) {
-    console.error('[Marketplace] Safe fetch error:', error);
-    return defaultValue;
-  }
-}
+// Removed safeFetch helper - using inline Promise.race instead for better error handling
 
 export default async function MarketplacePage() {
-  // Wrap API calls in try-catch to prevent 503 errors during prefetch
-  // This page MUST always render successfully, even if API calls fail
-  // CRITICAL: Never throw errors - always render the page with empty data if needed
+  // CRITICAL: This page MUST always render successfully, even if API calls fail
+  // Never throw errors - always render the page with empty data if needed
+  // This prevents Next.js from returning 503/500, which gets cached by browsers
+  
   let trending: Content[] = [];
   let recent: DiscoverResponse = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
   
-  // Use safe fetch with timeout to prevent hanging requests
-  // This ensures the page always renders, even if API is slow or down
+  // Use Promise.allSettled with very short timeouts to prevent hanging
+  // If API calls fail or timeout, we'll just render with empty data
   try {
-    // Fetch data with individual error handling and timeouts
-    // Each call is independent - if one fails, others can still succeed
+    // Create promises with individual error handling
+    const trendingPromise = (async () => {
+      try {
+        // Use a very short timeout to prevent edge runtime timeouts
+        const result = await Promise.race([
+          apiClient.getTrending(6),
+          new Promise<Content[]>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 3000)
+          ),
+        ]);
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        console.error('[Marketplace] Failed to load trending:', error);
+        return [] as Content[];
+      }
+    })();
+    
+    const recentPromise = (async () => {
+      try {
+        const result = await Promise.race([
+          apiClient.discoverContents({ sort: 'newest', limit: 12 }),
+          new Promise<DiscoverResponse>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 3000)
+          ),
+        ]);
+        return result || { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
+      } catch (error) {
+        console.error('[Marketplace] Failed to load recent:', error);
+        return { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 } as DiscoverResponse;
+      }
+    })();
+    
+    // Wait for both promises to settle (even if they fail)
     const [trendingResult, recentResult] = await Promise.allSettled([
-      safeFetch(() => apiClient.getTrending(6), [] as Content[], 5000),
-      safeFetch(
-        () => apiClient.discoverContents({ sort: 'newest', limit: 12 }),
-        { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 } as DiscoverResponse,
-        5000
-      ),
+      trendingPromise,
+      recentPromise,
     ]);
     
-    // Extract results safely - use empty defaults if anything fails
-    if (trendingResult.status === 'fulfilled' && Array.isArray(trendingResult.value)) {
-      trending = trendingResult.value;
+    // Extract results safely
+    if (trendingResult.status === 'fulfilled') {
+      trending = trendingResult.value || [];
     }
     
-    if (recentResult.status === 'fulfilled' && recentResult.value) {
-      recent = recentResult.value;
+    if (recentResult.status === 'fulfilled') {
+      recent = recentResult.value || { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
     }
   } catch (error) {
-    // Final safety net - if anything throws at the top level, use empty data
-    // This ensures the page ALWAYS renders successfully and never returns 503
-    console.error('[Marketplace] Top-level error in marketplace page:', error);
+    // Final safety net - if anything throws, use empty data
+    // This should never happen due to Promise.allSettled, but just in case
+    console.error('[Marketplace] Unexpected error in marketplace page:', error);
     trending = [];
     recent = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
   }
