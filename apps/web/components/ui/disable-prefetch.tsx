@@ -44,27 +44,28 @@ export function DisablePrefetch() {
     };
 
     // Monitor for navigation issues where browser uses cached 503 responses
-    // If we detect we're on the wrong page after a navigation attempt, force a hard refresh
+    // If we detect wrong content is being shown, force a hard refresh
     if (typeof window !== 'undefined') {
-      // Check if we're stuck on landing page when we shouldn't be
-      // This happens when browser uses cached 503 response
-      const checkNavigation = () => {
+      // Check if we're on the wrong page content-wise
+      // This happens when server returns 503 and Next.js serves fallback content
+      const checkPageContent = () => {
         const currentPath = window.location.pathname;
-        const referrer = document.referrer;
         
-        // If we're on landing page but came from another page, might be cached 503 issue
-        if (currentPath === '/' && referrer && referrer !== window.location.href) {
-          const referrerUrl = new URL(referrer);
-          // If we were trying to go to a different page but ended up on landing page
-          if (referrerUrl.pathname !== '/') {
+        // If we're not on the landing page, check if we're seeing landing page content
+        if (currentPath !== '/') {
+          // Check if we're seeing landing page content by looking for landing page specific elements
+          const hasLandingPageContent = document.querySelector('h1')?.textContent?.includes('Monetize Content') ||
+                                       document.querySelector('[href="/marketplace"]') !== null;
+          
+          // If we're on a different path but seeing landing page content, it's a 503 fallback issue
+          if (hasLandingPageContent && currentPath !== '/') {
             const urlParams = new URLSearchParams(window.location.search);
             // Only try once to avoid infinite loops
             if (!urlParams.has('_retried')) {
-              console.warn('[DisablePrefetch] Detected redirect to landing page, might be cached 503. Retrying...');
-              // Force a hard navigation to the intended page with cache-busting
-              const targetPath = referrerUrl.pathname + referrerUrl.search + referrerUrl.hash;
-              const separator = referrerUrl.search ? '&' : '?';
-              const finalUrl = `${targetPath}${separator}_nav=${Date.now()}&_retried=1`;
+              console.warn(`[DisablePrefetch] Detected wrong page content on ${currentPath}, forcing hard refresh...`);
+              // Force a hard navigation with cache-busting
+              const separator = urlParams.toString() ? '&' : '?';
+              const finalUrl = `${currentPath}${separator}_nav=${Date.now()}&_retried=1${window.location.hash}`;
               // Small delay to ensure page has loaded
               setTimeout(() => {
                 window.location.replace(finalUrl);
@@ -74,8 +75,14 @@ export function DisablePrefetch() {
         }
       };
       
-      // Run check after a short delay to allow page to load
-      setTimeout(checkNavigation, 500);
+      // Run check after page loads
+      if (document.readyState === 'complete') {
+        setTimeout(checkPageContent, 1000);
+      } else {
+        window.addEventListener('load', () => {
+          setTimeout(checkPageContent, 1000);
+        });
+      }
     }
 
     // Run immediately
