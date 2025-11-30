@@ -692,21 +692,48 @@ jobs:
         run: |
           echo "🔍 Final check before deployment..."
           echo ""
+          echo "📊 Complete .vercel/output structure:"
+          tree -L 3 .vercel/output 2>/dev/null || find .vercel/output -maxdepth 3 -type d | head -30
+          echo ""
           if [ -d ".vercel/output/functions" ]; then
-            echo "✅ Functions directory exists - will be deployed"
-            echo "   Function directories to be deployed:"
-            find .vercel/output/functions -type d -name "*.func" | head -20
+            echo "✅ Functions directory exists"
+            echo ""
+            echo "📋 Detailed functions directory analysis:"
+            echo "   All items in functions directory:"
+            ls -laR .vercel/output/functions | head -100
+            echo ""
+            echo "   Function directories (.func):"
+            find .vercel/output/functions -type d -name "*.func" | head -30
+            echo ""
+            echo "   Function JavaScript files:"
+            find .vercel/output/functions -name "*.js" | head -30
             echo ""
             echo "   Total function directories: $(find .vercel/output/functions -type d -name "*.func" | wc -l)"
+            echo "   Total function files: $(find .vercel/output/functions -type f | wc -l)"
+            echo ""
             if [ "$(find .vercel/output/functions -type d -name "*.func" | wc -l)" -eq 0 ]; then
-              echo "   ⚠️  WARNING: No .func directories found!"
+              echo "   ⚠️  CRITICAL WARNING: No .func directories found!"
               echo "   This means functions won't be deployed to Cloudflare Pages"
-              echo "   Listing all function files/directories:"
-              find .vercel/output/functions -type f -o -type d | head -30
+              echo "   @cloudflare/next-on-pages should create .func directories for edge runtime pages"
+              echo ""
+              echo "   Checking if functions are in a different format:"
+              find .vercel/output/functions -type f -o -type d | head -50
+              echo ""
+              echo "   This is likely why no functions appear in Cloudflare Pages!"
+            else
+              echo "   ✅ Functions found - they should be deployed"
             fi
           else
-            echo "❌ ERROR: Functions directory doesn't exist - deployment will fail!"
+            echo "❌ ERROR: Functions directory doesn't exist!"
+            echo "   This means @cloudflare/next-on-pages did NOT generate functions"
+            echo "   All directories in .vercel/output:"
+            find .vercel/output -type d -maxdepth 1
             exit 1
+          fi
+          echo ""
+          echo "📋 Checking config.json for function routing:"
+          if [ -f ".vercel/output/config.json" ]; then
+            cat .vercel/output/config.json | head -50
           fi
 
       - name: Deploy to Cloudflare Pages
