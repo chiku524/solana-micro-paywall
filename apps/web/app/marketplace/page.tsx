@@ -5,6 +5,7 @@ import { ContentCard } from '../../components/marketplace/content-card';
 import { TrendingSection } from '../../components/marketplace/trending-section';
 import { CategoriesSection } from '../../components/marketplace/categories-section';
 import { RecommendationsSection } from '../../components/marketplace/recommendations-section';
+import { MarketplaceClientWrapper } from './marketplace-client-wrapper';
 
 // Force dynamic rendering to prevent prefetch issues on Cloudflare Pages
 // This ensures the page is always rendered server-side and not statically prefetched
@@ -127,9 +128,17 @@ export default async function MarketplacePage() {
   
   // CRITICAL: This function must NEVER throw - it must always return JSX
   // If we throw here, Next.js will return 503/500, which gets cached by browsers
+  
+  // Log for debugging - this will appear in server logs
+  console.log('[Marketplace] Rendering marketplace page with:', {
+    trendingCount: trending.length,
+    recentCount: recent.contents.length,
+    timestamp: new Date().toISOString(),
+  });
 
   return (
-    <div className="min-h-screen relative z-10">
+    <MarketplaceClientWrapper>
+      <div className="min-h-screen relative z-10">
       {/* Header */}
       <header className="border-b border-neutral-800 bg-neutral-900/60">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -207,6 +216,7 @@ export default async function MarketplacePage() {
         </div>
       </footer>
     </div>
+    </MarketplaceClientWrapper>
   );
 }
 
