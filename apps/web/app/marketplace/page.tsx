@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { apiClient, type Content, type DiscoverResponse } from '../../lib/api-client';
 import { ContentCard } from '../../components/marketplace/content-card';
@@ -14,6 +15,7 @@ export const runtime = 'edge'; // Required for Cloudflare Pages
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true; // Allow dynamic route parameters
 export const revalidate = 0; // Disable ISR to prevent prefetch cache issues
+export const fetchCache = 'force-no-store'; // Disable fetch caching to force dynamic
 // Force the page to be dynamic by using a dynamic function
 export const fetchCache = 'force-no-store'; // Disable fetch caching
 
@@ -66,6 +68,11 @@ export default async function MarketplacePage() {
   // IMPORTANT: Edge runtime has strict timeout limits. If API calls take too long,
   // the edge runtime will timeout and return 503. We use very short timeouts (2s)
   // to prevent this.
+  
+  // Force dynamic rendering by using headers() - this ensures Next.js treats this as dynamic
+  // This is a workaround for Next.js 14 sometimes ignoring force-dynamic
+  // Calling headers() marks the page as dynamic and prevents static generation
+  headers(); // This will force Next.js to treat this route as dynamic
   
   let trending: Content[] = [];
   let recent: DiscoverResponse = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
