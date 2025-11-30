@@ -48,7 +48,15 @@ jobs:
           WEBPACK_CACHE: false
           # Skip Sentry during Cloudflare build to avoid module resolution errors
           SKIP_SENTRY: 'true'
-        run: npm run pages:build
+        run: |
+          echo "🔨 Building Next.js app..."
+          npm run build
+          echo ""
+          echo "📦 Running @cloudflare/next-on-pages..."
+          echo "   This should generate functions for edge runtime pages"
+          npx @cloudflare/next-on-pages --verbose 2>&1 | head -100 || npx @cloudflare/next-on-pages 2>&1 | head -100
+          echo ""
+          echo "✅ Build complete"
 
       - name: Verify build output structure
         working-directory: apps/web
