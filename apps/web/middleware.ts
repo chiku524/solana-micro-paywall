@@ -14,43 +14,47 @@ export function middleware(request: NextRequest) {
     const secFetchMode = request.headers.get('sec-fetch-mode');
     const secFetchDest = request.headers.get('sec-fetch-dest');
     
-    // If it's a navigation request (user clicked a link), always allow it through
-    // This ensures actual clicks/navigation work properly
+    // CRITICAL: If it's a navigation request (user clicked a link), ALWAYS allow it through
+    // This is the most important check - navigation requests must never be blocked
     // Note: Some browsers send both sec-fetch-mode: navigate AND sec-purpose: prefetch
-    // In this case, we prioritize navigation mode to ensure clicks work
+    // In this case, we MUST prioritize navigation mode to ensure clicks work
     const isNavigation = secFetchMode === 'navigate' || secFetchDest === 'document';
     
-    // Only treat as prefetch if:
-    // 1. It's NOT a navigation request AND
-    // 2. It has prefetch purpose headers
-    // This ensures actual clicks/navigation go through properly
+    // CRITICAL: Only treat as prefetch if it's NOT a navigation request
+    // Navigation requests with prefetch headers are still navigation requests!
     const isPrefetch = !isNavigation && 
                        (purpose === 'prefetch' || secPurpose === 'prefetch' || secPurpose?.includes('prefetch'));
     
     // If it's a navigation request with prefetch headers (browser speculative prefetch),
-    // we need to ensure it bypasses any prefetch cache by adding a cache-busting header
+    // we still let it through - it's a navigation request, not a prefetch
     const isNavigationWithPrefetch = isNavigation && (purpose === 'prefetch' || secPurpose === 'prefetch' || secPurpose?.includes('prefetch'));
     
-    // If it's a prefetch request, return early with 200 and no content
-    // This prevents 503 errors from failed prefetch attempts
-    // But allow actual navigation requests to proceed normally
+    // CRITICAL: Only block pure prefetch requests (not navigation)
+    // Navigation requests MUST always pass through, even if they have prefetch headers
     if (isPrefetch) {
+      // This is a pure prefetch request (not navigation) - return empty 200
       const response = new NextResponse(null, { status: 200 });
       response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');
       response.headers.set('Pragma', 'no-cache');
       response.headers.set('Expires', '0');
       response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+      response.headers.set('X-Request-Type', 'prefetch-blocked');
       // Add Vary header to prevent browsers from using prefetch cache for navigation
       response.headers.set('Vary', 'sec-fetch-mode, sec-purpose, sec-fetch-dest');
       return response;
     }
+    
+    // If we get here, it's either:
+    // 1. A navigation request (with or without prefetch headers) - MUST let through
+    // 2. A regular request without prefetch headers - let through
+    // NEVER block navigation requests!
   
   // For navigation requests with prefetch headers, DON'T redirect
   // Instead, let them through but set aggressive cache headers
   // Redirecting breaks Next.js client-side routing and causes redirect loops
   // The cache headers will prevent browsers from using prefetch cache
   
-    // For non-prefetch requests, handle dashboard routes and add anti-prefetch headers
+    // For all non-prefetch requests (including navigation), handle routes and add headers
     let response: NextResponse;
     
     // Protect dashboard routes - require merchantId in URL or cookie
@@ -87,6 +91,7 @@ export function middleware(request: NextRequest) {
         }
       }
     } else {
+      // For all other routes (marketplace, docs, etc.), always let through
       response = NextResponse.next();
     }
     
