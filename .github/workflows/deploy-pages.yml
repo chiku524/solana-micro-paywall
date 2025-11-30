@@ -826,6 +826,13 @@ jobs:
           find .vercel/output/functions -type d -name "*.func" | sort
           echo "::endgroup::"
 
+      - name: Install wrangler
+        run: |
+          echo "📦 Installing wrangler..."
+          npm install -g wrangler@latest
+          echo "✅ Wrangler installed"
+          wrangler --version
+
       - name: Deploy to Cloudflare Pages
         working-directory: apps/web
         run: |
@@ -838,11 +845,21 @@ jobs:
           echo "   Verifying functions directory exists:"
           ls -la .vercel/output/functions | head -10
           echo ""
+          echo "   Verifying marketplace.func exists:"
+          if [ -d ".vercel/output/functions/marketplace.func" ]; then
+            echo "   ✅ marketplace.func found"
+            ls -la .vercel/output/functions/marketplace.func/ | head -5
+          else
+            echo "   ❌ marketplace.func NOT found!"
+            exit 1
+          fi
+          echo ""
           echo "   Deploying with wrangler..."
-          npx wrangler pages deploy .vercel/output \
+          wrangler pages deploy .vercel/output \
             --project-name=micropaywall \
             --branch=${{ github.ref_name }} \
-            --compatibility-date=2024-01-01
+            --compatibility-date=2024-01-01 \
+            --compatibility-flags=nodejs_compat
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
