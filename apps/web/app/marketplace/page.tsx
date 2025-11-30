@@ -58,21 +58,27 @@ export default async function MarketplacePage() {
   // CRITICAL: This page MUST always render successfully, even if API calls fail
   // Never throw errors - always render the page with empty data if needed
   // This prevents Next.js from returning 503/500, which gets cached by browsers
+  // 
+  // IMPORTANT: Edge runtime has strict timeout limits. If API calls take too long,
+  // the edge runtime will timeout and return 503. We use very short timeouts (2s)
+  // to prevent this.
   
   let trending: Content[] = [];
   let recent: DiscoverResponse = { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
   
-  // Use Promise.allSettled with very short timeouts to prevent hanging
+  // Use Promise.allSettled with VERY short timeouts (2s) to prevent edge runtime timeouts
+  // Edge runtime has a ~30s total timeout, but individual requests can timeout faster
   // If API calls fail or timeout, we'll just render with empty data
   try {
     // Create promises with individual error handling
     const trendingPromise = (async () => {
       try {
-        // Use a very short timeout to prevent edge runtime timeouts
+        // Use a VERY short timeout (2s) to prevent edge runtime timeouts
+        // Edge runtime can timeout faster than expected, so we use aggressive timeouts
         const result = await Promise.race([
           apiClient.getTrending(6),
           new Promise<Content[]>((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 3000)
+            setTimeout(() => reject(new Error('Timeout')), 2000)
           ),
         ]);
         return Array.isArray(result) ? result : [];
@@ -87,7 +93,7 @@ export default async function MarketplacePage() {
         const result = await Promise.race([
           apiClient.discoverContents({ sort: 'newest', limit: 12 }),
           new Promise<DiscoverResponse>((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 3000)
+            setTimeout(() => reject(new Error('Timeout')), 2000)
           ),
         ]);
         return result || { contents: [], total: 0, page: 1, limit: 12, totalPages: 0 };
