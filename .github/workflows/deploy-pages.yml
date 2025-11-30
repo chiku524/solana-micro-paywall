@@ -51,30 +51,54 @@ jobs:
         run: |
           echo "🔨 Building Next.js app for Cloudflare Pages..."
           echo "   Using npm run pages:build (runs both next build and @cloudflare/next-on-pages)"
-          npm run pages:build || {
-            echo "❌ Build failed!"
-            echo "   Exit code: $?"
-            echo ""
-            echo "   Checking if .next directory exists:"
-            ls -la .next 2>&1 || echo "   .next directory doesn't exist"
-            echo ""
-            echo "   Checking if .vercel directory exists:"
-            ls -la .vercel 2>&1 || echo "   .vercel directory doesn't exist"
+          echo ""
+          echo "📋 Step 1: Running Next.js build..."
+          npm run build 2>&1 | tail -50 || {
+            echo "❌ Next.js build failed!"
             exit 1
           }
+          echo ""
+          echo "📋 Step 2: Running @cloudflare/next-on-pages..."
+          echo "   This should generate functions for edge runtime pages"
+          echo "   Console output from @cloudflare/next-on-pages:"
+          npx @cloudflare/next-on-pages 2>&1 | tee /tmp/next-on-pages-output.log || {
+            echo "❌ @cloudflare/next-on-pages failed!"
+            echo "   Last 50 lines of output:"
+            tail -50 /tmp/next-on-pages-output.log 2>&1 || echo "   Could not read log"
+            exit 1
+          }
+          echo ""
+          echo "📋 Step 3: Checking @cloudflare/next-on-pages output..."
+          if [ -f /tmp/next-on-pages-output.log ]; then
+            echo "   Full output (last 100 lines):"
+            tail -100 /tmp/next-on-pages-output.log
+          fi
           echo ""
           echo "📁 Verifying build output..."
           if [ -d ".vercel/output" ]; then
             echo "   ✅ .vercel/output directory found"
             echo "   Directory contents:"
-            ls -la .vercel/output | head -10
+            ls -la .vercel/output | head -15
+            echo ""
+            echo "   Checking for functions directory:"
+            if [ -d ".vercel/output/functions" ]; then
+              echo "   ✅ Functions directory exists!"
+              echo "   Functions directory contents:"
+              ls -laR .vercel/output/functions | head -50
+              echo ""
+              echo "   Function count summary:"
+              echo "   - Total items: $(find .vercel/output/functions -type f -o -type d | wc -l)"
+              echo "   - .func directories: $(find .vercel/output/functions -type d -name "*.func" | wc -l)"
+              echo "   - .js files: $(find .vercel/output/functions -name "*.js" | wc -l)"
+            else
+              echo "   ❌ Functions directory NOT found!"
+              echo "   This means @cloudflare/next-on-pages did NOT generate functions"
+            fi
           else
             echo "   ❌ .vercel/output directory NOT found!"
             echo "   Current directory: $(pwd)"
             echo "   Directory contents:"
             ls -la | head -20
-            echo "   Checking for .vercel directory:"
-            ls -la .vercel 2>&1 || echo "   .vercel directory doesn't exist"
             exit 1
           fi
           echo ""
@@ -90,7 +114,7 @@ jobs:
           fi
           echo "✅ Found .vercel/output directory"
           echo ""
-          echo "📂 Directory contents:"
+          echo "📂 Root directory contents:"
           ls -lah .vercel/output || echo "Cannot list directory"
           echo ""
           
@@ -103,27 +127,56 @@ jobs:
           echo "   Size: $(du -sh .vercel/output/static | cut -f1)"
           
           # Check for functions directory - CRITICAL for Next.js routing
+          echo ""
+          echo "🔍 Checking for functions directory..."
           if [ ! -d ".vercel/output/functions" ]; then
             echo ""
             echo "❌ ERROR: functions directory not found!"
             echo "   This is required for Next.js routing on Cloudflare Pages"
             echo "   Without it, all routes will return 404"
             echo ""
-            echo "   Checking if @cloudflare/next-on-pages generated output correctly..."
+            echo "   Checking what @cloudflare/next-on-pages actually generated..."
+            echo "   All directories in .vercel/output:"
+            find .vercel/output -type d -maxdepth 1 | head -20
+            echo ""
+            echo "   All files in .vercel/output root:"
+            find .vercel/output -maxdepth 1 -type f | head -20
+            echo ""
+            echo "   This suggests @cloudflare/next-on-pages did NOT generate functions!"
+            echo "   Possible causes:"
+            echo "   1. All pages are being statically generated (no edge runtime pages)"
+            echo "   2. @cloudflare/next-on-pages version issue"
+            echo "   3. Next.js build configuration issue"
             exit 1
           fi
           echo "✅ Found functions directory (needed for routing)"
           echo "   Size: $(du -sh .vercel/output/functions | cut -f1)"
           echo ""
+          echo "📋 Functions directory detailed listing:"
+          ls -lah .vercel/output/functions | head -30
+          echo ""
+          echo "📊 Function count:"
+          echo "   Directories: $(find .vercel/output/functions -type d | wc -l)"
+          echo "   Files: $(find .vercel/output/functions -type f | wc -l)"
+          echo ""
           
           # Verify key files exist
           echo "🔍 Verifying key routing files..."
-          if [ -f ".vercel/output/functions/[[path]].js" ] || [ -d ".vercel/output/functions/[[path]]" ]; then
+          if [ -f ".vercel/output/functions/[[path]].js" ] || [ -d ".vercel/output/functions/[[path]]" ] || [ -d ".vercel/output/functions/[[path]].func" ]; then
             echo "✅ Found catch-all route handler ([[path]])"
+            if [ -d ".vercel/output/functions/[[path]].func" ]; then
+              echo "   Type: .func directory"
+              ls -la .vercel/output/functions/[[path]].func/ | head -10
+            elif [ -f ".vercel/output/functions/[[path]].js" ]; then
+              echo "   Type: .js file"
+            fi
           else
             echo "⚠️  WARNING: Catch-all route handler not found - checking functions structure..."
             echo "   Functions directory contents:"
-            ls -lah .vercel/output/functions | head -10
+            ls -lah .vercel/output/functions | head -20
+            echo ""
+            echo "   Searching for any [[path]] files:"
+            find .vercel/output/functions -name "*path*" -o -name "*\[*" | head -10
           fi
           
           if [ -f ".vercel/output/config.json" ]; then
@@ -633,6 +686,28 @@ jobs:
           
           echo ""
           echo "✅ Verification complete - ready to deploy"
+
+      - name: Verify functions will be deployed
+        working-directory: apps/web
+        run: |
+          echo "🔍 Final check before deployment..."
+          echo ""
+          if [ -d ".vercel/output/functions" ]; then
+            echo "✅ Functions directory exists - will be deployed"
+            echo "   Function directories to be deployed:"
+            find .vercel/output/functions -type d -name "*.func" | head -20
+            echo ""
+            echo "   Total function directories: $(find .vercel/output/functions -type d -name "*.func" | wc -l)"
+            if [ "$(find .vercel/output/functions -type d -name "*.func" | wc -l)" -eq 0 ]; then
+              echo "   ⚠️  WARNING: No .func directories found!"
+              echo "   This means functions won't be deployed to Cloudflare Pages"
+              echo "   Listing all function files/directories:"
+              find .vercel/output/functions -type f -o -type d | head -30
+            fi
+          else
+            echo "❌ ERROR: Functions directory doesn't exist - deployment will fail!"
+            exit 1
+          fi
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
