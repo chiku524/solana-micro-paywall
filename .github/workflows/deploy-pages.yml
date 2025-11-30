@@ -49,60 +49,87 @@ jobs:
           # Skip Sentry during Cloudflare build to avoid module resolution errors
           SKIP_SENTRY: 'true'
         run: |
-          echo "🔨 Building Next.js app for Cloudflare Pages..."
-          echo "   Using npm run pages:build (runs both next build and @cloudflare/next-on-pages)"
+          set -x  # Enable command tracing for debugging
+          echo "::group::🔨 Building Next.js app for Cloudflare Pages"
+          echo "=========================================="
+          echo "Build Step Starting"
+          echo "=========================================="
           echo ""
-          echo "📋 Step 1: Running Next.js build..."
-          npm run build 2>&1 | tail -50 || {
-            echo "❌ Next.js build failed!"
+          
+          echo "::group::📋 Step 1: Running Next.js build"
+          echo "Running: npm run build"
+          npm run build
+          BUILD_EXIT_CODE=$?
+          echo "Next.js build exit code: $BUILD_EXIT_CODE"
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "❌ Next.js build failed with exit code $BUILD_EXIT_CODE"
             exit 1
-          }
-          echo ""
-          echo "📋 Step 2: Running @cloudflare/next-on-pages..."
-          echo "   This should generate functions for edge runtime pages"
-          echo "   Console output from @cloudflare/next-on-pages:"
-          npx @cloudflare/next-on-pages 2>&1 | tee /tmp/next-on-pages-output.log || {
-            echo "❌ @cloudflare/next-on-pages failed!"
-            echo "   Last 50 lines of output:"
-            tail -50 /tmp/next-on-pages-output.log 2>&1 || echo "   Could not read log"
-            exit 1
-          }
-          echo ""
-          echo "📋 Step 3: Checking @cloudflare/next-on-pages output..."
-          if [ -f /tmp/next-on-pages-output.log ]; then
-            echo "   Full output (last 100 lines):"
-            tail -100 /tmp/next-on-pages-output.log
           fi
+          echo "✅ Next.js build completed successfully"
+          echo "::endgroup::"
           echo ""
-          echo "📁 Verifying build output..."
+          
+          echo "::group::📋 Step 2: Running @cloudflare/next-on-pages"
+          echo "This should generate functions for edge runtime pages"
+          echo "Running: npx @cloudflare/next-on-pages"
+          echo ""
+          npx @cloudflare/next-on-pages
+          NEXT_ON_PAGES_EXIT_CODE=$?
+          echo ""
+          echo "@cloudflare/next-on-pages exit code: $NEXT_ON_PAGES_EXIT_CODE"
+          if [ $NEXT_ON_PAGES_EXIT_CODE -ne 0 ]; then
+            echo "❌ @cloudflare/next-on-pages failed with exit code $NEXT_ON_PAGES_EXIT_CODE"
+            exit 1
+          fi
+          echo "✅ @cloudflare/next-on-pages completed successfully"
+          echo "::endgroup::"
+          echo ""
+          
+          echo "::group::📁 Verifying build output"
+          echo "Checking if .vercel/output was created..."
           if [ -d ".vercel/output" ]; then
-            echo "   ✅ .vercel/output directory found"
-            echo "   Directory contents:"
-            ls -la .vercel/output | head -15
+            echo "✅ .vercel/output directory found"
             echo ""
-            echo "   Checking for functions directory:"
+            echo "Root directory contents:"
+            ls -la .vercel/output
+            echo ""
+            echo "Checking for functions directory:"
             if [ -d ".vercel/output/functions" ]; then
-              echo "   ✅ Functions directory exists!"
-              echo "   Functions directory contents:"
-              ls -laR .vercel/output/functions | head -50
+              echo "✅ Functions directory exists!"
               echo ""
-              echo "   Function count summary:"
-              echo "   - Total items: $(find .vercel/output/functions -type f -o -type d | wc -l)"
-              echo "   - .func directories: $(find .vercel/output/functions -type d -name "*.func" | wc -l)"
-              echo "   - .js files: $(find .vercel/output/functions -name "*.js" | wc -l)"
+              echo "Functions directory structure:"
+              find .vercel/output/functions -type d | head -30
+              echo ""
+              echo "Functions directory files:"
+              find .vercel/output/functions -type f | head -30
+              echo ""
+              echo "Function count summary:"
+              echo "  - Total items: $(find .vercel/output/functions -type f -o -type d | wc -l)"
+              echo "  - .func directories: $(find .vercel/output/functions -type d -name "*.func" | wc -l)"
+              echo "  - .js files: $(find .vercel/output/functions -name "*.js" | wc -l)"
+              echo ""
+              if [ "$(find .vercel/output/functions -type d -name "*.func" | wc -l)" -eq 0 ]; then
+                echo "⚠️  WARNING: No .func directories found!"
+                echo "This means functions won't be deployed to Cloudflare Pages"
+              fi
             else
-              echo "   ❌ Functions directory NOT found!"
-              echo "   This means @cloudflare/next-on-pages did NOT generate functions"
+              echo "❌ Functions directory NOT found!"
+              echo "This means @cloudflare/next-on-pages did NOT generate functions"
+              echo ""
+              echo "All directories in .vercel/output:"
+              find .vercel/output -type d -maxdepth 1
             fi
           else
-            echo "   ❌ .vercel/output directory NOT found!"
-            echo "   Current directory: $(pwd)"
-            echo "   Directory contents:"
-            ls -la | head -20
+            echo "❌ .vercel/output directory NOT found!"
+            echo "Current directory: $(pwd)"
+            echo "Directory contents:"
+            ls -la
             exit 1
           fi
+          echo "::endgroup::"
           echo ""
           echo "✅ Build complete"
+          echo "::endgroup::"
 
       - name: Verify build output structure
         working-directory: apps/web
