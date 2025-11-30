@@ -52,9 +52,37 @@ jobs:
           echo "🔨 Building Next.js app..."
           npm run build
           echo ""
+          echo "📦 Checking if .next directory exists..."
+          if [ -d ".next" ]; then
+            echo "   ✅ .next directory found"
+            ls -la .next | head -10
+          else
+            echo "   ❌ .next directory NOT found - build may have failed!"
+            exit 1
+          fi
+          echo ""
           echo "📦 Running @cloudflare/next-on-pages..."
           echo "   This should generate functions for edge runtime pages"
-          npx @cloudflare/next-on-pages --verbose 2>&1 | head -100 || npx @cloudflare/next-on-pages 2>&1 | head -100
+          echo "   Output directory should be: .vercel/output"
+          npx @cloudflare/next-on-pages 2>&1 || {
+            echo "❌ @cloudflare/next-on-pages failed!"
+            echo "   Exit code: $?"
+            exit 1
+          }
+          echo ""
+          echo "📁 Checking if .vercel/output was created..."
+          if [ -d ".vercel/output" ]; then
+            echo "   ✅ .vercel/output directory found"
+            ls -la .vercel/output | head -10
+          else
+            echo "   ❌ .vercel/output directory NOT found!"
+            echo "   Current directory: $(pwd)"
+            echo "   Directory contents:"
+            ls -la | head -20
+            echo "   Checking for .vercel directory:"
+            ls -la .vercel 2>&1 || echo "   .vercel directory doesn't exist"
+            exit 1
+          fi
           echo ""
           echo "✅ Build complete"
 
