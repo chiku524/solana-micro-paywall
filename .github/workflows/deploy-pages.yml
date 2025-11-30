@@ -159,8 +159,17 @@ jobs:
           echo "Functions directory structure:"
           find .vercel/output/functions -type f -name "*.js" | head -10 || echo "No JS files in functions"
           echo ""
+          echo "Functions directory full listing:"
+          ls -la .vercel/output/functions/ 2>/dev/null | head -20 || echo "Functions directory empty or not found"
+          echo ""
           echo "Checking for catch-all route:"
           ls -la .vercel/output/functions/ 2>/dev/null | grep -E "\[\[path\]\]|_worker|index" || echo "Catch-all route not found"
+          echo ""
+          echo "Checking for marketplace function:"
+          ls -la .vercel/output/functions/ 2>/dev/null | grep -i marketplace || echo "Marketplace function not found"
+          echo ""
+          echo "Function directories count:"
+          find .vercel/output/functions -type d -name "*.func" 2>/dev/null | wc -l || echo "0"
           echo ""
           echo "Checking for config.json:"
           cat .vercel/output/config.json 2>/dev/null || echo "config.json not found or not readable"
@@ -560,14 +569,37 @@ jobs:
           echo "🔍 Verifying key routes are built..."
           ROUTES=("marketplace" "docs" "dashboard")
           for route in "${ROUTES[@]}"; do
-            if [ -f ".vercel/output/static/${route}.html" ] || [ -d ".vercel/output/functions/${route}.func" ] || [ -d ".vercel/output/functions/${route}.rsc.func" ]; then
-              echo "   ✅ Route /${route} exists"
+            if [ -f ".vercel/output/static/${route}.html" ]; then
+              echo "   ✅ Route /${route} exists as static HTML"
+            elif [ -d ".vercel/output/functions/${route}.func" ]; then
+              echo "   ✅ Route /${route} exists as function (${route}.func)"
+            elif [ -d ".vercel/output/functions/${route}.rsc.func" ]; then
+              echo "   ✅ Route /${route} exists as RSC function (${route}.rsc.func)"
+            elif [ -f ".vercel/output/functions/[[path]].js" ] || [ -d ".vercel/output/functions/[[path]].func" ]; then
+              echo "   ✅ Route /${route} will be handled by catch-all [[path]] function"
             else
-              echo "   ⚠️  WARNING: Route /${route} not found in build output"
-              echo "      Checking functions directory:"
-              ls -la .vercel/output/functions/ | grep -i "${route}" || echo "      No ${route} function found"
+              echo "   ❌ ERROR: Route /${route} NOT found in build output!"
+              echo "      This route will return 404 or 503!"
+              echo "      Checking functions directory for ${route}:"
+              ls -la .vercel/output/functions/ 2>/dev/null | grep -i "${route}" || echo "      No ${route} function found"
+              echo "      All functions:"
+              ls -la .vercel/output/functions/ 2>/dev/null | head -20
             fi
           done
+          
+          # CRITICAL: Verify catch-all route exists for dynamic routes
+          echo ""
+          echo "🔍 Verifying catch-all route handler..."
+          if [ -f ".vercel/output/functions/[[path]].js" ] || [ -d ".vercel/output/functions/[[path]].func" ] || [ -d ".vercel/output/functions/[[path]]" ]; then
+            echo "   ✅ Catch-all route handler exists - dynamic routes should work"
+          else
+            echo "   ❌ ERROR: Catch-all route handler NOT found!"
+            echo "   Without [[path]], dynamic routes like /marketplace will return 503!"
+            echo "   Functions directory contents:"
+            ls -la .vercel/output/functions/ 2>/dev/null | head -20
+            echo ""
+            echo "   This is a CRITICAL error - deployment will fail for dynamic routes!"
+          fi
           
           echo ""
           echo "✅ Verification complete - ready to deploy"
