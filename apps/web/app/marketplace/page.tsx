@@ -16,8 +16,6 @@ export const dynamic = 'force-dynamic';
 export const dynamicParams = true; // Allow dynamic route parameters
 export const revalidate = 0; // Disable ISR to prevent prefetch cache issues
 export const fetchCache = 'force-no-store'; // Disable fetch caching to force dynamic
-// Force the page to be dynamic by using a dynamic function
-export const fetchCache = 'force-no-store'; // Disable fetch caching
 
 const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
 
