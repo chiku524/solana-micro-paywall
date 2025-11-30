@@ -827,15 +827,25 @@ jobs:
           echo "::endgroup::"
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: micropaywall
-          directory: apps/web/.vercel/output
-          wranglerVersion: '3'
-          branch: ${{ github.ref_name }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: apps/web
+        run: |
+          echo "🚀 Deploying to Cloudflare Pages using wrangler..."
+          echo "   This ensures functions are properly deployed"
+          echo ""
+          echo "   Verifying .vercel/output exists:"
+          ls -la .vercel/output | head -5
+          echo ""
+          echo "   Verifying functions directory exists:"
+          ls -la .vercel/output/functions | head -10
+          echo ""
+          echo "   Deploying with wrangler..."
+          npx wrangler pages deploy .vercel/output \
+            --project-name=micropaywall \
+            --branch=${{ github.ref_name }} \
+            --compatibility-date=2024-01-01
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Purge Cloudflare Cache
         run: |
