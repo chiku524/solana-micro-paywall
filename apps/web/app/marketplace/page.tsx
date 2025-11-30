@@ -9,10 +9,13 @@ import { MarketplaceClientWrapper } from './marketplace-client-wrapper';
 
 // Force dynamic rendering to prevent prefetch issues on Cloudflare Pages
 // This ensures the page is always rendered server-side and not statically prefetched
-// NOTE: Using nodejs runtime instead of edge to avoid timeout issues with API calls
+// CRITICAL: These exports must be at the top level to prevent Next.js from statically generating
 export const runtime = 'edge'; // Required for Cloudflare Pages
 export const dynamic = 'force-dynamic';
+export const dynamicParams = true; // Allow dynamic route parameters
 export const revalidate = 0; // Disable ISR to prevent prefetch cache issues
+// Force the page to be dynamic by using a dynamic function
+export const fetchCache = 'force-no-store'; // Disable fetch caching
 
 const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
 
