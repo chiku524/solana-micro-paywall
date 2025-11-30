@@ -49,30 +49,24 @@ jobs:
           # Skip Sentry during Cloudflare build to avoid module resolution errors
           SKIP_SENTRY: 'true'
         run: |
-          echo "🔨 Building Next.js app..."
-          npm run build
-          echo ""
-          echo "📦 Checking if .next directory exists..."
-          if [ -d ".next" ]; then
-            echo "   ✅ .next directory found"
-            ls -la .next | head -10
-          else
-            echo "   ❌ .next directory NOT found - build may have failed!"
-            exit 1
-          fi
-          echo ""
-          echo "📦 Running @cloudflare/next-on-pages..."
-          echo "   This should generate functions for edge runtime pages"
-          echo "   Output directory should be: .vercel/output"
-          npx @cloudflare/next-on-pages 2>&1 || {
-            echo "❌ @cloudflare/next-on-pages failed!"
+          echo "🔨 Building Next.js app for Cloudflare Pages..."
+          echo "   Using npm run pages:build (runs both next build and @cloudflare/next-on-pages)"
+          npm run pages:build || {
+            echo "❌ Build failed!"
             echo "   Exit code: $?"
+            echo ""
+            echo "   Checking if .next directory exists:"
+            ls -la .next 2>&1 || echo "   .next directory doesn't exist"
+            echo ""
+            echo "   Checking if .vercel directory exists:"
+            ls -la .vercel 2>&1 || echo "   .vercel directory doesn't exist"
             exit 1
           }
           echo ""
-          echo "📁 Checking if .vercel/output was created..."
+          echo "📁 Verifying build output..."
           if [ -d ".vercel/output" ]; then
             echo "   ✅ .vercel/output directory found"
+            echo "   Directory contents:"
             ls -la .vercel/output | head -10
           else
             echo "   ❌ .vercel/output directory NOT found!"
