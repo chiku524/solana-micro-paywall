@@ -799,6 +799,33 @@ jobs:
             cat .vercel/output/config.json | head -50
           fi
 
+      - name: Final verification before deployment
+        working-directory: apps/web
+        run: |
+          echo "::group::🔍 Final verification - functions ready for deployment"
+          echo "Verifying marketplace.func exists and has correct structure..."
+          if [ -d ".vercel/output/functions/marketplace.func" ]; then
+            echo "✅ marketplace.func directory exists"
+            echo "   Contents:"
+            ls -la .vercel/output/functions/marketplace.func/ | head -10
+            echo ""
+            echo "   Checking for required files:"
+            if [ -f ".vercel/output/functions/marketplace.func/.vc-config.json" ]; then
+              echo "   ✅ .vc-config.json exists"
+            fi
+            if [ -f ".vercel/output/functions/marketplace.func/index.js" ] || [ -f ".vercel/output/functions/marketplace.func/___next_launcher.cjs" ]; then
+              echo "   ✅ Entry point file exists"
+            fi
+          else
+            echo "❌ marketplace.func NOT found!"
+            echo "   This means functions won't be deployed"
+            exit 1
+          fi
+          echo ""
+          echo "All .func directories that will be deployed:"
+          find .vercel/output/functions -type d -name "*.func" | sort
+          echo "::endgroup::"
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
