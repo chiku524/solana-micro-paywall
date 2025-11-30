@@ -9,6 +9,10 @@ import { MerchantLogin } from '../../components/merchant-login';
 import { SkeletonTable } from '../../components/ui/skeleton';
 import { ErrorBoundary } from '../../components/ui/error-boundary';
 
+// CRITICAL: This is a client component, so it should always render
+// If the server returns 503, Next.js might serve fallback content
+// This component must handle all errors gracefully
+
 interface DashboardStats {
   merchant: {
     id: string;

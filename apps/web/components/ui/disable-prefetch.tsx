@@ -50,28 +50,46 @@ export function DisablePrefetch() {
       // This happens when server returns 503 and Next.js serves fallback content
       const checkPageContent = () => {
         const currentPath = window.location.pathname;
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Skip check if we've already retried multiple times (avoid infinite loops)
+        const retryCount = parseInt(urlParams.get('_retryCount') || '0', 10);
+        if (retryCount >= 2) {
+          console.warn(`[DisablePrefetch] Max retries reached for ${currentPath}, stopping detection`);
+          return;
+        }
         
         // If we're not on the landing page, check if we're seeing landing page content
         if (currentPath !== '/') {
-          // Check if we're seeing landing page content by looking for landing page specific elements
-          const hasLandingPageContent = document.querySelector('h1')?.textContent?.includes('Monetize Content') ||
-                                       document.querySelector('[href="/marketplace"]') !== null;
-          
-          // If we're on a different path but seeing landing page content, it's a 503 fallback issue
-          if (hasLandingPageContent && currentPath !== '/') {
-            const urlParams = new URLSearchParams(window.location.search);
-            // Only try once to avoid infinite loops
-            if (!urlParams.has('_retried')) {
+          // Wait a bit for React to hydrate and render
+          setTimeout(() => {
+            // Check if we're seeing landing page content by looking for landing page specific elements
+            // Look for multiple indicators to be more accurate
+            const hasLandingPageHero = document.querySelector('h1')?.textContent?.includes('Monetize Content');
+            const hasLandingPageCTA = document.querySelector('[href="/dashboard"]')?.textContent?.includes('Start Selling');
+            const hasLandingPageFeatures = document.querySelector('[class*="Features Section"]') !== null;
+            
+            // Check if we should see dashboard content instead
+            const shouldSeeDashboard = currentPath.startsWith('/dashboard');
+            const hasDashboardContent = document.querySelector('h1')?.textContent?.includes('Dashboard') ||
+                                       document.querySelector('[class*="Merchant Dashboard"]') !== null ||
+                                       document.querySelector('form') !== null; // Login form
+            
+            // If we're on dashboard but seeing landing page content, it's a 503 fallback issue
+            if (shouldSeeDashboard && (hasLandingPageHero || hasLandingPageCTA) && !hasDashboardContent) {
               console.warn(`[DisablePrefetch] Detected wrong page content on ${currentPath}, forcing hard refresh...`);
               // Force a hard navigation with cache-busting
-              const separator = urlParams.toString() ? '&' : '?';
-              const finalUrl = `${currentPath}${separator}_nav=${Date.now()}&_retried=1${window.location.hash}`;
-              // Small delay to ensure page has loaded
-              setTimeout(() => {
-                window.location.replace(finalUrl);
-              }, 100);
+              // Remove existing cache-busting params and add fresh ones
+              const cleanPath = currentPath;
+              const newParams = new URLSearchParams();
+              newParams.set('_nav', Date.now().toString());
+              newParams.set('_retryCount', (retryCount + 1).toString());
+              const finalUrl = `${cleanPath}?${newParams.toString()}${window.location.hash}`;
+              
+              // Use replace to avoid history pollution
+              window.location.replace(finalUrl);
             }
-          }
+          }, 1500); // Wait longer for React to hydrate
         }
       };
       
