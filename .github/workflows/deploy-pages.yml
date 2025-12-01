@@ -854,6 +854,24 @@ jobs:
             exit 1
           fi
           echo ""
+          echo "   CRITICAL: Checking if static marketplace.html exists (this would override the function):"
+          if [ -f ".vercel/output/static/marketplace.html" ]; then
+            echo "   ⚠️  WARNING: static/marketplace.html EXISTS!"
+            echo "   This static file will be served instead of the marketplace.func function"
+            echo "   This is why users see landing page content on /marketplace"
+            echo "   Removing static marketplace.html to allow function to handle the route..."
+            rm -f .vercel/output/static/marketplace.html
+            echo "   ✅ Removed static marketplace.html"
+          else
+            echo "   ✅ No static marketplace.html (good - function will handle the route)"
+          fi
+          echo ""
+          echo "   Checking config.json routing for marketplace:"
+          if [ -f ".vercel/output/config.json" ]; then
+            echo "   Marketplace route configuration:"
+            cat .vercel/output/config.json | grep -A 3 -B 3 marketplace || echo "   No marketplace in config.json"
+          fi
+          echo ""
           echo "   Deploying with wrangler..."
           wrangler pages deploy .vercel/output \
             --project-name=micropaywall \
