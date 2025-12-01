@@ -85,6 +85,42 @@ jobs:
           echo "::endgroup::"
           echo ""
           
+          echo "::group::🧹 Removing prerender fallback files"
+          echo "Removing prerender fallback HTML files that would override functions..."
+          echo "These files are created by @cloudflare/next-on-pages but prevent functions from running"
+          echo ""
+          if [ -d ".vercel/output/functions" ]; then
+            ROUTES_TO_CLEAN=("marketplace" "docs" "dashboard")
+            for route in "${ROUTES_TO_CLEAN[@]}"; do
+              # Remove prerender fallback HTML files (these override functions)
+              if [ -f ".vercel/output/functions/${route}.prerender-fallback.html" ]; then
+                echo "   Removing ${route}.prerender-fallback.html"
+                rm -f .vercel/output/functions/${route}.prerender-fallback.html
+              fi
+              if [ -f ".vercel/output/functions/${route}.rsc.prerender-fallback.rsc" ]; then
+                echo "   Removing ${route}.rsc.prerender-fallback.rsc"
+                rm -f .vercel/output/functions/${route}.rsc.prerender-fallback.rsc
+              fi
+              # Remove prerender config files (these tell Cloudflare to use static HTML)
+              if [ -f ".vercel/output/functions/${route}.prerender-config.json" ]; then
+                echo "   Removing ${route}.prerender-config.json"
+                rm -f .vercel/output/functions/${route}.prerender-config.json
+              fi
+              if [ -f ".vercel/output/functions/${route}.rsc.prerender-config.json" ]; then
+                echo "   Removing ${route}.rsc.prerender-config.json"
+                rm -f .vercel/output/functions/${route}.rsc.prerender-config.json
+              fi
+              # Remove static HTML files in static directory
+              if [ -f ".vercel/output/static/${route}.html" ]; then
+                echo "   Removing static/${route}.html"
+                rm -f .vercel/output/static/${route}.html
+              fi
+            done
+            echo "   ✅ Cleaned prerender fallback files"
+          fi
+          echo "::endgroup::"
+          echo ""
+          
           echo "::group::📁 Verifying build output"
           echo "Checking if .vercel/output was created..."
           if [ -d ".vercel/output" ]; then
