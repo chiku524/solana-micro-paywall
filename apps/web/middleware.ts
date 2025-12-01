@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Ensure middleware runs on Edge runtime for Cloudflare Pages
-export const runtime = 'edge';
-
+// Note: Middleware always runs on Edge runtime in Next.js 14+
+// No need to export runtime - it's automatic for middleware
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
