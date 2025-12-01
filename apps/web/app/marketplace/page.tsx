@@ -16,8 +16,7 @@ export const dynamic = 'force-dynamic';
 export const dynamicParams = true; // Allow dynamic route parameters
 export const revalidate = 0; // Disable ISR to prevent prefetch cache issues
 export const fetchCache = 'force-no-store'; // Disable fetch caching to force dynamic
-// Prevent Next.js from generating any static HTML or prerender fallbacks
-export const prerender = false; // Explicitly disable prerendering
+// Note: prerender is not a valid export in Next.js 14 - dynamic='force-dynamic' already prevents prerendering
 
 const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
 
