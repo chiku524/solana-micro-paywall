@@ -101,6 +101,9 @@ export default function RootLayout({
       <head>
         {/* Disable browser-level speculative prefetching to prevent cached prefetch responses from interfering with navigation */}
         <meta httpEquiv="x-dns-prefetch-control" content="off" />
+        <meta httpEquiv="x-robots-tag" content="noindex, nofollow" />
+        {/* Prevent browsers from speculatively prefetching links */}
+        <meta name="speculation-rules" content='{"prefetch": {"where": []}}' />
       </head>
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`}>
         <DisablePrefetch />

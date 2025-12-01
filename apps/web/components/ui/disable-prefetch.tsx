@@ -40,6 +40,26 @@ export function DisablePrefetch() {
             }
           }
         }
+
+        // Intercept fetch requests that look like prefetches
+        if (typeof window.fetch !== 'undefined') {
+          const originalFetch = window.fetch;
+          window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+            // Check if this is a prefetch request
+            const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+            const purpose = init?.headers instanceof Headers 
+              ? init.headers.get('sec-purpose') || init.headers.get('purpose')
+              : (init?.headers as Record<string, string>)?.['sec-purpose'] || (init?.headers as Record<string, string>)?.purpose;
+            
+            // Block prefetch requests
+            if (purpose === 'prefetch' && url.includes(window.location.origin)) {
+              console.log(`[DisablePrefetch] Blocking prefetch fetch for: ${url}`);
+              return Promise.resolve(new Response(null, { status: 200, statusText: 'OK' }));
+            }
+            
+            return originalFetch.apply(this, arguments as any);
+          };
+        }
       }
     };
 
@@ -106,7 +126,7 @@ export function DisablePrefetch() {
     // Run immediately
     disable();
 
-    // Also observe DOM changes for dynamically added prefetch links
+    // Also observe DOM changes for dynamically added prefetch links and new anchor tags
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList') {
@@ -127,6 +147,7 @@ export function DisablePrefetch() {
     });
 
     observer.observe(document.head, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     // Re-run disable periodically to catch any missed prefetch attempts
     const interval = setInterval(disable, 1000);
