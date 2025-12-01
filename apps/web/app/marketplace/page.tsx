@@ -146,11 +146,14 @@ export default async function MarketplacePage() {
     timestamp: new Date().toISOString(),
   });
 
-  return (
-    <MarketplaceClientWrapper>
-      <div className="min-h-screen relative z-10">
-      {/* Header */}
-      <header className="border-b border-neutral-800 bg-neutral-900/60">
+  // Wrap everything in try-catch to ensure we always return marketplace content
+  // Even if child components error, we'll still show the marketplace structure
+  try {
+    return (
+      <MarketplaceClientWrapper>
+        <div className="min-h-screen relative z-10" data-page="marketplace">
+        {/* Header */}
+        <header className="border-b border-neutral-800 bg-neutral-900/60">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <Link href="/" prefetch={false} className="text-xl sm:text-2xl font-bold text-white">
@@ -225,9 +228,39 @@ export default async function MarketplacePage() {
           <p>Powered by Solana Micro-Paywall</p>
         </div>
       </footer>
-    </div>
-    </MarketplaceClientWrapper>
-  );
+      </div>
+      </MarketplaceClientWrapper>
+    );
+  } catch (error) {
+    // If anything throws during render, log it but still return marketplace structure
+    console.error('[Marketplace] Error during render, showing fallback structure:', error);
+    return (
+      <MarketplaceClientWrapper>
+        <div className="min-h-screen relative z-10" data-page="marketplace">
+          <header className="border-b border-neutral-800 bg-neutral-900/60">
+            <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between">
+                <Link href="/" prefetch={false} className="text-xl sm:text-2xl font-bold text-white">
+                  Solana Paywall Marketplace
+                </Link>
+              </div>
+            </div>
+          </header>
+          <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+            <section className="mb-8 sm:mb-12 text-center">
+              <h1 className="mb-4 text-3xl sm:text-4xl lg:text-5xl font-bold text-white">Discover Premium Content</h1>
+              <p className="mb-6 sm:mb-8 text-base sm:text-lg lg:text-xl text-neutral-400 px-4">
+                Access exclusive articles, videos, courses, and more with Solana payments
+              </p>
+            </section>
+            <div className="text-center text-neutral-400">
+              <p>Loading content...</p>
+            </div>
+          </main>
+        </div>
+      </MarketplaceClientWrapper>
+    );
+  }
 }
 
 

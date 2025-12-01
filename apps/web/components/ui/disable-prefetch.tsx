@@ -74,43 +74,77 @@ export function DisablePrefetch() {
         
         // Skip check if we've already retried multiple times (avoid infinite loops)
         const retryCount = parseInt(urlParams.get('_retryCount') || '0', 10);
-        if (retryCount >= 2) {
+        if (retryCount >= 3) {
           console.warn(`[DisablePrefetch] Max retries reached for ${currentPath}, stopping detection`);
           return;
         }
         
-        // If we're not on the landing page, check if we're seeing landing page content
-        if (currentPath !== '/') {
-          // Wait a bit for React to hydrate and render
-          setTimeout(() => {
-            // Check if we're seeing landing page content by looking for landing page specific elements
-            // Look for multiple indicators to be more accurate
-            const hasLandingPageHero = document.querySelector('h1')?.textContent?.includes('Monetize Content');
-            const hasLandingPageCTA = document.querySelector('[href="/dashboard"]')?.textContent?.includes('Start Selling');
-            const hasLandingPageFeatures = document.querySelector('[class*="Features Section"]') !== null;
+        // Wait a bit for React to hydrate and render, then check content
+        setTimeout(() => {
+          // Check if we're seeing landing page content by looking for landing page specific elements
+          const hasLandingPageHero = document.querySelector('h1')?.textContent?.includes('Monetize Content with');
+          const hasLandingPageCTA = document.querySelector('[href="/dashboard"]')?.textContent?.includes('Start Selling');
+          
+          // Determine what content we should see based on the path
+          const shouldSeeMarketplace = currentPath === '/marketplace' || currentPath.startsWith('/marketplace/');
+          const shouldSeeDashboard = currentPath.startsWith('/dashboard');
+          const shouldSeeLanding = currentPath === '/';
+          
+          // Check for marketplace-specific content
+          const hasMarketplaceContent = document.querySelector('h1')?.textContent?.includes('Discover Premium Content') ||
+                                       document.querySelector('[href="/marketplace/discover"]') !== null ||
+                                       document.querySelector('header')?.textContent?.includes('Solana Paywall Marketplace');
+          
+          // Check for dashboard content
+          const hasDashboardContent = document.querySelector('h1')?.textContent?.includes('Dashboard') ||
+                                     document.querySelector('[class*="Merchant Dashboard"]') !== null ||
+                                     document.querySelector('form') !== null; // Login form
+          
+          // Detect wrong content scenarios
+          if (shouldSeeMarketplace && (hasLandingPageHero || hasLandingPageCTA) && !hasMarketplaceContent) {
+            console.error(`[DisablePrefetch] WRONG CONTENT DETECTED: Landing page content on marketplace route!`, {
+              pathname: currentPath,
+              hasLandingPageHero,
+              hasLandingPageCTA,
+              hasMarketplaceContent,
+              pageTitle: document.title,
+            });
+            // Force a hard navigation with cache-busting to get the correct content
+            const cleanPath = currentPath;
+            const newParams = new URLSearchParams();
+            newParams.set('_nav', Date.now().toString());
+            newParams.set('_retryCount', (retryCount + 1).toString());
+            newParams.set('_force', 'true');
+            const finalUrl = `${cleanPath}?${newParams.toString()}${window.location.hash}`;
             
-            // Check if we should see dashboard content instead
-            const shouldSeeDashboard = currentPath.startsWith('/dashboard');
-            const hasDashboardContent = document.querySelector('h1')?.textContent?.includes('Dashboard') ||
-                                       document.querySelector('[class*="Merchant Dashboard"]') !== null ||
-                                       document.querySelector('form') !== null; // Login form
+            // Use replace to avoid history pollution
+            window.location.replace(finalUrl);
+            return;
+          }
+          
+          if (shouldSeeDashboard && (hasLandingPageHero || hasLandingPageCTA) && !hasDashboardContent) {
+            console.warn(`[DisablePrefetch] Detected wrong page content on ${currentPath}, forcing hard refresh...`);
+            // Force a hard navigation with cache-busting
+            const cleanPath = currentPath;
+            const newParams = new URLSearchParams();
+            newParams.set('_nav', Date.now().toString());
+            newParams.set('_retryCount', (retryCount + 1).toString());
+            const finalUrl = `${cleanPath}?${newParams.toString()}${window.location.hash}`;
             
-            // If we're on dashboard but seeing landing page content, it's a 503 fallback issue
-            if (shouldSeeDashboard && (hasLandingPageHero || hasLandingPageCTA) && !hasDashboardContent) {
-              console.warn(`[DisablePrefetch] Detected wrong page content on ${currentPath}, forcing hard refresh...`);
-              // Force a hard navigation with cache-busting
-              // Remove existing cache-busting params and add fresh ones
-              const cleanPath = currentPath;
-              const newParams = new URLSearchParams();
-              newParams.set('_nav', Date.now().toString());
-              newParams.set('_retryCount', (retryCount + 1).toString());
-              const finalUrl = `${cleanPath}?${newParams.toString()}${window.location.hash}`;
-              
-              // Use replace to avoid history pollution
-              window.location.replace(finalUrl);
-            }
-          }, 1500); // Wait longer for React to hydrate
-        }
+            // Use replace to avoid history pollution
+            window.location.replace(finalUrl);
+            return;
+          }
+          
+          // Log successful content detection for debugging
+          if (shouldSeeMarketplace && hasMarketplaceContent) {
+            console.log(`[DisablePrefetch] ✓ Correct marketplace content detected on ${currentPath}`);
+          } else if (shouldSeeDashboard && hasDashboardContent) {
+            console.log(`[DisablePrefetch] ✓ Correct dashboard content detected on ${currentPath}`);
+          } else if (shouldSeeLanding && hasLandingPageHero) {
+            console.log(`[DisablePrefetch] ✓ Correct landing page content detected on ${currentPath}`);
+          }
+        }, 2000); // Wait longer for React to hydrate and API calls to complete
       };
       
       // Run check after page loads
