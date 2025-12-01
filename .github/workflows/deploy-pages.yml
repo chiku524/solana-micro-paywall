@@ -223,6 +223,38 @@ jobs:
           echo "   Files: $(find .vercel/output/functions -type f | wc -l)"
           echo ""
           
+          # CRITICAL: Remove prerender fallback HTML files that override functions
+          echo "🧹 Removing prerender fallback HTML files that would override functions..."
+          echo "   These static HTML files take precedence over functions in Cloudflare Pages"
+          ROUTES_TO_CHECK=("marketplace" "docs" "dashboard")
+          for route in "${ROUTES_TO_CHECK[@]}"; do
+            # Remove prerender fallback HTML files
+            if [ -f ".vercel/output/functions/${route}.prerender-fallback.html" ]; then
+              echo "   Removing ${route}.prerender-fallback.html"
+              rm -f .vercel/output/functions/${route}.prerender-fallback.html
+            fi
+            if [ -f ".vercel/output/functions/${route}.rsc.prerender-fallback.rsc" ]; then
+              echo "   Removing ${route}.rsc.prerender-fallback.rsc"
+              rm -f .vercel/output/functions/${route}.rsc.prerender-fallback.rsc
+            fi
+            # Remove prerender config files
+            if [ -f ".vercel/output/functions/${route}.prerender-config.json" ]; then
+              echo "   Removing ${route}.prerender-config.json"
+              rm -f .vercel/output/functions/${route}.prerender-config.json
+            fi
+            if [ -f ".vercel/output/functions/${route}.rsc.prerender-config.json" ]; then
+              echo "   Removing ${route}.rsc.prerender-config.json"
+              rm -f .vercel/output/functions/${route}.rsc.prerender-config.json
+            fi
+            # Remove static HTML files in static directory
+            if [ -f ".vercel/output/static/${route}.html" ]; then
+              echo "   Removing static/${route}.html"
+              rm -f .vercel/output/static/${route}.html
+            fi
+          done
+          echo "   ✅ Cleaned prerender fallback files"
+          echo ""
+          
           # Verify key files exist
           echo "🔍 Verifying key routing files..."
           if [ -f ".vercel/output/functions/[[path]].js" ] || [ -d ".vercel/output/functions/[[path]]" ] || [ -d ".vercel/output/functions/[[path]].func" ]; then
