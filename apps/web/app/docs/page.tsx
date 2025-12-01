@@ -48,6 +48,13 @@ export const metadata: Metadata = {
   },
 };
 
+// Force dynamic rendering to prevent static generation and caching issues
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+export const prerender = false;
+
 export default function DocsPage() {
   const sections = [
     {
@@ -161,7 +168,7 @@ export default function DocsPage() {
   ];
 
   return (
-    <div className="min-h-screen relative z-10">
+    <div className="min-h-screen relative z-10" data-page="docs" data-route="/docs">
       {/* Header */}
       <header className="border-b border-neutral-800 bg-neutral-900/60">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">

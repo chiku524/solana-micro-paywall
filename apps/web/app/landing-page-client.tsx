@@ -108,7 +108,7 @@ export function LandingPageClient() {
   ];
 
   return (
-    <div className="min-h-screen relative z-10">
+    <div className="min-h-screen relative z-10" data-page="landing" data-route="/">
       {/* Navigation */}
       <nav className="border-b border-neutral-800/50 bg-neutral-900/40 backdrop-blur-sm sticky top-0 z-50">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">

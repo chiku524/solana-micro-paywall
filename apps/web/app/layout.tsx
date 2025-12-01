@@ -6,6 +6,7 @@ import { ToastProvider } from '../components/ui/toast-provider';
 import { BackgroundAnimation } from '../components/ui/background-animation';
 import { ErrorBoundary } from '../components/ui/error-boundary';
 import { DisablePrefetch } from '../components/ui/disable-prefetch';
+import { RouteDebugger } from '../components/ui/route-debugger';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -107,6 +108,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`}>
         <DisablePrefetch />
+        <RouteDebugger />
         <BackgroundAnimation />
         <ErrorBoundary>
           <AppProviders>
