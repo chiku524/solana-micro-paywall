@@ -716,7 +716,16 @@ jobs:
           ROUTES=("marketplace" "docs" "dashboard")
           for route in "${ROUTES[@]}"; do
             if [ -f ".vercel/output/static/${route}.html" ]; then
-              echo "   ✅ Route /${route} exists as static HTML"
+              echo "   ⚠️  WARNING: Route /${route} exists as static HTML"
+              echo "      This will override any function for this route!"
+              echo "      Static files take precedence over functions in Cloudflare Pages"
+              echo "      Checking if function also exists:"
+              if [ -d ".vercel/output/functions/${route}.func" ]; then
+                echo "      ✅ Function ${route}.func also exists - static HTML will be served instead!"
+                echo "      Removing static HTML to allow function to handle the route..."
+                rm -f .vercel/output/static/${route}.html
+                echo "      ✅ Removed static ${route}.html"
+              fi
             elif [ -d ".vercel/output/functions/${route}.func" ]; then
               echo "   ✅ Route /${route} exists as function (${route}.func)"
             elif [ -d ".vercel/output/functions/${route}.rsc.func" ]; then
