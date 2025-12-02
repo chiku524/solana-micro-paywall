@@ -7,7 +7,6 @@ import { BackgroundAnimation } from '../components/ui/background-animation';
 import { ErrorBoundary } from '../components/ui/error-boundary';
 import { DisablePrefetch } from '../components/ui/disable-prefetch';
 import { RouteDebugger } from '../components/ui/route-debugger';
-import { RouteWrapper } from '../components/ui/route-wrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -113,9 +112,7 @@ export default function RootLayout({
         <BackgroundAnimation />
         <ErrorBoundary>
           <AppProviders>
-            <RouteWrapper>
-              {children}
-            </RouteWrapper>
+            {children}
             <ToastProvider />
           </AppProviders>
         </ErrorBoundary>

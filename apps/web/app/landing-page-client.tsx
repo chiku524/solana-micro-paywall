@@ -22,15 +22,13 @@ export function LandingPageClient() {
   useEffect(() => {
     // Only show landing page on root route
     if (pathname !== '/') {
-      // If we're not on the root route, this component shouldn't be visible
-      // Force navigation to correct route if somehow we're on wrong route
-      console.warn('[LandingPageClient] Rendering on wrong route:', pathname);
       return;
     }
     setIsVisible(true);
   }, [pathname]);
 
   // Don't render if we're not on the root route
+  // This component should only be rendered on the '/' route by Next.js routing
   if (pathname !== '/') {
     return null;
   }
