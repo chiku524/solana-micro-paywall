@@ -2,6 +2,7 @@
 
 import { Link } from '../components/ui/link';
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   BoltIcon,
   WalletIcon,
@@ -16,10 +17,23 @@ import {
 export function LandingPageClient() {
   const [isVisible, setIsVisible] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
+    // Only show landing page on root route
+    if (pathname !== '/') {
+      // If we're not on the root route, this component shouldn't be visible
+      // Force navigation to correct route if somehow we're on wrong route
+      console.warn('[LandingPageClient] Rendering on wrong route:', pathname);
+      return;
+    }
     setIsVisible(true);
-  }, []);
+  }, [pathname]);
+
+  // Don't render if we're not on the root route
+  if (pathname !== '/') {
+    return null;
+  }
 
   const features = [
     {

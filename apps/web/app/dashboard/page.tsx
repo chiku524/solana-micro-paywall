@@ -109,7 +109,7 @@ function DashboardPageContent() {
   // If no merchantId, show login form
   if (!currentMerchantId) {
     return (
-      <div className="min-h-screen bg-transparent relative z-10">
+      <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
             <h1 className="text-4xl font-bold text-white mb-2">Merchant Dashboard</h1>
@@ -142,7 +142,7 @@ function DashboardPageContent() {
     // If no merchantId, show login form
     if (!hasMerchantId) {
       return (
-        <div className="min-h-screen bg-transparent">
+        <div className="min-h-screen bg-transparent" data-page="dashboard" data-route="/dashboard">
           <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
             <div className="mb-8 text-center">
               <h1 className="text-4xl font-bold text-white mb-2">Merchant Dashboard</h1>
@@ -196,7 +196,7 @@ function DashboardPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent relative z-10">
+    <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6 lg:py-8 sm:px-6 lg:px-8">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard</h1>
