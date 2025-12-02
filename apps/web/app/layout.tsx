@@ -7,6 +7,7 @@ import { BackgroundAnimation } from '../components/ui/background-animation';
 import { ErrorBoundary } from '../components/ui/error-boundary';
 import { DisablePrefetch } from '../components/ui/disable-prefetch';
 import { RouteDebugger } from '../components/ui/route-debugger';
+import { PageDebugger } from '../components/ui/page-debugger';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -109,6 +110,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`}>
         <DisablePrefetch />
         <RouteDebugger />
+        <PageDebugger />
         <BackgroundAnimation />
         <ErrorBoundary>
           <AppProviders>

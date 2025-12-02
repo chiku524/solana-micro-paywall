@@ -42,6 +42,8 @@ export function DisablePrefetch() {
         }
 
         // Intercept fetch requests that look like prefetches
+        // CRITICAL: Don't block Next.js RSC (React Server Components) payload requests
+        // These are needed for client-side navigation to work
         if (typeof window.fetch !== 'undefined') {
           const originalFetch = window.fetch;
           window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
@@ -51,8 +53,13 @@ export function DisablePrefetch() {
               ? init.headers.get('sec-purpose') || init.headers.get('purpose')
               : (init?.headers as Record<string, string>)?.['sec-purpose'] || (init?.headers as Record<string, string>)?.purpose;
             
-            // Block prefetch requests
-            if (purpose === 'prefetch' && url.includes(window.location.origin)) {
+            // CRITICAL: Don't block Next.js RSC payload requests or navigation requests
+            // These URLs are needed for client-side navigation
+            const isNextJsRSC = url.includes('/_next/rsc') || url.includes('/_next/data');
+            const isNextJsNavigation = url.includes('/_next/static') && purpose !== 'prefetch';
+            
+            // Only block actual prefetch requests, not navigation or RSC requests
+            if (purpose === 'prefetch' && url.includes(window.location.origin) && !isNextJsRSC && !isNextJsNavigation) {
               console.log(`[DisablePrefetch] Blocking prefetch fetch for: ${url}`);
               return Promise.resolve(new Response(null, { status: 200, statusText: 'OK' }));
             }
