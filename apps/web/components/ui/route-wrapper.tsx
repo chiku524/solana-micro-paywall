@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * Wrapper component that forces re-renders on route changes
@@ -9,13 +9,11 @@ import { useEffect, useState, useMemo } from 'react';
  */
 export function RouteWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
   const [routeKey, setRouteKey] = useState(pathname);
 
   // Update route key when pathname changes to force complete remount
   useEffect(() => {
     setRouteKey(pathname);
-    setMounted(true);
   }, [pathname]);
 
   useEffect(() => {
@@ -42,10 +40,13 @@ export function RouteWrapper({ children }: { children: React.ReactNode }) {
       const hasMarketplaceContent = document.querySelector('h1')?.textContent?.includes('Discover Premium Content') ||
                                     document.querySelector('[data-page="marketplace"]') !== null;
       
+      // Check for docs content
+      const hasDocsContent = document.querySelector('h1')?.textContent?.includes('Documentation') ||
+                            document.querySelector('[data-page="docs"]') !== null;
+      
       // If we're on dashboard but seeing landing page content, force a hard navigation
       if (currentPath.startsWith('/dashboard') && hasLandingPageContent && !hasDashboardContent) {
         console.error('[RouteWrapper] Wrong content detected on dashboard route, forcing hard navigation');
-        // Use replace to avoid adding to history
         window.location.replace(currentPath + window.location.search + window.location.hash);
         return;
       }
@@ -56,17 +57,21 @@ export function RouteWrapper({ children }: { children: React.ReactNode }) {
         window.location.replace(currentPath + window.location.search + window.location.hash);
         return;
       }
-    }, 200);
+      
+      // If we're on docs but seeing landing page content, force a hard navigation
+      if (currentPath.startsWith('/docs') && hasLandingPageContent && !hasDocsContent) {
+        console.error('[RouteWrapper] Wrong content detected on docs route, forcing hard navigation');
+        window.location.replace(currentPath + window.location.search + window.location.hash);
+        return;
+      }
+    }, 300);
     
     return () => clearTimeout(checkContent);
   }, [pathname]);
 
   // Use pathname as key to force React to unmount/remount components on route change
   // The key change forces React to treat this as a completely new component tree
-  if (!mounted) {
-    return null; // Prevent hydration mismatch
-  }
-
+  // Always render children - don't return null as that prevents pages from rendering
   return (
     <div 
       key={routeKey} 
