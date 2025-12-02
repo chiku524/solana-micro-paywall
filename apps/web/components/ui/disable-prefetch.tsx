@@ -41,32 +41,10 @@ export function DisablePrefetch() {
           }
         }
 
-        // Intercept fetch requests that look like prefetches
-        // CRITICAL: Don't block Next.js RSC (React Server Components) payload requests
-        // These are needed for client-side navigation to work
-        if (typeof window.fetch !== 'undefined') {
-          const originalFetch = window.fetch;
-          window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-            // Check if this is a prefetch request
-            const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-            const purpose = init?.headers instanceof Headers 
-              ? init.headers.get('sec-purpose') || init.headers.get('purpose')
-              : (init?.headers as Record<string, string>)?.['sec-purpose'] || (init?.headers as Record<string, string>)?.purpose;
-            
-            // CRITICAL: Don't block Next.js RSC payload requests or navigation requests
-            // These URLs are needed for client-side navigation
-            const isNextJsRSC = url.includes('/_next/rsc') || url.includes('/_next/data');
-            const isNextJsNavigation = url.includes('/_next/static') && purpose !== 'prefetch';
-            
-            // Only block actual prefetch requests, not navigation or RSC requests
-            if (purpose === 'prefetch' && url.includes(window.location.origin) && !isNextJsRSC && !isNextJsNavigation) {
-              console.log(`[DisablePrefetch] Blocking prefetch fetch for: ${url}`);
-              return Promise.resolve(new Response(null, { status: 200, statusText: 'OK' }));
-            }
-            
-            return originalFetch.apply(this, arguments as any);
-          };
-        }
+        // CRITICAL: Don't intercept fetch requests at all - it's causing hydration issues
+        // and blocking Next.js RSC payload requests needed for client-side navigation
+        // The prefetch blocking via link removal should be sufficient
+        // If we need to block prefetches, we should do it more selectively
       }
     };
 

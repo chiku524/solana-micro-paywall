@@ -52,15 +52,13 @@ export function AppProviders({ children }: AppProvidersProps) {
   }, []);
 
   return (
-    <div data-app-providers="true">
-      <SWRProvider>
-        <ConnectionProvider endpoint={rpcEndpoint}>
-          <WalletProvider wallets={mounted ? wallets : []} autoConnect={mounted}>
-            <WalletModalProvider>{children}</WalletModalProvider>
-          </WalletProvider>
-        </ConnectionProvider>
-      </SWRProvider>
-    </div>
+    <SWRProvider>
+      <ConnectionProvider endpoint={rpcEndpoint}>
+        <WalletProvider wallets={mounted ? wallets : []} autoConnect={mounted}>
+          <WalletModalProvider>{children}</WalletModalProvider>
+        </WalletProvider>
+      </ConnectionProvider>
+    </SWRProvider>
   );
 }
 
