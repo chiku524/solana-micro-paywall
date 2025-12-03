@@ -21,15 +21,26 @@ export function middleware(request: NextRequest) {
     // 1. Check standard prefetch headers
     // 2. Check if request comes from Cloudflare's speculation service
     // 3. Check if it's a GET request without navigation intent
+    // CRITICAL: Always allow navigation requests - never block them
     const isNavigation = secFetchMode === 'navigate' || secFetchDest === 'document';
+    
+    // If it's a navigation request, always let it through to Next.js
+    // This ensures proper DOCTYPE and HTML structure
+    if (isNavigation) {
+      // Let Next.js handle navigation requests - don't interfere
+      const response = NextResponse.next();
+      // Add headers to prevent speculative prefetching
+      response.headers.set('X-DNS-Prefetch-Control', 'off');
+      return response;
+    }
+    
+    // Only check for prefetch on non-navigation requests
     const isCloudflareSpeculation = referer.includes('/cdn-cgi/speculation') || 
                                     userAgent.includes('Cloudflare') ||
                                     request.headers.get('cf-ray') !== null;
-    const isPurePrefetch = !isNavigation && (
-      purpose === 'prefetch' || 
-      secPurpose === 'prefetch' ||
-      (isCloudflareSpeculation && secFetchMode !== 'navigate')
-    );
+    const isPurePrefetch = purpose === 'prefetch' || 
+                          secPurpose === 'prefetch' ||
+                          (isCloudflareSpeculation && secFetchMode !== 'navigate');
     
     // Block only pure prefetch requests (not navigation)
     if (isPurePrefetch) {
@@ -55,7 +66,7 @@ export function middleware(request: NextRequest) {
       return response;
     }
     
-    // For ALL other requests (navigation, regular requests), let them through
+    // For ALL other requests (non-navigation, regular requests), let them through
     let response: NextResponse;
     
     // Only handle dashboard auth - everything else passes through
@@ -91,18 +102,11 @@ export function middleware(request: NextRequest) {
       response = NextResponse.next();
     }
     
-    // For navigation requests, ensure they bypass any cached prefetch responses
-    // Add Vary header to ensure browsers don't use prefetch cache for navigation
-    if (isNavigation) {
-      response.headers.set('Vary', 'Sec-Fetch-Mode, Sec-Fetch-Dest, Purpose, Sec-Purpose');
-      // Ensure navigation requests are fresh and not from prefetch cache
-      response.headers.set('Cache-Control', 'no-cache, must-revalidate');
-    } else {
-      // Non-navigation requests get aggressive no-cache
-      response.headers.set('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
-      response.headers.set('Pragma', 'no-cache');
-      response.headers.set('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');
-    }
+    // For non-navigation requests, add cache control
+    // Navigation requests are already handled above and returned early
+    response.headers.set('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');
     
     // Add headers to prevent speculative prefetching
     response.headers.set('X-DNS-Prefetch-Control', 'off');
