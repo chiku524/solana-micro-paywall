@@ -1,11 +1,19 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function BackgroundAnimation() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Only render canvas after client-side mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
+    if (!mounted) return;
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -102,7 +110,14 @@ export function BackgroundAnimation() {
       window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [mounted]);
+
+  // Don't render canvas during SSR to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true" />
+    );
+  }
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">

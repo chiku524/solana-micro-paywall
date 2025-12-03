@@ -22,9 +22,15 @@ export function PageDebugger() {
       const mainContent = document.querySelector('main');
       const allDataPages = document.querySelectorAll('[data-page]');
       
-      // Check React root
-      const reactRoot = document.getElementById('__next');
+      // Check React root - Next.js App Router doesn't use #__next
+      // React mounts directly to body or a root div
+      // Check for React's internal markers instead
+      const reactRoot = document.getElementById('__next') || document.body;
       const reactRootContent = reactRoot?.innerHTML?.substring(0, 200);
+      
+      // Check for React's internal hydration markers
+      const reactMarkers = document.querySelectorAll('[data-reactroot], [data-nextjs-scroll-focus-boundary]');
+      const hasReactMarkers = reactMarkers.length > 0;
       
       console.log('[PageDebugger] DOM check:', {
         pathname,
@@ -41,6 +47,8 @@ export function PageDebugger() {
         bodyChildrenCount: document.body.children.length,
         reactRootExists: !!reactRoot,
         reactRootContent: reactRootContent,
+        hasReactMarkers: hasReactMarkers,
+        reactMarkersCount: reactMarkers.length,
         bodyHTML: document.body.innerHTML.substring(0, 500),
       });
       

@@ -101,9 +101,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <head>
-        {/* Disable browser-level speculative prefetching to prevent cached prefetch responses from interfering with navigation */}
-        <meta httpEquiv="x-dns-prefetch-control" content="off" />
-        <meta httpEquiv="x-robots-tag" content="noindex, nofollow" />
         {/* Prevent browsers from speculatively prefetching links */}
         <meta name="speculation-rules" content='{"prefetch": {"where": []}}' />
         {/* CRITICAL: Disable Cloudflare Rocket Loader - it breaks React hydration */}
@@ -124,6 +121,17 @@ export default function RootLayout({
                 }
                 // Set flag early to prevent Rocket Loader initialization
                 window.__cf_rocketloader_disabled = true;
+                
+                // CRITICAL: Ensure body is ready for React hydration
+                // Next.js App Router mounts React directly to body, so we need to ensure
+                // the body structure is correct before React tries to hydrate
+                if (document.readyState === 'loading') {
+                  document.addEventListener('DOMContentLoaded', function() {
+                    console.log('[Layout] DOM ready, body children:', document.body.children.length);
+                  });
+                } else {
+                  console.log('[Layout] DOM already ready, body children:', document.body.children.length);
+                }
               })();
             `,
           }}
