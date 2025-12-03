@@ -51,11 +51,16 @@ export function AppProviders({ children }: AppProvidersProps) {
     };
   }, []);
 
+  // CRITICAL: Always render with the same structure to prevent hydration mismatches
+  // Use wallets from the start, but disable autoConnect until mounted
+  // This ensures server and client render the same HTML initially
   return (
     <SWRProvider>
       <ConnectionProvider endpoint={rpcEndpoint}>
-        <WalletProvider wallets={mounted ? wallets : []} autoConnect={mounted}>
-          <WalletModalProvider>{children}</WalletModalProvider>
+        <WalletProvider wallets={wallets} autoConnect={mounted}>
+          <WalletModalProvider suppressHydrationWarning>
+            {children}
+          </WalletModalProvider>
         </WalletProvider>
       </ConnectionProvider>
     </SWRProvider>
