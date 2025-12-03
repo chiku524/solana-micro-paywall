@@ -21,25 +21,16 @@ interface AppProvidersProps {
 }
 
 export function AppProviders({ children }: AppProvidersProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // CRITICAL: Always render the same structure to prevent hydration errors
-  // SWRProvider is safe for SSR, wallet providers are loaded client-only
+  // CRITICAL: Always render the exact same structure to prevent hydration errors
+  // WalletProviders uses dynamic import with ssr: false, so it won't render during SSR
+  // But we always include it in the tree so the structure is consistent
+  // During SSR: WalletProviders renders nothing (due to ssr: false)
+  // After hydration: WalletProviders renders normally
   return (
     <SWRProvider>
-      {mounted ? (
-        <WalletProviders>
-          {children}
-        </WalletProviders>
-      ) : (
-        // Render children directly during SSR and initial client render
-        // This ensures consistent HTML structure
-        <>{children}</>
-      )}
+      <WalletProviders>
+        {children}
+      </WalletProviders>
     </SWRProvider>
   );
 }
