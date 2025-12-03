@@ -106,8 +106,21 @@ export default function RootLayout({
         <meta httpEquiv="x-robots-tag" content="noindex, nofollow" />
         {/* Prevent browsers from speculatively prefetching links */}
         <meta name="speculation-rules" content='{"prefetch": {"where": []}}' />
+        {/* CRITICAL: Disable Cloudflare Rocket Loader - it breaks React hydration */}
+        {/* Rocket Loader defers JavaScript execution which causes React hydration mismatches */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.rocketloader = false;
+              if (window.$) {
+                window.$.rocketloader = false;
+              }
+            `,
+          }}
+        />
       </head>
-      <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`}>
+      <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`} data-cfasync="false">
+        <BackgroundAnimation />
         <AppProviders>
           {children}
           <ToastProvider />
