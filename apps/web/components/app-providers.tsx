@@ -21,6 +21,8 @@ export function AppProviders({ children }: AppProvidersProps) {
 
   const wallets = useMemo(
     () => {
+      // Only create wallets after mount to prevent hydration issues
+      if (typeof window === 'undefined') return [];
       // Only include wallets that are compatible with Edge Runtime
       // TorusWalletAdapter uses Node.js modules and causes build errors
       return [new SolflareWalletAdapter()];
@@ -51,13 +53,20 @@ export function AppProviders({ children }: AppProvidersProps) {
     };
   }, []);
 
-  // CRITICAL: Always render with the same structure to prevent hydration mismatches
-  // Use wallets from the start, but disable autoConnect until mounted
-  // This ensures server and client render the same HTML initially
+  // CRITICAL: Don't render wallet providers until mounted to prevent hydration mismatches
+  // Wallet adapters access browser APIs that don't exist during SSR
+  if (!mounted) {
+    return (
+      <SWRProvider>
+        {children}
+      </SWRProvider>
+    );
+  }
+
   return (
     <SWRProvider>
       <ConnectionProvider endpoint={rpcEndpoint}>
-        <WalletProvider wallets={wallets} autoConnect={mounted}>
+        <WalletProvider wallets={wallets} autoConnect={true}>
           <WalletModalProvider>
             {children}
           </WalletModalProvider>
