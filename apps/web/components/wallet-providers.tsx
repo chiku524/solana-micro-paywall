@@ -14,17 +14,27 @@ interface WalletProvidersProps {
 
 export function WalletProviders({ children }: WalletProvidersProps) {
   const [rpcEndpoint, setRpcEndpoint] = useState(DEFAULT_RPC_ENDPOINT);
+  const [mounted, setMounted] = useState(false);
 
+  // Only create wallets after mount to prevent any browser API access issues
   const wallets = useMemo(
     () => {
-      // Only include wallets that are compatible with Edge Runtime
-      // TorusWalletAdapter uses Node.js modules and causes build errors
-      return [new SolflareWalletAdapter()];
+      if (!mounted) return [];
+      try {
+        // Only include wallets that are compatible with Edge Runtime
+        // TorusWalletAdapter uses Node.js modules and causes build errors
+        return [new SolflareWalletAdapter()];
+      } catch (error) {
+        console.error('[WalletProviders] Error creating wallet adapter:', error);
+        return [];
+      }
     },
-    [],
+    [mounted],
   );
 
   useEffect(() => {
+    setMounted(true);
+    
     // Load network from localStorage
     const savedNetwork = localStorage.getItem('solana-network');
     if (savedNetwork === 'mainnet-beta') {
@@ -44,6 +54,11 @@ export function WalletProviders({ children }: WalletProvidersProps) {
       window.removeEventListener('solana-network-changed', handleNetworkChange as EventListener);
     };
   }, []);
+
+  // If wallets aren't ready yet, just render children to prevent blocking
+  if (!mounted || wallets.length === 0) {
+    return <>{children}</>;
+  }
 
   return (
     <ConnectionProvider endpoint={rpcEndpoint}>
