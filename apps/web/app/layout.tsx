@@ -108,7 +108,6 @@ export default function RootLayout({
         <meta name="speculation-rules" content='{"prefetch": {"where": []}}' />
       </head>
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`}>
-        <BackgroundAnimation />
         <AppProviders>
           {children}
           <ToastProvider />
