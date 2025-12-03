@@ -9,7 +9,11 @@ const DEFAULT_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://api.
 // Dynamically import wallet providers to prevent SSR hydration issues
 // These components access browser APIs that don't exist during SSR
 const WalletProviders = dynamic(
-  () => import('./wallet-providers').then((mod) => mod.WalletProviders),
+  () => import('./wallet-providers').then((mod) => mod.WalletProviders).catch((error) => {
+    console.error('[AppProviders] Failed to load WalletProviders:', error);
+    // Return a fallback component that just renders children
+    return { default: ({ children }: { children: React.ReactNode }) => <>{children}</> };
+  }),
   { 
     ssr: false,
     loading: () => null, // Don't show loading state to prevent layout shift
@@ -26,23 +30,13 @@ export function AppProviders({ children }: AppProvidersProps) {
   // But we always include it in the tree so the structure is consistent
   // During SSR: WalletProviders renders nothing (due to ssr: false)
   // After hydration: WalletProviders renders normally
-  // Wrap in error boundary to catch any wallet provider errors
-  try {
-    return (
-      <SWRProvider>
-        <WalletProviders>
-          {children}
-        </WalletProviders>
-      </SWRProvider>
-    );
-  } catch (error) {
-    // If wallet providers fail, still render children
-    console.error('[AppProviders] Error rendering wallet providers:', error);
-    return (
-      <SWRProvider>
+  // If WalletProviders fails to load, the dynamic import catch will provide a fallback
+  return (
+    <SWRProvider>
+      <WalletProviders>
         {children}
-      </SWRProvider>
-    );
-  }
+      </WalletProviders>
+    </SWRProvider>
+  );
 }
 
