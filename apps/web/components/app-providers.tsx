@@ -53,26 +53,18 @@ export function AppProviders({ children }: AppProvidersProps) {
     };
   }, []);
 
-  // CRITICAL: Always render the same structure to prevent hydration mismatches
-  // But only initialize wallets after mount to avoid browser API access during SSR
-  // The wallet providers will handle the mounted state internally
+  // CRITICAL: Always render the exact same component tree structure
+  // This is essential to prevent React hydration errors
+  // Wallet providers will be initialized but won't cause issues if wallets array is empty initially
   return (
     <SWRProvider>
-      {mounted ? (
-        <ConnectionProvider endpoint={rpcEndpoint}>
-          <WalletProvider wallets={wallets} autoConnect={true}>
-            <WalletModalProvider>
-              {children}
-            </WalletModalProvider>
-          </WalletProvider>
-        </ConnectionProvider>
-      ) : (
-        // Render same structure but without wallet providers during SSR
-        // This ensures server and client render the same HTML initially
-        <div suppressHydrationWarning>
-          {children}
-        </div>
-      )}
+      <ConnectionProvider endpoint={rpcEndpoint}>
+        <WalletProvider wallets={mounted ? wallets : []} autoConnect={mounted}>
+          <WalletModalProvider>
+            {children}
+          </WalletModalProvider>
+        </WalletProvider>
+      </ConnectionProvider>
     </SWRProvider>
   );
 }
