@@ -53,25 +53,26 @@ export function AppProviders({ children }: AppProvidersProps) {
     };
   }, []);
 
-  // CRITICAL: Don't render wallet providers until mounted to prevent hydration mismatches
-  // Wallet adapters access browser APIs that don't exist during SSR
-  if (!mounted) {
-    return (
-      <SWRProvider>
-        {children}
-      </SWRProvider>
-    );
-  }
-
+  // CRITICAL: Always render the same structure to prevent hydration mismatches
+  // But only initialize wallets after mount to avoid browser API access during SSR
+  // The wallet providers will handle the mounted state internally
   return (
     <SWRProvider>
-      <ConnectionProvider endpoint={rpcEndpoint}>
-        <WalletProvider wallets={wallets} autoConnect={true}>
-          <WalletModalProvider>
-            {children}
-          </WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
+      {mounted ? (
+        <ConnectionProvider endpoint={rpcEndpoint}>
+          <WalletProvider wallets={wallets} autoConnect={true}>
+            <WalletModalProvider>
+              {children}
+            </WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+      ) : (
+        // Render same structure but without wallet providers during SSR
+        // This ensures server and client render the same HTML initially
+        <div suppressHydrationWarning>
+          {children}
+        </div>
+      )}
     </SWRProvider>
   );
 }
