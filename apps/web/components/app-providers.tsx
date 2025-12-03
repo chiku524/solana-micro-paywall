@@ -1,15 +1,20 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
-// Note: TorusWalletAdapter removed due to Edge Runtime compatibility issues
-// It uses Node.js modules (crypto, stream) that aren't available in Edge Runtime
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { SWRProvider } from '../lib/swr-config';
-import '@solana/wallet-adapter-react-ui/styles.css';
 
 const DEFAULT_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://api.devnet.solana.com';
+
+// Dynamically import wallet providers to prevent SSR hydration issues
+// These components access browser APIs that don't exist during SSR
+const WalletProviders = dynamic(
+  () => import('./wallet-providers').then((mod) => mod.WalletProviders),
+  { 
+    ssr: false,
+    loading: () => null, // Don't show loading state to prevent layout shift
+  }
+);
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -17,55 +22,24 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   const [mounted, setMounted] = useState(false);
-  const [rpcEndpoint, setRpcEndpoint] = useState(DEFAULT_RPC_ENDPOINT);
-
-  // CRITICAL: Only create wallet adapters after mount to prevent hydration issues
-  // Wallet adapters may access browser APIs during initialization
-  const wallets = useMemo(
-    () => {
-      if (!mounted) return [];
-      // Only include wallets that are compatible with Edge Runtime
-      // TorusWalletAdapter uses Node.js modules and causes build errors
-      return [new SolflareWalletAdapter()];
-    },
-    [mounted],
-  );
 
   useEffect(() => {
     setMounted(true);
-    
-    // Load network from localStorage
-    const savedNetwork = localStorage.getItem('solana-network');
-    if (savedNetwork === 'mainnet-beta') {
-      const mainnetRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_MAINNET || 'https://api.mainnet-beta.solana.com';
-      setRpcEndpoint(mainnetRpc);
-    } else {
-      setRpcEndpoint(DEFAULT_RPC_ENDPOINT);
-    }
-
-    // Listen for network changes
-    const handleNetworkChange = (event: CustomEvent) => {
-      setRpcEndpoint(event.detail.rpc);
-    };
-
-    window.addEventListener('solana-network-changed', handleNetworkChange as EventListener);
-    return () => {
-      window.removeEventListener('solana-network-changed', handleNetworkChange as EventListener);
-    };
   }, []);
 
-  // CRITICAL: Always render the exact same component tree structure
-  // This is essential to prevent React hydration errors
-  // Wallet providers will be initialized but won't cause issues if wallets array is empty initially
+  // CRITICAL: Always render the same structure to prevent hydration errors
+  // SWRProvider is safe for SSR, wallet providers are loaded client-only
   return (
     <SWRProvider>
-      <ConnectionProvider endpoint={rpcEndpoint}>
-        <WalletProvider wallets={mounted ? wallets : []} autoConnect={mounted}>
-          <WalletModalProvider>
-            {children}
-          </WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
+      {mounted ? (
+        <WalletProviders>
+          {children}
+        </WalletProviders>
+      ) : (
+        // Render children directly during SSR and initial client render
+        // This ensures consistent HTML structure
+        <>{children}</>
+      )}
     </SWRProvider>
   );
 }
