@@ -107,17 +107,12 @@ export default function RootLayout({
         {/* Prevent browsers from speculatively prefetching links */}
         <meta name="speculation-rules" content='{"prefetch": {"where": []}}' />
       </head>
-      <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`} suppressHydrationWarning>
-        <DisablePrefetch />
-        <RouteDebugger />
-        <PageDebugger />
+      <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`}>
         <BackgroundAnimation />
-        <ErrorBoundary>
-          <AppProviders>
-            {children}
-            <ToastProvider />
-          </AppProviders>
-        </ErrorBoundary>
+        <AppProviders>
+          {children}
+          <ToastProvider />
+        </AppProviders>
       </body>
     </html>
   );
