@@ -58,7 +58,7 @@ export function AppProviders({ children }: AppProvidersProps) {
     <SWRProvider>
       <ConnectionProvider endpoint={rpcEndpoint}>
         <WalletProvider wallets={wallets} autoConnect={mounted}>
-          <WalletModalProvider suppressHydrationWarning>
+          <WalletModalProvider>
             {children}
           </WalletModalProvider>
         </WalletProvider>
