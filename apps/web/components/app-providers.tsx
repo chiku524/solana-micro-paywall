@@ -19,15 +19,16 @@ export function AppProviders({ children }: AppProvidersProps) {
   const [mounted, setMounted] = useState(false);
   const [rpcEndpoint, setRpcEndpoint] = useState(DEFAULT_RPC_ENDPOINT);
 
+  // CRITICAL: Only create wallet adapters after mount to prevent hydration issues
+  // Wallet adapters may access browser APIs during initialization
   const wallets = useMemo(
     () => {
-      // Only create wallets after mount to prevent hydration issues
-      if (typeof window === 'undefined') return [];
+      if (!mounted) return [];
       // Only include wallets that are compatible with Edge Runtime
       // TorusWalletAdapter uses Node.js modules and causes build errors
       return [new SolflareWalletAdapter()];
     },
-    [],
+    [mounted],
   );
 
   useEffect(() => {
