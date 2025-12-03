@@ -108,13 +108,23 @@ export default function RootLayout({
         <meta name="speculation-rules" content='{"prefetch": {"where": []}}' />
         {/* CRITICAL: Disable Cloudflare Rocket Loader - it breaks React hydration */}
         {/* Rocket Loader defers JavaScript execution which causes React hydration mismatches */}
+        {/* This script must run BEFORE any other scripts to prevent Rocket Loader from activating */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              window.rocketloader = false;
-              if (window.$) {
-                window.$.rocketloader = false;
-              }
+              (function() {
+                // Disable Rocket Loader before it can activate
+                window.rocketloader = false;
+                if (typeof window.$ !== 'undefined' && window.$) {
+                  window.$.rocketloader = false;
+                }
+                // Prevent Rocket Loader from wrapping scripts
+                if (typeof window._cf !== 'undefined') {
+                  window._cf.rocketloader = false;
+                }
+                // Set flag early to prevent Rocket Loader initialization
+                window.__cf_rocketloader_disabled = true;
+              })();
             `,
           }}
         />
