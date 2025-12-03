@@ -26,12 +26,23 @@ export function AppProviders({ children }: AppProvidersProps) {
   // But we always include it in the tree so the structure is consistent
   // During SSR: WalletProviders renders nothing (due to ssr: false)
   // After hydration: WalletProviders renders normally
-  return (
-    <SWRProvider>
-      <WalletProviders>
+  // Wrap in error boundary to catch any wallet provider errors
+  try {
+    return (
+      <SWRProvider>
+        <WalletProviders>
+          {children}
+        </WalletProviders>
+      </SWRProvider>
+    );
+  } catch (error) {
+    // If wallet providers fail, still render children
+    console.error('[AppProviders] Error rendering wallet providers:', error);
+    return (
+      <SWRProvider>
         {children}
-      </WalletProviders>
-    </SWRProvider>
-  );
+      </SWRProvider>
+    );
+  }
 }
 

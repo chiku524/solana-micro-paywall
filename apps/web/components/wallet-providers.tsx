@@ -60,14 +60,20 @@ export function WalletProviders({ children }: WalletProvidersProps) {
     return <>{children}</>;
   }
 
-  return (
-    <ConnectionProvider endpoint={rpcEndpoint}>
-      <WalletProvider wallets={wallets} autoConnect={true}>
-        <WalletModalProvider>
-          {children}
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  // Wrap in try-catch to prevent errors from blocking rendering
+  try {
+    return (
+      <ConnectionProvider endpoint={rpcEndpoint}>
+        <WalletProvider wallets={wallets} autoConnect={true}>
+          <WalletModalProvider>
+            {children}
+          </WalletModalProvider>
+        </WalletProvider>
+      </ConnectionProvider>
+    );
+  } catch (error) {
+    console.error('[WalletProviders] Error rendering wallet providers, falling back to children only:', error);
+    return <>{children}</>;
+  }
 }
 
