@@ -43,36 +43,59 @@ function DashboardPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [merchantId, setMerchantId] = useState<string>('');
   
   // Ensure we're mounted on the client before accessing localStorage
   useEffect(() => {
     setMounted(true);
   }, []);
   
-  // Handle redirect if merchantId is in localStorage but not in URL
+  // Handle merchantId from URL or localStorage
+  // Use window.location.search as fallback if searchParams isn't ready
   useEffect(() => {
     if (!mounted) return;
     
-    const urlMerchantId = searchParams.get('merchantId') || '';
-    
-    // If we have merchantId in URL, store it and we're good
-    if (urlMerchantId) {
-      localStorage.setItem('merchantId', urlMerchantId);
-      return;
-    }
-    
-    // If no merchantId in URL, check localStorage
-    const storedMerchantId = localStorage.getItem('merchantId') || '';
-    if (storedMerchantId) {
-      router.replace(`/dashboard?merchantId=${storedMerchantId}`);
-      return;
+    try {
+      // Try to get from searchParams first
+      let urlMerchantId = '';
+      try {
+        urlMerchantId = searchParams.get('merchantId') || '';
+      } catch (e) {
+        // If searchParams fails, try window.location.search
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          urlMerchantId = params.get('merchantId') || '';
+        }
+      }
+      
+      // If we have merchantId in URL, store it and use it
+      if (urlMerchantId) {
+        localStorage.setItem('merchantId', urlMerchantId);
+        setMerchantId(urlMerchantId);
+        return;
+      }
+      
+      // If no merchantId in URL, check localStorage
+      const storedMerchantId = localStorage.getItem('merchantId') || '';
+      if (storedMerchantId) {
+        // Update URL to include merchantId
+        router.replace(`/dashboard?merchantId=${storedMerchantId}`);
+        setMerchantId(storedMerchantId);
+        return;
+      }
+      
+      // No merchantId found
+      setMerchantId('');
+    } catch (error) {
+      console.error('[Dashboard] Error handling merchantId:', error);
+      // Fallback to localStorage if everything fails
+      const storedMerchantId = localStorage.getItem('merchantId') || '';
+      setMerchantId(storedMerchantId);
     }
   }, [searchParams, router, mounted]);
 
-  // Get merchantId from URL or localStorage
-  const urlMerchantId = searchParams.get('merchantId') || '';
-  const storedMerchantId = mounted ? (localStorage.getItem('merchantId') || '') : '';
-  const currentMerchantId = urlMerchantId || storedMerchantId;
+  // Use the state merchantId instead of reading from searchParams directly
+  const currentMerchantId = merchantId;
 
   // Use SWR for data fetching with automatic caching and revalidation
   const { data: stats, error, isLoading } = useSWR<DashboardStats>(
@@ -141,9 +164,7 @@ function DashboardPageContent() {
 
   if (error || !stats) {
     const errorMessage = error instanceof Error ? error.message : (typeof error === 'string' ? error : 'Failed to load dashboard');
-    const urlMerchantId = searchParams.get('merchantId') || '';
-    const storedMerchantId = mounted ? (localStorage.getItem('merchantId') || '') : '';
-    const hasMerchantId = urlMerchantId || storedMerchantId;
+    const hasMerchantId = currentMerchantId || (mounted ? (localStorage.getItem('merchantId') || '') : '');
     
     // If no merchantId, show login form
     if (!hasMerchantId) {
