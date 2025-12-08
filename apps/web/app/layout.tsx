@@ -97,45 +97,47 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
+        {/* CRITICAL: Ensure Standards Mode - Next.js adds DOCTYPE automatically */}
         {/* Prevent browsers from speculatively prefetching links */}
         <meta name="speculation-rules" content='{"prefetch": {"where": []}}' />
-        {/* CRITICAL: Disable Cloudflare Rocket Loader - it breaks React hydration */}
-        {/* Rocket Loader defers JavaScript execution which causes React hydration mismatches */}
-        {/* This script must run BEFORE any other scripts to prevent Rocket Loader from activating */}
+        {/* Ensure proper charset and viewport */}
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`} data-cfasync="false" suppressHydrationWarning>
+        {/* CRITICAL: Ensure Standards Mode - script must run after body is created */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                // Disable Rocket Loader before it can activate
-                window.rocketloader = false;
-                if (typeof window.$ !== 'undefined' && window.$) {
-                  window.$.rocketloader = false;
+                // CRITICAL: Ensure we're in Standards Mode
+                // Check if document.compatMode is 'BackCompat' (Quirks Mode)
+                if (document.compatMode === 'BackCompat') {
+                  console.error('[Layout] CRITICAL: Page is in Quirks Mode! This will break React hydration.');
+                  // Force a reload to get proper DOCTYPE
+                  if (window.location.search.indexOf('_quirks_fix') === -1) {
+                    window.location.href = window.location.href + (window.location.search ? '&' : '?') + '_quirks_fix=1';
+                    return;
+                  }
                 }
-                // Prevent Rocket Loader from wrapping scripts
-                if (typeof window._cf !== 'undefined') {
-                  window._cf.rocketloader = false;
-                }
-                // Set flag early to prevent Rocket Loader initialization
-                window.__cf_rocketloader_disabled = true;
                 
-                // CRITICAL: Ensure body is ready for React hydration
-                // Next.js App Router mounts React directly to body, so we need to ensure
-                // the body structure is correct before React tries to hydrate
-                if (document.readyState === 'loading') {
-                  document.addEventListener('DOMContentLoaded', function() {
-                    console.log('[Layout] DOM ready, body children:', document.body.children.length);
-                  });
-                } else {
-                  console.log('[Layout] DOM already ready, body children:', document.body.children.length);
+                // Disable Cloudflare Rocket Loader
+                if (typeof window !== 'undefined') {
+                  window.rocketloader = false;
+                  if (typeof window.$ !== 'undefined' && window.$) {
+                    window.$.rocketloader = false;
+                  }
+                  if (typeof window._cf !== 'undefined') {
+                    window._cf.rocketloader = false;
+                  }
+                  window.__cf_rocketloader_disabled = true;
                 }
               })();
             `,
           }}
         />
-      </head>
-      <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`} data-cfasync="false" suppressHydrationWarning>
         <ErrorBoundary fallback={<ErrorFallback />}>
           <BackgroundAnimation />
           <AppProviders>
