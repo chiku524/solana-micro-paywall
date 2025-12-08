@@ -7,8 +7,8 @@ interface AppProvidersProps {
 }
 
 export function AppProviders({ children }: AppProvidersProps) {
-  // Always render SWRProvider - it's safe for SSR
-  // The issue was likely with useSearchParams requiring Suspense, not the provider
+  // Always render SWRProvider consistently on both server and client
+  // SWRProvider is safe for SSR - it only provides context
   return (
     <SWRProvider>
       {children}
