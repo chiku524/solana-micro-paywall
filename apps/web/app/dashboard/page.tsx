@@ -306,23 +306,30 @@ function DashboardPageContent() {
   );
 }
 
+// Separate the Suspense boundary to ensure proper handling
+function DashboardPageSuspense() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
+          <div className="flex min-h-screen items-center justify-center">
+            <div className="text-center">
+              <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-400 border-t-transparent mx-auto" />
+              <p className="text-neutral-400">Loading dashboard...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <DashboardPageContent />
+    </Suspense>
+  );
+}
+
 export default function DashboardPage() {
   return (
     <ErrorBoundary>
-      <Suspense
-        fallback={
-          <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
-            <div className="flex min-h-screen items-center justify-center">
-              <div className="text-center">
-                <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-400 border-t-transparent mx-auto" />
-                <p className="text-neutral-400">Loading dashboard...</p>
-              </div>
-            </div>
-          </div>
-        }
-      >
-        <DashboardPageContent />
-      </Suspense>
+      <DashboardPageSuspense />
     </ErrorBoundary>
   );
 }

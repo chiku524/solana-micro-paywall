@@ -8,7 +8,7 @@ import { ErrorBoundary } from '../components/ui/error-boundary';
 import { DisablePrefetch } from '../components/ui/disable-prefetch';
 import { RouteDebugger } from '../components/ui/route-debugger';
 import { PageDebugger } from '../components/ui/page-debugger';
-import { Suspense } from 'react';
+import { NavigationWrapper } from '../components/ui/navigation-wrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -145,16 +145,9 @@ export default function RootLayout({
             <PageDebugger />
             <RouteDebugger />
             <DisablePrefetch />
-            <Suspense fallback={
-              <div className="flex min-h-screen items-center justify-center">
-                <div className="text-center">
-                  <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-400 border-t-transparent mx-auto" />
-                  <p className="text-neutral-400">Loading...</p>
-                </div>
-              </div>
-            }>
+            <NavigationWrapper>
               {children}
-            </Suspense>
+            </NavigationWrapper>
             <ToastProvider />
           </AppProviders>
         </ErrorBoundary>
