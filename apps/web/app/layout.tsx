@@ -5,10 +5,7 @@ import { AppProviders } from '../components/app-providers';
 import { ToastProvider } from '../components/ui/toast-provider';
 import { BackgroundAnimation } from '../components/ui/background-animation';
 import { ErrorBoundary } from '../components/ui/error-boundary';
-import { DisablePrefetch } from '../components/ui/disable-prefetch';
-import { RouteDebugger } from '../components/ui/route-debugger';
-import { PageDebugger } from '../components/ui/page-debugger';
-import { NavigationWrapper } from '../components/ui/navigation-wrapper';
+import { ErrorFallback } from '../components/ui/error-fallback';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -139,22 +136,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`} data-cfasync="false" suppressHydrationWarning>
-        <ErrorBoundary
-          fallback={
-            <div className="flex min-h-screen items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-red-400 mb-2">Something went wrong</h2>
-                <p className="text-red-300 mb-4">Please refresh the page</p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="rounded-lg bg-emerald-500 px-6 py-2 font-medium text-emerald-950 transition hover:bg-emerald-400"
-                >
-                  Reload Page
-                </button>
-              </div>
-            </div>
-          }
-        >
+        <ErrorBoundary fallback={<ErrorFallback />}>
           <BackgroundAnimation />
           <AppProviders>
             {children}
