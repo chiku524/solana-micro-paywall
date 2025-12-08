@@ -42,30 +42,36 @@ interface DashboardStats {
 function DashboardPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  
+  // Ensure we're mounted on the client before accessing localStorage
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Handle redirect if merchantId is in localStorage but not in URL
   useEffect(() => {
+    if (!mounted) return;
+    
     const urlMerchantId = searchParams.get('merchantId') || '';
     
     // If we have merchantId in URL, store it and we're good
-    if (urlMerchantId && typeof window !== 'undefined') {
+    if (urlMerchantId) {
       localStorage.setItem('merchantId', urlMerchantId);
       return;
     }
     
     // If no merchantId in URL, check localStorage
-    if (typeof window !== 'undefined' && !urlMerchantId) {
-      const storedMerchantId = localStorage.getItem('merchantId') || '';
-      if (storedMerchantId) {
-        router.replace(`/dashboard?merchantId=${storedMerchantId}`);
-        return;
-      }
+    const storedMerchantId = localStorage.getItem('merchantId') || '';
+    if (storedMerchantId) {
+      router.replace(`/dashboard?merchantId=${storedMerchantId}`);
+      return;
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, mounted]);
 
   // Get merchantId from URL or localStorage
   const urlMerchantId = searchParams.get('merchantId') || '';
-  const storedMerchantId = typeof window !== 'undefined' ? localStorage.getItem('merchantId') || '' : '';
+  const storedMerchantId = mounted ? (localStorage.getItem('merchantId') || '') : '';
   const currentMerchantId = urlMerchantId || storedMerchantId;
 
   // Use SWR for data fetching with automatic caching and revalidation
@@ -86,7 +92,7 @@ function DashboardPageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-transparent relative z-10">
+      <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-8">
             <div className="mb-4 h-8 w-48 animate-pulse rounded bg-neutral-800" />
@@ -136,7 +142,7 @@ function DashboardPageContent() {
   if (error || !stats) {
     const errorMessage = error instanceof Error ? error.message : (typeof error === 'string' ? error : 'Failed to load dashboard');
     const urlMerchantId = searchParams.get('merchantId') || '';
-    const storedMerchantId = typeof window !== 'undefined' ? localStorage.getItem('merchantId') || '' : '';
+    const storedMerchantId = mounted ? (localStorage.getItem('merchantId') || '') : '';
     const hasMerchantId = urlMerchantId || storedMerchantId;
     
     // If no merchantId, show login form
@@ -302,18 +308,22 @@ function DashboardPageContent() {
 
 export default function DashboardPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-400 border-t-transparent mx-auto" />
-            <p className="text-neutral-400">Loading...</p>
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
+            <div className="flex min-h-screen items-center justify-center">
+              <div className="text-center">
+                <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-400 border-t-transparent mx-auto" />
+                <p className="text-neutral-400">Loading dashboard...</p>
+              </div>
+            </div>
           </div>
-        </div>
-      }
-    >
-      <DashboardPageContent />
-    </Suspense>
+        }
+      >
+        <DashboardPageContent />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
