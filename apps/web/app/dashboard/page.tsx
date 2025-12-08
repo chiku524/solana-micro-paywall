@@ -347,11 +347,16 @@ function DashboardPageSuspense() {
   );
 }
 
+// CRITICAL: Ensure this page always renders something immediately
+// This allows React to hydrate successfully during client-side navigation
 export default function DashboardPage() {
+  // Render immediately with Suspense - don't block on anything
   return (
-    <ErrorBoundary>
-      <DashboardPageSuspense />
-    </ErrorBoundary>
+    <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard" suppressHydrationWarning>
+      <ErrorBoundary>
+        <DashboardPageSuspense />
+      </ErrorBoundary>
+    </div>
   );
 }
 

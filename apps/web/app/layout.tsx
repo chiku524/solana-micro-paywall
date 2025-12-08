@@ -107,23 +107,12 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`} data-cfasync="false" suppressHydrationWarning>
-        {/* CRITICAL: Ensure Standards Mode - script must run after body is created */}
+        {/* CRITICAL: Disable Cloudflare Rocket Loader immediately */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                // CRITICAL: Ensure we're in Standards Mode
-                // Check if document.compatMode is 'BackCompat' (Quirks Mode)
-                if (document.compatMode === 'BackCompat') {
-                  console.error('[Layout] CRITICAL: Page is in Quirks Mode! This will break React hydration.');
-                  // Force a reload to get proper DOCTYPE
-                  if (window.location.search.indexOf('_quirks_fix') === -1) {
-                    window.location.href = window.location.href + (window.location.search ? '&' : '?') + '_quirks_fix=1';
-                    return;
-                  }
-                }
-                
-                // Disable Cloudflare Rocket Loader
+                // Disable Cloudflare Rocket Loader immediately
                 if (typeof window !== 'undefined') {
                   window.rocketloader = false;
                   if (typeof window.$ !== 'undefined' && window.$) {
