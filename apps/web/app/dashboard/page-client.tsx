@@ -7,6 +7,8 @@ import useSWR from 'swr';
 import { apiClient } from '../../lib/api-client';
 import { MerchantLogin } from '../../components/merchant-login';
 import { SkeletonTable } from '../../components/ui/skeleton';
+import { ErrorBoundary } from '../../components/ui/error-boundary';
+import { ErrorFallback } from '../../components/ui/error-fallback';
 
 interface DashboardStats {
   merchant: {
@@ -274,7 +276,12 @@ function DashboardPageContent() {
 
 // CRITICAL: No Suspense needed since we're not using useSearchParams anymore
 // This eliminates the hydration mismatch caused by Suspense boundaries
+// Wrap in ErrorBoundary at page level instead of layout level
 export function DashboardPageClient() {
-  return <DashboardPageContent />;
+  return (
+    <ErrorBoundary fallback={<ErrorFallback />}>
+      <DashboardPageContent />
+    </ErrorBoundary>
+  );
 }
 

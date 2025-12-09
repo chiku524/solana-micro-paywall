@@ -112,6 +112,17 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
+                // CRITICAL: Ensure we're in Standards Mode
+                // Check if document.compatMode is 'BackCompat' (Quirks Mode)
+                if (typeof document !== 'undefined' && document.compatMode === 'BackCompat') {
+                  console.error('[Layout] CRITICAL: Page is in Quirks Mode! Forcing page reload to get proper DOCTYPE.');
+                  // Force a full page reload to get proper DOCTYPE
+                  if (window.location.search.indexOf('_quirks_fix') === -1) {
+                    window.location.href = window.location.href + (window.location.search ? '&' : '?') + '_quirks_fix=1';
+                    return;
+                  }
+                }
+                
                 // Disable Cloudflare Rocket Loader immediately
                 if (typeof window !== 'undefined') {
                   window.rocketloader = false;
@@ -127,13 +138,11 @@ export default function RootLayout({
             `,
           }}
         />
-        <ErrorBoundary fallback={<ErrorFallback />}>
-          <BackgroundAnimation />
-          <AppProviders>
-            {children}
-            <ToastProvider />
-          </AppProviders>
-        </ErrorBoundary>
+        <BackgroundAnimation />
+        <AppProviders>
+          {children}
+          <ToastProvider />
+        </AppProviders>
       </body>
     </html>
   );
