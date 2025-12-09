@@ -4,8 +4,7 @@ import './globals.css';
 import { AppProviders } from '../components/app-providers';
 import { ToastProvider } from '../components/ui/toast-provider';
 import { BackgroundAnimation } from '../components/ui/background-animation';
-import { ErrorBoundary } from '../components/ui/error-boundary';
-import { ErrorFallback } from '../components/ui/error-fallback';
+import { NavigationHandler } from '../components/ui/navigation-handler';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -139,6 +138,7 @@ export default function RootLayout({
           }}
         />
         <BackgroundAnimation />
+        <NavigationHandler />
         <AppProviders>
           {children}
           <ToastProvider />
