@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { apiClient } from '../../lib/api-client';
@@ -34,8 +34,9 @@ interface DashboardStats {
   }>;
 }
 
+// CRITICAL: Avoid useSearchParams() to prevent hydration mismatches
+// Read from window.location.search instead, which is only available on client
 function DashboardPageContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [merchantId, setMerchantId] = useState<string>('');
@@ -45,10 +46,12 @@ function DashboardPageContent() {
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || typeof window === 'undefined') return;
 
     try {
-      const urlMerchantId = searchParams.get('merchantId') || '';
+      // Read from URL directly instead of useSearchParams to avoid hydration issues
+      const params = new URLSearchParams(window.location.search);
+      const urlMerchantId = params.get('merchantId') || '';
 
       if (urlMerchantId) {
         localStorage.setItem('merchantId', urlMerchantId);
@@ -69,7 +72,7 @@ function DashboardPageContent() {
       const storedMerchantId = localStorage.getItem('merchantId') || '';
       setMerchantId(storedMerchantId);
     }
-  }, [searchParams, router, mounted]);
+  }, [router, mounted]);
 
   const currentMerchantId = merchantId;
 
@@ -269,22 +272,9 @@ function DashboardPageContent() {
   );
 }
 
+// CRITICAL: No Suspense needed since we're not using useSearchParams anymore
+// This eliminates the hydration mismatch caused by Suspense boundaries
 export function DashboardPageClient() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
-          <div className="flex min-h-screen items-center justify-center">
-            <div className="text-center">
-              <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-400 border-t-transparent mx-auto" />
-              <p className="text-neutral-400">Loading dashboard...</p>
-            </div>
-          </div>
-        </div>
-      }
-    >
-      <DashboardPageContent />
-    </Suspense>
-  );
+  return <DashboardPageContent />;
 }
 
