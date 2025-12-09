@@ -88,6 +88,21 @@ function DashboardPageContent() {
 
   const currentMerchantId = merchantId;
 
+  // CRITICAL: Don't render anything until mounted to prevent hydration mismatch
+  // The server should render the same thing as the client initially
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-400 border-t-transparent mx-auto" />
+            <p className="text-neutral-400">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const { data: stats, error, isLoading } = useSWR<DashboardStats>(
     currentMerchantId ? `dashboard-${currentMerchantId}` : null,
     async (): Promise<DashboardStats> => {
@@ -177,8 +192,17 @@ function DashboardPageContent() {
     return `${amount.toFixed(4)} ${currency}`;
   };
 
+  // CRITICAL: Use consistent date formatting to prevent hydration mismatches
+  // toLocaleString() can vary between server and client based on locale/timezone
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    const date = new Date(dateString);
+    // Use ISO format with manual formatting to ensure consistency
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
   };
 
   return (
