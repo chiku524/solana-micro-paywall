@@ -50,30 +50,40 @@ function DashboardPageContent() {
   useEffect(() => {
     if (!mounted || typeof window === 'undefined') return;
 
-    try {
-      // Read from URL directly instead of useSearchParams to avoid hydration issues
-      const params = new URLSearchParams(window.location.search);
-      const urlMerchantId = params.get('merchantId') || '';
+    // CRITICAL: Use setTimeout to defer router operations until after hydration
+    // Calling router.replace during hydration can cause React error #418
+    const timeoutId = setTimeout(() => {
+      try {
+        // Read from URL directly instead of useSearchParams to avoid hydration issues
+        const params = new URLSearchParams(window.location.search);
+        const urlMerchantId = params.get('merchantId') || '';
 
-      if (urlMerchantId) {
-        localStorage.setItem('merchantId', urlMerchantId);
-        setMerchantId(urlMerchantId);
-        return;
-      }
+        if (urlMerchantId) {
+          localStorage.setItem('merchantId', urlMerchantId);
+          setMerchantId(urlMerchantId);
+          return;
+        }
 
-      const storedMerchantId = localStorage.getItem('merchantId') || '';
-      if (storedMerchantId) {
-        router.replace(`/dashboard?merchantId=${storedMerchantId}`);
+        const storedMerchantId = localStorage.getItem('merchantId') || '';
+        if (storedMerchantId) {
+          // Only update URL if it's different to avoid unnecessary navigation
+          const currentParams = new URLSearchParams(window.location.search);
+          if (currentParams.get('merchantId') !== storedMerchantId) {
+            router.replace(`/dashboard?merchantId=${storedMerchantId}`);
+          }
+          setMerchantId(storedMerchantId);
+          return;
+        }
+
+        setMerchantId('');
+      } catch (error) {
+        console.error('[Dashboard] Error handling merchantId:', error);
+        const storedMerchantId = localStorage.getItem('merchantId') || '';
         setMerchantId(storedMerchantId);
-        return;
       }
+    }, 0); // Defer until after current execution stack
 
-      setMerchantId('');
-    } catch (error) {
-      console.error('[Dashboard] Error handling merchantId:', error);
-      const storedMerchantId = localStorage.getItem('merchantId') || '';
-      setMerchantId(storedMerchantId);
-    }
+    return () => clearTimeout(timeoutId);
   }, [router, mounted]);
 
   const currentMerchantId = merchantId;

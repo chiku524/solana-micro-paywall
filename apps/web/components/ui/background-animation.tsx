@@ -112,20 +112,17 @@ export function BackgroundAnimation() {
     };
   }, [mounted]);
 
-  // Don't render canvas during SSR to prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true" />
-    );
-  }
-
+  // CRITICAL: Render consistent structure on both server and client
+  // Always render the same div structure to prevent hydration mismatch
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-        aria-hidden="true"
-      />
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true" suppressHydrationWarning>
+      {mounted && (
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full"
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 }
