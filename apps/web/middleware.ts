@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Note: Middleware always runs on Edge runtime in Next.js 14+
-// No need to export runtime - it's automatic for middleware
+// TEMPORARILY DISABLED: Testing if middleware is causing hydration issues
+// Middleware runs on every request and can interfere with Next.js RSC streaming
+// If disabling this fixes the issue, we'll need to optimize it to only run when necessary
+
 export function middleware(request: NextRequest) {
+  // TEMPORARILY: Just pass through everything without any processing
+  // This will help us determine if middleware is the root cause
+  return NextResponse.next();
+  
+  /* ORIGINAL CODE - DISABLED FOR TESTING
   const { pathname } = request.nextUrl;
   
   // CRITICAL: Minimize middleware to prevent any interference with Next.js rendering
@@ -50,18 +57,14 @@ export function middleware(request: NextRequest) {
     console.error('[Middleware] Error:', error);
     return NextResponse.next();
   }
+  */
 }
 
-// Match all routes to add anti-prefetch headers globally
+// CRITICAL: Only match routes that actually need middleware
+// For now, we're testing with minimal matching to see if middleware is the issue
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    // Only match dashboard routes for now - everything else bypasses middleware
+    '/dashboard/:path*',
   ],
 };
