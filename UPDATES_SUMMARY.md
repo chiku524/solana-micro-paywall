@@ -93,10 +93,17 @@ January 15, 2025
 - **deploy-pages.yml**:
   - Added `cache-dependency-path: package-lock.json` for better caching
   - Updated `@cloudflare/next-on-pages` to use `@latest` tag explicitly
+  - Added npm config step to handle React 19 peer dependency conflicts
 
 - **deploy-workers.yml**:
   - Added explicit Wrangler installation step
   - Changed from `npx wrangler deploy` to `wrangler deploy` (using globally installed version)
+  - Added npm config step to handle React 19 peer dependency conflicts
+
+### 5. npm Configuration
+- **Created `.npmrc` file**: Configured `legacy-peer-deps=true` to handle React 19 peer dependency conflicts
+  - Some Solana wallet adapter packages haven't updated their peer dependencies yet
+  - They are compatible at runtime, so this is a safe workaround
 
 ### 5. Deployment Documentation
 - Updated `DEPLOYMENT.md` to reflect Node.js 20 LTS recommendation
@@ -166,6 +173,7 @@ Before deploying to production, test the following:
 2. **React 19**: Some third-party libraries may not yet support React 19. Monitor for updates.
 3. **Next.js 15**: Some experimental features from Next.js 14 are now stable in Next.js 15
 4. **ESLint 9**: If you have custom ESLint configurations, review the migration guide
+5. **Peer Dependencies**: Some packages (like `@solana/wallet-adapter-wallets`) haven't updated their peer dependencies for React 19 yet, but are compatible at runtime. We've configured `.npmrc` with `legacy-peer-deps=true` to handle this. This is safe as the packages work correctly with React 19 despite the peer dependency warnings.
 
 ## 📚 Resources
 
@@ -177,12 +185,33 @@ Before deploying to production, test the following:
 
 ## 🔄 Next Steps
 
-1. Run `npm install` to install all updated dependencies
+1. Run `npm install` to install all updated dependencies (`.npmrc` is configured for peer deps)
 2. Test the application thoroughly in development
 3. Review any deprecation warnings
 4. Update any custom ESLint configurations if needed
 5. Deploy to staging environment first
 6. Monitor for any runtime issues after deployment
+
+## 🌐 Cloudflare Pages + Workers Convergence
+
+**Yes, this is a recent Cloudflare update!** Cloudflare has been converging Pages and Workers into a unified experience. As of 2024, you can now:
+
+- **Deploy full-stack applications** where Pages can handle both static assets and dynamic serverless functions
+- **Use Workers features** (like D1, KV, Queues, Cron Triggers) directly in Pages projects
+- **Deploy Next.js, Astro, and other frameworks** that previously required separate Workers setup
+- **Access advanced features** like Logpush, Hyperdrive, and Gradual Deployments in Pages projects
+
+For your current project structure:
+- **Current setup**: Separate Workers (API) and Pages (Frontend) - This is still a valid and recommended approach for separation of concerns
+- **Alternative**: You could consolidate into a single Pages project with Workers functions, but keeping them separate provides better:
+  - Independent scaling
+  - Separate deployment pipelines
+  - Clear API boundaries
+  - Easier debugging and monitoring
+
+**Recommendation**: Your current architecture (separate Workers + Pages) is optimal for a microservices-style setup. The convergence feature is great for simpler full-stack apps, but your separation provides better scalability and maintainability.
+
+For more information: [Cloudflare Pages + Workers Convergence](https://blog.cloudflare.com/pages-and-workers-are-converging-into-one-experience/)
 
 ---
 

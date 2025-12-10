@@ -25,6 +25,9 @@ jobs:
       - name: Install Wrangler
         run: npm install -g wrangler@latest
 
+      - name: Configure npm for peer dependencies
+        run: npm config set legacy-peer-deps true
+      
       - name: Install dependencies
         run: npm ci
 
