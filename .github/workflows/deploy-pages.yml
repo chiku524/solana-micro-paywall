@@ -27,6 +27,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Configure npm for peer dependencies
         run: npm config set legacy-peer-deps true
       
