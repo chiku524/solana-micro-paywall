@@ -22,9 +22,9 @@ import {
 } from '@heroicons/react/24/solid';
 
 interface MerchantProfilePageProps {
-  params: {
+  params: Promise<{
     merchantId: string;
-  };
+  }>;
 }
 
 export const runtime = 'edge'; // Required for Cloudflare Pages
@@ -36,8 +36,9 @@ const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
 
 export async function generateMetadata({ params }: MerchantProfilePageProps): Promise<Metadata> {
   try {
-    const profile = await apiClient.getMerchantPublicProfile(params.merchantId);
-    const merchantContents = await apiClient.getMerchantContents(params.merchantId, { limit: 1 });
+    const { merchantId } = await params;
+    const profile = await apiClient.getMerchantPublicProfile(merchantId);
+    const merchantContents = await apiClient.getMerchantContents(merchantId, { limit: 1 });
     
     const merchant: {
       displayName?: string;
@@ -64,7 +65,7 @@ export async function generateMetadata({ params }: MerchantProfilePageProps): Pr
       openGraph: {
         title: `${displayName} | Solana Micro-Paywall`,
         description: bio,
-        url: `${baseUrl}/marketplace/merchant/${params.merchantId}`,
+        url: `${baseUrl}/marketplace/merchant/${merchantId}`,
         type: 'profile',
         images: [
           {
@@ -82,7 +83,7 @@ export async function generateMetadata({ params }: MerchantProfilePageProps): Pr
         images: [merchant.avatarUrl || `${baseUrl}/og-image.svg`],
       },
       alternates: {
-        canonical: `/marketplace/merchant/${params.merchantId}`,
+        canonical: `/marketplace/merchant/${merchantId}`,
       },
     };
   } catch {
@@ -94,6 +95,7 @@ export async function generateMetadata({ params }: MerchantProfilePageProps): Pr
 }
 
 export default async function MerchantProfilePage({ params }: MerchantProfilePageProps) {
+  const { merchantId } = await params;
   let merchant: any;
   let contents;
   let profile: any;
@@ -101,17 +103,17 @@ export default async function MerchantProfilePage({ params }: MerchantProfilePag
   try {
     // Fetch merchant public profile with stats
     try {
-      profile = await apiClient.getMerchantPublicProfile(params.merchantId);
+      profile = await apiClient.getMerchantPublicProfile(merchantId);
     } catch (error) {
       console.error('Error loading merchant profile:', error);
     }
 
     // Fetch merchant contents
-    const merchantContents = await apiClient.getMerchantContents(params.merchantId, { limit: 100 });
+    const merchantContents = await apiClient.getMerchantContents(merchantId, { limit: 100 });
     contents = merchantContents.contents || [];
 
     merchant = profile || {
-      id: params.merchantId,
+      id: merchantId,
       email: contents[0]?.merchant?.email || 'Unknown Merchant',
       displayName: contents[0]?.merchant?.email || 'Unknown Merchant',
     };
