@@ -5,9 +5,9 @@ A Solana-native micro-paywall / pay-per-use SDK built on Solana Pay, targeting p
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 20+
-- PostgreSQL (Supabase configured ✅)
-- Redis (optional for local dev)
+- Node.js 20+ (LTS recommended)
+- npm 10+
+- Cloudflare account (for Workers & Pages)
 - Solana RPC endpoint (Helius configured ✅)
 
 ### Setup
@@ -98,11 +98,13 @@ solana-micro-paywall/
 
 ## 🔧 Tech Stack
 
-- **Backend**: Cloudflare Workers, Hono, D1 Database, KV Cache
-- **Frontend**: Next.js 14, React, Tailwind CSS
-- **Blockchain**: Solana Web3.js, Solana Pay
+- **Backend**: Cloudflare Workers, Hono 4.10+, D1 Database, KV Cache
+- **Frontend**: Next.js 15, React 19, Tailwind CSS
+- **Blockchain**: Solana Web3.js 1.95+, Solana Pay
 - **Widget**: Vanilla JS/TypeScript with Solana Wallet Adapter
 - **Infrastructure**: Cloudflare Workers & Pages, D1, KV
+- **TypeScript**: 5.9+
+- **Node.js**: 20+ (LTS)
 
 ## 📝 Quick API Examples
 

@@ -21,13 +21,16 @@ jobs:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: package-lock.json
+      
+      - name: Install Wrangler
+        run: npm install -g wrangler@latest
 
       - name: Install dependencies
         run: npm ci
 
       - name: Deploy to Cloudflare Workers
         working-directory: apps/backend-workers
-        run: npx wrangler deploy
+        run: wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 

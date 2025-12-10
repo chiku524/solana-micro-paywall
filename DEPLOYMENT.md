@@ -7,7 +7,7 @@ Complete guide for deploying Solana Micro-Paywall to Cloudflare Workers & Pages.
 - Cloudflare account
 - Domain: `micropaywall.app` (registered)
 - GitHub repository connected
-- Node.js 20+ installed locally
+- Node.js 20+ installed locally (Node.js 20 LTS recommended)
 
 ## 🔐 Step 1: Setup Cloudflare API Token
 

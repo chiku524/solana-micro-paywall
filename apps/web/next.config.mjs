@@ -9,14 +9,16 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Next.js 15 optimizations
+  // - React 19 support enabled
+  // - Improved server components and streaming
+  // - Enhanced caching strategies
+  
   // Disable prefetching globally to prevent 503 errors on Cloudflare Pages
   // Prefetching can cause issues when server components fail during build/prefetch
   // This is handled via prefetch={false} on individual Link components
   // and by ensuring server components handle errors gracefully
-  // Disabled typedRoutes due to external URL compatibility issues
-  // experimental: {
-  //   typedRoutes: true,
-  // },
+  
   // Cloudflare Pages compatibility
   // Remove output: 'standalone' - Cloudflare Pages handles Next.js natively
   // output: 'standalone' is not compatible with Cloudflare Pages

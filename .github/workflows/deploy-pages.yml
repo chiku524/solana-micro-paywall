@@ -25,6 +25,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -71,9 +72,9 @@ jobs:
           
           echo "::group::📋 Step 2: Running @cloudflare/next-on-pages"
           echo "This should generate functions for edge runtime pages"
-          echo "Running: npx @cloudflare/next-on-pages"
+          echo "Running: npx @cloudflare/next-on-pages@latest"
           echo ""
-          npx @cloudflare/next-on-pages
+          npx @cloudflare/next-on-pages@latest
           NEXT_ON_PAGES_EXIT_CODE=$?
           echo ""
           echo "@cloudflare/next-on-pages exit code: $NEXT_ON_PAGES_EXIT_CODE"

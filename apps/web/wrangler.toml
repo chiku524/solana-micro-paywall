@@ -6,10 +6,12 @@
 # which contains both static files and functions directory for routing
 
 name = "micropaywall"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-01-15"
+compatibility_flags = []
 pages_build_output_dir = ".vercel/output"
 
 [env.production]
 name = "micropaywall"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-01-15"
+compatibility_flags = []
 
