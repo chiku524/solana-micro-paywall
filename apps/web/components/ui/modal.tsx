@@ -32,7 +32,7 @@ export function Modal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog onClose={onClose} className="relative z-50">
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -65,7 +65,7 @@ export function Modal({
                 {(title || showCloseButton) && (
                   <div className="mb-4 flex items-center justify-between">
                     {title && (
-                      <Dialog.Title as="h3" className="text-xl font-semibold text-white">
+                      <Dialog.Title className="text-xl font-semibold text-white">
                         {title}
                       </Dialog.Title>
                     )}
