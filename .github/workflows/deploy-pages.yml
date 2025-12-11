@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - 'apps/web/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.npmrc'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
