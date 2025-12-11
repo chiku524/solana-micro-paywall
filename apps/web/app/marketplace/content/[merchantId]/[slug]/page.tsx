@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: ContentPageProps): Promise<Me
         images: [imageUrl],
       },
       alternates: {
-        canonical: `/marketplace/content/${params.merchantId}/${params.slug}`,
+        canonical: `/marketplace/content/${merchantId}/${slug}`,
       },
     };
   } catch {
