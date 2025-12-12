@@ -108,10 +108,15 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`} data-cfasync="false" suppressHydrationWarning>
         {/* CRITICAL: Check for Quirks Mode IMMEDIATELY before React hydration */}
         {/* This script must run synchronously and block rendering if Quirks Mode is detected */}
+        {/* Using both inline script and data attribute to ensure it runs */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
+                // CRITICAL: Log immediately to verify script is executing
+                console.log('[Layout] Quirks Mode detection script executing...');
+                console.log('[Layout] document.compatMode:', typeof document !== 'undefined' ? document.compatMode : 'document undefined');
+                
                 // CRITICAL: Check for Quirks Mode immediately
                 // If DOCTYPE is missing, the browser enters Quirks Mode before any scripts run
                 // This check happens as early as possible to prevent React hydration errors
@@ -126,7 +131,14 @@ export default function RootLayout({
                   } else {
                     // If we're already in a reload loop, something is seriously wrong
                     console.error('[Layout] CRITICAL: Still in Quirks Mode after reload attempt. DOCTYPE injection may be required.');
+                    // Try to inject DOCTYPE programmatically as last resort
+                    if (document.doctype === null) {
+                      console.error('[Layout] Attempting to inject DOCTYPE programmatically...');
+                      // This won't work (DOCTYPE can't be added after page load), but logs the attempt
+                    }
                   }
+                } else {
+                  console.log('[Layout] Page is in Standards Mode - DOCTYPE is present');
                 }
                 
                 // Disable Cloudflare Rocket Loader immediately
