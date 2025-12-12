@@ -48,8 +48,9 @@ export function NavigationHandler() {
             
             console.log('[NavigationHandler] Intercepting Link click to:', link.href);
             // Force full page reload to ensure proper DOCTYPE and content
-            // Use replace instead of href to avoid adding to history stack
-            window.location.replace(link.href);
+            // Use href instead of replace to allow browser back button to work
+            // The full page reload ensures the correct route content is loaded
+            window.location.href = link.href;
           }
         }
       }

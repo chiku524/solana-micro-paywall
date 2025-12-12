@@ -44,6 +44,7 @@ function DashboardPageContent() {
   const [merchantId, setMerchantId] = useState<string>('');
 
   useEffect(() => {
+    console.log('[Dashboard] Component mounting, setting mounted to true');
     setMounted(true);
   }, []);
 
@@ -91,6 +92,7 @@ function DashboardPageContent() {
   // CRITICAL: Don't render anything until mounted to prevent hydration mismatch
   // The server should render the same thing as the client initially
   if (!mounted) {
+    console.log('[Dashboard] Not mounted yet, showing loading state');
     return (
       <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
         <div className="flex min-h-screen items-center justify-center">
@@ -102,6 +104,8 @@ function DashboardPageContent() {
       </div>
     );
   }
+
+  console.log('[Dashboard] Mounted, rendering content. merchantId:', currentMerchantId);
 
   const { data: stats, error, isLoading } = useSWR<DashboardStats>(
     currentMerchantId ? `dashboard-${currentMerchantId}` : null,
