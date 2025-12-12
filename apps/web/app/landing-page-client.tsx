@@ -18,10 +18,16 @@ export function LandingPageClient() {
   const [isVisible, setIsVisible] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // Only show landing page on root route
     if (pathname !== '/') {
+      setIsVisible(false);
       return;
     }
     setIsVisible(true);
@@ -29,7 +35,12 @@ export function LandingPageClient() {
 
   // Don't render if we're not on the root route
   // This component should only be rendered on the '/' route by Next.js routing
-  if (pathname !== '/') {
+  // Also check window.location as a fallback in case pathname is stale
+  if (!mounted) {
+    return null;
+  }
+
+  if (pathname !== '/' || (typeof window !== 'undefined' && window.location.pathname !== '/')) {
     return null;
   }
 
