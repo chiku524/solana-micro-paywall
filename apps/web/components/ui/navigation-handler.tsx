@@ -74,12 +74,15 @@ export function NavigationHandler() {
     };
     
     history.replaceState = function(...args) {
-      console.log('[NavigationHandler] Intercepted history.replaceState, forcing full page reload');
       const url = args[2] as string;
-      if (url && url.startsWith('/')) {
+      // CRITICAL: Don't intercept replaceState for same URL - this causes infinite reloads
+      // Only intercept if navigating to a different route
+      if (url && url.startsWith('/') && url !== window.location.pathname + window.location.search) {
+        console.log('[NavigationHandler] Intercepted history.replaceState, forcing full page reload:', url);
         window.location.replace(url);
         return;
       }
+      // Allow same-route navigation (e.g., adding query params) to proceed normally
       return originalReplaceState.apply(history, args);
     };
     
