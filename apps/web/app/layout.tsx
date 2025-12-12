@@ -106,19 +106,26 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={`${inter.className} min-h-screen bg-neutral-950 text-neutral-100 relative`} data-cfasync="false" suppressHydrationWarning>
-        {/* CRITICAL: Disable Cloudflare Rocket Loader immediately */}
+        {/* CRITICAL: Check for Quirks Mode IMMEDIATELY before React hydration */}
+        {/* This script must run synchronously and block rendering if Quirks Mode is detected */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                // CRITICAL: Ensure we're in Standards Mode
-                // Check if document.compatMode is 'BackCompat' (Quirks Mode)
+                // CRITICAL: Check for Quirks Mode immediately
+                // If DOCTYPE is missing, the browser enters Quirks Mode before any scripts run
+                // This check happens as early as possible to prevent React hydration errors
                 if (typeof document !== 'undefined' && document.compatMode === 'BackCompat') {
-                  console.error('[Layout] CRITICAL: Page is in Quirks Mode! Forcing page reload to get proper DOCTYPE.');
-                  // Force a full page reload to get proper DOCTYPE
+                  console.error('[Layout] CRITICAL: Page is in Quirks Mode! DOCTYPE is missing. Forcing immediate page reload.');
+                  // Force a full page reload IMMEDIATELY - don't wait for React
+                  // Use replace to avoid adding to history stack
                   if (window.location.search.indexOf('_quirks_fix') === -1) {
-                    window.location.href = window.location.href + (window.location.search ? '&' : '?') + '_quirks_fix=1';
-                    return;
+                    window.location.replace(window.location.href + (window.location.search ? '&' : '?') + '_quirks_fix=1');
+                    // Stop execution - don't let React try to hydrate
+                    throw new Error('Quirks Mode detected - reloading page');
+                  } else {
+                    // If we're already in a reload loop, something is seriously wrong
+                    console.error('[Layout] CRITICAL: Still in Quirks Mode after reload attempt. DOCTYPE injection may be required.');
                   }
                 }
                 
