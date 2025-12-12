@@ -27,41 +27,46 @@ export function NavigationHandler() {
       }
     }
     
+    // TEMPORARILY DISABLED: Testing if forcing full page reloads is causing content not to render
+    // The NavigationHandler was forcing full page reloads to prevent Quirks Mode,
+    // but this might be preventing Next.js from properly rendering route content
+    // 
     // Intercept Link component clicks to force full page reloads
     // This bypasses Next.js RSC streaming which loses DOCTYPE on Cloudflare Pages
-    const handleLinkClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const link = target.closest('a[href]') as HTMLAnchorElement;
-      
-      if (link && link.href) {
-        const url = new URL(link.href);
-        // Only intercept internal navigation (same origin)
-        if (url.origin === window.location.origin) {
-          // Check if it's a Next.js Link (has href starting with /)
-          const isInternalLink = link.getAttribute('href')?.startsWith('/');
-          
-          // Skip if explicitly marked to not reload
-          if (isInternalLink && !link.hasAttribute('data-no-reload')) {
-            // Prevent default Next.js navigation
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('[NavigationHandler] Intercepting Link click to:', link.href);
-            // Force full page reload to ensure proper DOCTYPE and content
-            // Use href instead of replace to allow browser back button to work
-            // The full page reload ensures the correct route content is loaded
-            window.location.href = link.href;
-          }
-        }
-      }
-    };
-    
-    // Add click listener to document
-    document.addEventListener('click', handleLinkClick, true);
-    
-    return () => {
-      document.removeEventListener('click', handleLinkClick, true);
-    };
+    // 
+    // const handleLinkClick = (e: MouseEvent) => {
+    //   const target = e.target as HTMLElement;
+    //   const link = target.closest('a[href]') as HTMLAnchorElement;
+    //   
+    //   if (link && link.href) {
+    //     const url = new URL(link.href);
+    //     // Only intercept internal navigation (same origin)
+    //     if (url.origin === window.location.origin) {
+    //       // Check if it's a Next.js Link (has href starting with /)
+    //       const isInternalLink = link.getAttribute('href')?.startsWith('/');
+    //       
+    //       // Skip if explicitly marked to not reload
+    //       if (isInternalLink && !link.hasAttribute('data-no-reload')) {
+    //         // Prevent default Next.js navigation
+    //         e.preventDefault();
+    //         e.stopPropagation();
+    //         
+    //         console.log('[NavigationHandler] Intercepting Link click to:', link.href);
+    //         // Force full page reload to ensure proper DOCTYPE and content
+    //         // Use href instead of replace to allow browser back button to work
+    //         // The full page reload ensures the correct route content is loaded
+    //         window.location.href = link.href;
+    //       }
+    //     }
+    //   }
+    // };
+    // 
+    // // Add click listener to document
+    // document.addEventListener('click', handleLinkClick, true);
+    // 
+    // return () => {
+    //   document.removeEventListener('click', handleLinkClick, true);
+    // };
   }, []);
   
   return null;
