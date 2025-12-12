@@ -661,6 +661,31 @@ jobs:
             exit 1
           fi
           
+          # CRITICAL: Verify and inject DOCTYPE if missing
+          echo ""
+          echo "🔧 Verifying DOCTYPE in HTML files..."
+          HTML_FILES=$(find .vercel/output -name "*.html" -type f)
+          DOCTYPE_MISSING=0
+          for html_file in $HTML_FILES; do
+            # Check if DOCTYPE is present (case-insensitive)
+            if ! head -1 "$html_file" | grep -qiE "^<!DOCTYPE"; then
+              echo "   ⚠️  WARNING: DOCTYPE missing in $html_file"
+              DOCTYPE_MISSING=$((DOCTYPE_MISSING + 1))
+              # Inject DOCTYPE at the beginning of the file
+              echo "   🔧 Injecting DOCTYPE into $html_file"
+              # Create temp file with DOCTYPE + original content
+              echo "<!DOCTYPE html>" > "${html_file}.tmp"
+              cat "$html_file" >> "${html_file}.tmp"
+              mv "${html_file}.tmp" "$html_file"
+              echo "   ✅ DOCTYPE injected into $html_file"
+            fi
+          done
+          if [ $DOCTYPE_MISSING -eq 0 ]; then
+            echo "   ✅ All HTML files have DOCTYPE"
+          else
+            echo "   ⚠️  Fixed $DOCTYPE_MISSING HTML file(s) missing DOCTYPE"
+          fi
+          
           # Verify no index-related functions remain
           echo ""
           echo "🔍 Checking for any remaining index-related functions:"
