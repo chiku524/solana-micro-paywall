@@ -39,6 +39,9 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
+  // CRITICAL: Add logging to verify this server component is being called
+  console.log('[DashboardPage] Server component rendering');
+  
   // Ensure this is a server component that always renders the dashboard
   // This should only be called when the route is /dashboard
   return <DashboardPageClient />;

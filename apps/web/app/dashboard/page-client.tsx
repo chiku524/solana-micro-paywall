@@ -316,10 +316,46 @@ function DashboardPageContent() {
 // This eliminates the hydration mismatch caused by Suspense boundaries
 // Wrap in ErrorBoundary at page level instead of layout level
 export function DashboardPageClient() {
-  return (
-    <ErrorBoundary fallback={<ErrorFallback />}>
-      <DashboardPageContent />
-    </ErrorBoundary>
-  );
+  // CRITICAL: Add logging to verify this client component is being called
+  console.log('[DashboardPageClient] Client component rendering');
+  
+  // Add error handler to catch any errors during render
+  try {
+    return (
+      <ErrorBoundary 
+        fallback={
+          <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard">
+            <div className="flex min-h-screen items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold text-red-400 mb-2">Error Boundary Caught Error</h2>
+                <p className="text-red-300 mb-4">Check console for details</p>
+                <ErrorFallback />
+              </div>
+            </div>
+          </div>
+        }
+      >
+        <DashboardPageContent />
+      </ErrorBoundary>
+    );
+  } catch (error) {
+    console.error('[DashboardPageClient] Error during render:', error);
+    return (
+      <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard">
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-red-400 mb-2">Render Error</h2>
+            <p className="text-red-300 mb-4">{error instanceof Error ? error.message : 'Unknown error'}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-lg bg-emerald-500 px-6 py-2 font-medium text-emerald-950 transition hover:bg-emerald-400"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
