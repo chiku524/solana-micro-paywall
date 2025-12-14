@@ -6,6 +6,7 @@ import { ToastProvider } from '../components/ui/toast-provider';
 import { BackgroundAnimation } from '../components/ui/background-animation';
 import { NavigationHandler } from '../components/ui/navigation-handler';
 import { LayoutDebugger } from '../components/ui/layout-debugger';
+import { ChildrenDebugger } from '../components/ui/children-debugger';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -181,7 +182,9 @@ export default function RootLayout({
           <NavigationHandler />
           <LayoutDebugger />
           <AppProviders>
-            {children}
+            <ChildrenDebugger>
+              {children}
+            </ChildrenDebugger>
             <ToastProvider />
           </AppProviders>
         </div>
