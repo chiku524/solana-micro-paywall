@@ -40,13 +40,18 @@ export const metadata: Metadata = {
   },
 };
 
-// CRITICAL: Force dynamic rendering to ensure __NEXT_DATA__ is generated
-// Without this, Next.js might statically generate the page and skip __NEXT_DATA__
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// CRITICAL: Try static generation first (like landing page)
+// Static pages don't require RSC streaming, which is the root cause
+export const dynamic = 'force-static';
+export const revalidate = false;
 // CRITICAL: Cloudflare Pages requires edge runtime for dynamic routes
 export const runtime = 'edge';
 
 export default function DocsPage() {
-  return <DocsPageClient />;
+  // CRITICAL: Return a simple div wrapper to avoid RSC streaming issues
+  return (
+    <div data-page="docs" data-route="/docs">
+      <DocsPageClient />
+    </div>
+  );
 }
