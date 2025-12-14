@@ -38,6 +38,11 @@ export const metadata: Metadata = {
   },
 };
 
+// CRITICAL: Force dynamic rendering to ensure __NEXT_DATA__ is generated
+// Without this, Next.js might statically generate the page and skip __NEXT_DATA__
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function DashboardPage() {
   // CRITICAL: Add logging to verify this server component is being called
   console.log('[DashboardPage] Server component rendering');
