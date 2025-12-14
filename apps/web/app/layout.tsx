@@ -7,6 +7,7 @@ import { BackgroundAnimation } from '../components/ui/background-animation';
 import { NavigationHandler } from '../components/ui/navigation-handler';
 import { LayoutDebugger } from '../components/ui/layout-debugger';
 import { ChildrenDebugger } from '../components/ui/children-debugger';
+import { NextDataInjector } from '../components/ui/next-data-injector';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -181,6 +182,7 @@ export default function RootLayout({
           <BackgroundAnimation />
           <NavigationHandler />
           <LayoutDebugger />
+          <NextDataInjector />
           <AppProviders>
             <ChildrenDebugger>
               {children}
