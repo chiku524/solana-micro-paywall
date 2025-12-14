@@ -16,12 +16,17 @@ export function NextDataInjector() {
 
   useEffect(() => {
     // Only run on client
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-    // Check if __NEXT_DATA__ exists
-    if ((window as any).__NEXT_DATA__) {
-      console.log('[NextDataInjector] __NEXT_DATA__ already exists');
-      return;
+    // Check if __NEXT_DATA__ script tag exists in HTML
+    const existingScript = document.getElementById('__NEXT_DATA__');
+    if (existingScript) {
+      console.log('[NextDataInjector] __NEXT_DATA__ script tag found in HTML');
+      // Also check if window.__NEXT_DATA__ exists
+      if ((window as any).__NEXT_DATA__) {
+        console.log('[NextDataInjector] __NEXT_DATA__ already initialized');
+        return;
+      }
     }
 
     // CRITICAL: Create minimal __NEXT_DATA__ to allow Next.js to initialize
@@ -35,7 +40,7 @@ export function NextDataInjector() {
       page: pathname,
       pathname: pathname,
       query: {},
-      buildId: 'development', // This will be replaced by actual build ID if available
+      buildId: process.env.NEXT_PUBLIC_BUILD_ID || 'development',
       isFallback: false,
       gssp: true,
       customServer: false,
@@ -47,12 +52,37 @@ export function NextDataInjector() {
       scriptLoader: [],
     };
 
-    // Inject __NEXT_DATA__ into window
+    // CRITICAL: Try to inject as script tag first (Next.js expects it in HTML)
+    // If script tag doesn't exist, create it
+    if (!existingScript) {
+      try {
+        const script = document.createElement('script');
+        script.id = '__NEXT_DATA__';
+        script.type = 'application/json';
+        script.setAttribute('data-nextjs-data', '');
+        script.textContent = JSON.stringify(minimalNextData);
+        
+        // Insert before closing body tag or before first script
+        const firstScript = document.querySelector('script');
+        if (firstScript && firstScript.parentNode) {
+          firstScript.parentNode.insertBefore(script, firstScript);
+          console.log('[NextDataInjector] Created __NEXT_DATA__ script tag in HTML');
+        } else if (document.body) {
+          document.body.insertBefore(script, document.body.firstChild);
+          console.log('[NextDataInjector] Created __NEXT_DATA__ script tag in body');
+        }
+      } catch (error) {
+        console.error('[NextDataInjector] Failed to create script tag:', error);
+      }
+    }
+
+    // Also inject into window object (fallback)
     (window as any).__NEXT_DATA__ = minimalNextData;
     
     console.log('[NextDataInjector] Created minimal __NEXT_DATA__:', {
       page: minimalNextData.page,
       pathname: minimalNextData.pathname,
+      buildId: minimalNextData.buildId,
     });
 
     // Try to trigger Next.js initialization if possible
