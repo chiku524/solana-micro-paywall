@@ -6,6 +6,7 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "build:cloudflare": "next build && npx @cloudflare/next-on-pages@latest",
+    "build:converged": "next build && npx @cloudflare/next-on-pages@latest",
     "pages:build": "next build && npx @cloudflare/next-on-pages@latest",
     "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output --project-name=micropaywall",
     "test:build": "bash scripts/test-build.sh",
