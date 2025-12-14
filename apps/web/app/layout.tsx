@@ -142,6 +142,23 @@ export default function RootLayout({
                   console.log('[Layout] Page is in Standards Mode - DOCTYPE is present');
                 }
                 
+                // CRITICAL: Ensure #__next root element exists for React hydration
+                // Next.js App Router should create this automatically, but Cloudflare Pages might strip it
+                // Check if it exists, and if not, create it immediately before React tries to hydrate
+                if (typeof document !== 'undefined') {
+                  let nextRoot = document.getElementById('__next');
+                  if (!nextRoot) {
+                    console.error('[Layout] CRITICAL: #__next root element missing! Creating it now...');
+                    nextRoot = document.createElement('div');
+                    nextRoot.id = '__next';
+                    // Insert before any scripts that might try to hydrate
+                    document.body.insertBefore(nextRoot, document.body.firstChild);
+                    console.log('[Layout] Created #__next root element');
+                  } else {
+                    console.log('[Layout] #__next root element found');
+                  }
+                }
+                
                 // Disable Cloudflare Rocket Loader immediately
                 if (typeof window !== 'undefined') {
                   window.rocketloader = false;
@@ -157,13 +174,17 @@ export default function RootLayout({
             `,
           }}
         />
-        <BackgroundAnimation />
-        <NavigationHandler />
-        <LayoutDebugger />
-        <AppProviders>
-          {children}
-          <ToastProvider />
-        </AppProviders>
+        {/* CRITICAL: Next.js App Router requires a #__next root div for React hydration */}
+        {/* Cloudflare Pages/@cloudflare/next-on-pages might be stripping this, so we ensure it exists */}
+        <div id="__next">
+          <BackgroundAnimation />
+          <NavigationHandler />
+          <LayoutDebugger />
+          <AppProviders>
+            {children}
+            <ToastProvider />
+          </AppProviders>
+        </div>
       </body>
     </html>
   );
