@@ -159,6 +159,59 @@ export default function RootLayout({
                   } else {
                     console.log('[Layout] #__next root element found');
                   }
+                  
+                  // CRITICAL: Check for __NEXT_DATA__ script tag and create if missing
+                  // This must happen BEFORE React tries to hydrate
+                  const nextDataScript = document.getElementById('__NEXT_DATA__');
+                  if (!nextDataScript && typeof window !== 'undefined') {
+                    console.warn('[Layout] CRITICAL: __NEXT_DATA__ script tag missing! Creating minimal version...');
+                    const pathname = window.location.pathname;
+                    const minimalNextData = {
+                      props: { pageProps: {} },
+                      page: pathname,
+                      pathname: pathname,
+                      query: {},
+                      buildId: 'development',
+                      isFallback: false,
+                      gssp: true,
+                      customServer: false,
+                      appGip: false,
+                      locale: undefined,
+                      locales: undefined,
+                      defaultLocale: undefined,
+                      domainLocales: undefined,
+                      scriptLoader: [],
+                    };
+                    
+                    // Create script tag
+                    const script = document.createElement('script');
+                    script.id = '__NEXT_DATA__';
+                    script.type = 'application/json';
+                    script.setAttribute('data-nextjs-data', '');
+                    script.textContent = JSON.stringify(minimalNextData);
+                    
+                    // Insert at the very beginning of body, before any other scripts
+                    if (document.body.firstChild) {
+                      document.body.insertBefore(script, document.body.firstChild);
+                    } else {
+                      document.body.appendChild(script);
+                    }
+                    
+                    // Also set window property
+                    window.__NEXT_DATA__ = minimalNextData;
+                    console.log('[Layout] Created __NEXT_DATA__ script tag with pathname:', pathname);
+                  } else if (nextDataScript) {
+                    console.log('[Layout] __NEXT_DATA__ script tag found');
+                    // Try to parse and set window property if not already set
+                    if (typeof window !== 'undefined' && !window.__NEXT_DATA__) {
+                      try {
+                        window.__NEXT_DATA__ = JSON.parse(nextDataScript.textContent || '{}');
+                        console.log('[Layout] Parsed __NEXT_DATA__ from script tag');
+                      } catch (e) {
+                        console.error('[Layout] Failed to parse __NEXT_DATA__:', e);
+                      }
+                    }
+                  }
                 }
                 
                 // Disable Cloudflare Rocket Loader immediately
