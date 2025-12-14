@@ -44,6 +44,8 @@ export const metadata: Metadata = {
 // Without this, Next.js might statically generate the page and skip __NEXT_DATA__
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+// CRITICAL: Cloudflare Pages requires edge runtime for dynamic routes
+export const runtime = 'edge';
 
 export default function MarketplacePage() {
   return <MarketplacePageClient />;
