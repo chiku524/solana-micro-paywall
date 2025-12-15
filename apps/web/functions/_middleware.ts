@@ -99,6 +99,9 @@ export async function onRequest(context: {
     newResponse.headers.set('X-Content-Type-Options', 'nosniff');
     newResponse.headers.set('X-Frame-Options', 'DENY');
     newResponse.headers.set('X-XSS-Protection', '1; mode=block');
+    // CRITICAL: Disable Cloudflare Rocket Loader for Next.js
+    // Rocket Loader interferes with Next.js script loading and causes MIME type errors
+    newResponse.headers.set('CF-Rocket-Loader', 'off');
     
     console.log('[Middleware] Successfully injected __NEXT_DATA__');
     return newResponse;
@@ -114,6 +117,9 @@ export async function onRequest(context: {
   newResponse.headers.set('X-Content-Type-Options', 'nosniff');
   newResponse.headers.set('X-Frame-Options', 'DENY');
   newResponse.headers.set('X-XSS-Protection', '1; mode=block');
+  // CRITICAL: Disable Cloudflare Rocket Loader for Next.js
+  // Rocket Loader interferes with Next.js script loading and causes MIME type errors
+  newResponse.headers.set('CF-Rocket-Loader', 'off');
 
   return newResponse;
 }
