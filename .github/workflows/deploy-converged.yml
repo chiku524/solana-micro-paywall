@@ -153,6 +153,30 @@ jobs:
               echo "   ✅ Copied"
             fi
           fi
+          echo ""
+          echo "📁 _next directory (CRITICAL for static assets):"
+          if [ -d ".vercel/output/_next" ]; then
+            echo "✅ Root-level _next directory exists"
+            JS_COUNT=$(find .vercel/output/_next/static -name "*.js" 2>/dev/null | wc -l)
+            CSS_COUNT=$(find .vercel/output/_next/static -name "*.css" 2>/dev/null | wc -l)
+            echo "   Found: $JS_COUNT JS files, $CSS_COUNT CSS files"
+          else
+            echo "⚠️  No root-level _next directory - copying from static/..."
+            if [ -d ".vercel/output/static/_next" ]; then
+              echo "   Copying static/_next to root level..."
+              cp -r .vercel/output/static/_next .vercel/output/_next
+              echo "   ✅ Copied _next directory to root level"
+              echo "   This ensures CSS/JS assets are accessible at /_next/static/..."
+              JS_COUNT=$(find .vercel/output/_next/static -name "*.js" 2>/dev/null | wc -l)
+              CSS_COUNT=$(find .vercel/output/_next/static -name "*.css" 2>/dev/null | wc -l)
+              echo "   Found: $JS_COUNT JS files, $CSS_COUNT CSS files"
+            else
+              echo "   ❌ ERROR: static/_next directory not found - CSS/JS won't load!"
+              echo "   Listing static directory contents:"
+              ls -la .vercel/output/static/ | head -10
+              exit 1
+            fi
+          fi
 
       - name: Deploy to Cloudflare Pages (Converged)
         working-directory: apps/web
