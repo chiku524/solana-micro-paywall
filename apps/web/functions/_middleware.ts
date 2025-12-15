@@ -45,15 +45,24 @@ export async function onRequest(context: {
   // Clone the response so we can modify it
   const html = await response.text();
 
+  // CRITICAL: Replace RSC streaming markers with empty div to allow hydration
+  // The markers <!--$--><!--/$--> prevent React from hydrating the content
+  // We'll replace them with a placeholder that React can hydrate
+  let modifiedHtml = html.replace(/<!--\$--><!--\/\$-->/g, '<div data-rsc-placeholder="true"></div>');
+  
+  // Also check for other RSC streaming patterns
+  modifiedHtml = modifiedHtml.replace(/<!--\$[^>]*-->/g, '');
+  modifiedHtml = modifiedHtml.replace(/<!--\/\$[^>]*-->/g, '');
+
   // CRITICAL: Check if __NEXT_DATA__ exists in the HTML
-  // If not, inject it before the closing </body> tag
-  if (!html.includes('__NEXT_DATA__')) {
+  // If not, inject it in the <head> section (before </head>) for proper initialization
+  if (!modifiedHtml.includes('__NEXT_DATA__')) {
     console.log('[Middleware] __NEXT_DATA__ missing, injecting for pathname:', url.pathname);
     
     const pathname = url.pathname;
     const searchParams = Object.fromEntries(url.searchParams.entries());
     
-    // Create minimal __NEXT_DATA__ with proper structure
+    // Create minimal __NEXT_DATA__ with proper structure for Next.js App Router
     const minimalNextData = {
       props: { 
         pageProps: {},
@@ -77,15 +86,18 @@ export async function onRequest(context: {
 
     const nextDataScript = `<script id="__NEXT_DATA__" type="application/json" data-nextjs-data="">${JSON.stringify(minimalNextData)}</script>`;
     
-    // Inject before closing </body> tag (or before closing </html> if no body)
-    let modifiedHtml = html;
-    if (html.includes('</body>')) {
-      modifiedHtml = html.replace('</body>', `${nextDataScript}</body>`);
-    } else if (html.includes('</html>')) {
-      modifiedHtml = html.replace('</html>', `${nextDataScript}</html>`);
+    // CRITICAL: Inject in <head> section (before </head>) for proper initialization
+    // Next.js expects __NEXT_DATA__ to be in the head, not body
+    if (modifiedHtml.includes('</head>')) {
+      modifiedHtml = modifiedHtml.replace('</head>', `${nextDataScript}</head>`);
+    } else if (modifiedHtml.includes('</body>')) {
+      // Fallback: inject before </body> if no </head> found
+      modifiedHtml = modifiedHtml.replace('</body>', `${nextDataScript}</body>`);
+    } else if (modifiedHtml.includes('</html>')) {
+      modifiedHtml = modifiedHtml.replace('</html>', `${nextDataScript}</html>`);
     } else {
-      // Fallback: append at the end
-      modifiedHtml = html + nextDataScript;
+      // Last resort: append at the end
+      modifiedHtml = modifiedHtml + nextDataScript;
     }
     
     // Create new response with modified HTML
@@ -103,12 +115,12 @@ export async function onRequest(context: {
     // Rocket Loader interferes with Next.js script loading and causes MIME type errors
     newResponse.headers.set('CF-Rocket-Loader', 'off');
     
-    console.log('[Middleware] Successfully injected __NEXT_DATA__');
+    console.log('[Middleware] Successfully injected __NEXT_DATA__ and removed RSC streaming markers');
     return newResponse;
   }
 
-  // If __NEXT_DATA__ already exists, just add security headers
-  const newResponse = new Response(html, {
+  // If __NEXT_DATA__ already exists, still remove RSC streaming markers and add security headers
+  const newResponse = new Response(modifiedHtml, {
     status: response.status,
     statusText: response.statusText,
     headers: response.headers,
