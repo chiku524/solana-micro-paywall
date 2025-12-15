@@ -101,6 +101,12 @@ jobs:
           echo "✅ Build completed successfully"
           echo "::endgroup::"
 
+      - name: Install Wrangler CLI
+        run: |
+          echo "📦 Installing Wrangler CLI..."
+          npm install -g wrangler
+          wrangler --version
+
       - name: Deploy to Cloudflare Pages (Converged)
         run: |
           echo "🚀 Deploying converged Workers + Pages project..."
