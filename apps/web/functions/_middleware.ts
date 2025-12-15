@@ -44,6 +44,19 @@ export async function onRequest(context: {
 
   // Clone the response so we can modify it
   const html = await response.text();
+  
+  // DEBUG: Log HTML structure to understand what we're working with
+  console.log('[Middleware] HTML response received for:', url.pathname);
+  console.log('[Middleware] HTML length:', html.length);
+  console.log('[Middleware] Contains __NEXT_DATA__:', html.includes('__NEXT_DATA__'));
+  console.log('[Middleware] Contains RSC markers:', html.includes('<!--$'));
+  console.log('[Middleware] Contains #__next:', html.includes('id="__next"'));
+  console.log('[Middleware] Contains dashboard div:', html.includes('data-page="dashboard"'));
+  // Log first 500 chars of body to see structure
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]{0,500})/);
+  if (bodyMatch) {
+    console.log('[Middleware] Body start:', bodyMatch[1].substring(0, 200));
+  }
 
   // CRITICAL: Replace RSC streaming markers with empty div to allow hydration
   // The markers <!--$--><!--/$--> prevent React from hydrating the content
