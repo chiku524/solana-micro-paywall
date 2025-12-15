@@ -36,8 +36,24 @@ const nextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
+  // Exclude functions directory from Next.js build
+  // Functions are handled by Cloudflare Pages, not Next.js
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  
   // Code splitting optimizations
   webpack: (config, { isServer, dev }) => {
+    // Exclude functions directory from webpack processing
+    config.resolve.alias = {
+      ...config.resolve.alias,
+    };
+    
+    // Ignore functions directory
+    if (isServer) {
+      config.externals = [
+        ...(config.externals || []),
+        /^functions\//,
+      ];
+    }
     // Disable webpack cache for production builds to avoid large cache files
     if (!dev) {
       config.cache = false;

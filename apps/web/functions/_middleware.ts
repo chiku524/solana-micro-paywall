@@ -10,9 +10,11 @@
  * This is the key to fixing the __NEXT_DATA__ injection issue.
  */
 
+// Cloudflare Pages Functions types
+// These are available at runtime in Cloudflare Pages, not during Next.js build
 interface Env {
-  DB: D1Database;
-  CACHE: KVNamespace;
+  DB: any; // D1Database - available at runtime
+  CACHE: any; // KVNamespace - available at runtime
   NODE_ENV: string;
   FRONTEND_URL: string;
   CORS_ORIGIN: string;
