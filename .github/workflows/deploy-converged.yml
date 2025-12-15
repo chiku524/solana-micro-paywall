@@ -107,7 +107,27 @@ jobs:
           npm install -g wrangler
           wrangler --version
 
+      - name: Verify build output
+        working-directory: apps/web
+        run: |
+          echo "🔍 Verifying build output..."
+          if [ ! -d ".vercel/output" ]; then
+            echo "❌ .vercel/output directory not found!"
+            exit 1
+          fi
+          echo "✅ .vercel/output directory exists"
+          echo "📁 Contents:"
+          ls -la .vercel/output/ | head -20
+          echo ""
+          echo "📁 Static files:"
+          if [ -d ".vercel/output/static" ]; then
+            ls -la .vercel/output/static/ | head -10
+          else
+            echo "⚠️  No static directory found"
+          fi
+
       - name: Deploy to Cloudflare Pages (Converged)
+        working-directory: apps/web
         run: |
           echo "🚀 Deploying converged Workers + Pages project..."
           echo ""
@@ -115,8 +135,8 @@ jobs:
           echo "   Branch: ${{ github.ref_name }}"
           echo "   Commit: ${{ github.sha }}"
           echo ""
-          echo "   Deploying with wrangler from root directory..."
-          wrangler pages deploy apps/web/.vercel/output \
+          echo "   Deploying with wrangler..."
+          wrangler pages deploy .vercel/output \
             --project-name=micropaywall \
             --branch=${{ github.ref_name }} \
             --commit-hash=${{ github.sha }} \
