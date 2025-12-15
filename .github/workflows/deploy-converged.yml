@@ -116,14 +116,42 @@ jobs:
             exit 1
           fi
           echo "✅ .vercel/output directory exists"
-          echo "📁 Contents:"
+          echo ""
+          echo "📁 Root contents:"
           ls -la .vercel/output/ | head -20
           echo ""
-          echo "📁 Static files:"
+          echo "📁 Static directory:"
           if [ -d ".vercel/output/static" ]; then
+            echo "✅ Static directory exists"
             ls -la .vercel/output/static/ | head -10
+            if [ -f ".vercel/output/static/index.html" ]; then
+              echo "✅ index.html found in static/"
+            else
+              echo "⚠️  index.html not found in static/"
+            fi
           else
-            echo "⚠️  No static directory found"
+            echo "❌ No static directory found - deployment will fail!"
+            exit 1
+          fi
+          echo ""
+          echo "📁 Functions directory:"
+          if [ -d ".vercel/output/functions" ]; then
+            echo "✅ Functions directory exists"
+            ls -la .vercel/output/functions/ | head -10
+          else
+            echo "⚠️  No functions directory (may be OK for static pages)"
+          fi
+          echo ""
+          echo "📁 Root-level files:"
+          if [ -f ".vercel/output/index.html" ]; then
+            echo "✅ Root-level index.html exists"
+          else
+            echo "⚠️  No root-level index.html (may need to copy from static/)"
+            if [ -f ".vercel/output/static/index.html" ]; then
+              echo "   Copying static/index.html to root..."
+              cp .vercel/output/static/index.html .vercel/output/index.html
+              echo "   ✅ Copied"
+            fi
           fi
 
       - name: Deploy to Cloudflare Pages (Converged)
