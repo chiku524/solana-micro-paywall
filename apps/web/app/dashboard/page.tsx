@@ -38,24 +38,16 @@ export const metadata: Metadata = {
   },
 };
 
-// CRITICAL: Try static generation first (like landing page)
-// If this doesn't work, we'll need Workers + Pages convergence
-// Static pages don't require RSC streaming, which is the root cause
-export const dynamic = 'force-static';
-export const revalidate = false;
-// Don't use edge runtime - it causes RSC streaming issues
+// CRITICAL: Match landing page configuration exactly
+// Landing page works without any dynamic/runtime exports
+// Let Next.js handle static generation naturally
+// export const dynamic = 'force-static';
+// export const revalidate = false;
 // export const runtime = 'edge';
 
 export default function DashboardPage() {
-  // CRITICAL: Add logging to verify this server component is being called
-  console.log('[DashboardPage] Server component rendering');
-  
-  // CRITICAL: Return a simple div wrapper to avoid RSC streaming issues
-  // The client component will handle all the rendering
-  // This prevents Next.js from trying to stream the component, which fails on Cloudflare
-  return (
-    <div data-page="dashboard" data-route="/dashboard">
-      <DashboardPageClient />
-    </div>
-  );
+  // CRITICAL: Match landing page structure exactly
+  // Landing page just returns the client component directly
+  // No wrapper div - let Next.js handle it naturally
+  return <DashboardPageClient />;
 }
