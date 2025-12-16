@@ -38,6 +38,11 @@ export const metadata: Metadata = {
   },
 };
 
+// CRITICAL: Force static generation to match landing page
+// Landing page is statically generated at build time, which is why it works
+export const dynamic = 'force-static';
+export const revalidate = false;
+
 // CRITICAL FIX: Match landing page structure exactly
 // Landing page is a server component that returns a client component
 // Landing page has NO layout file - it works without one
