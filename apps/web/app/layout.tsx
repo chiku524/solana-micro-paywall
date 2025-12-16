@@ -255,9 +255,9 @@ export default function RootLayout({
           <LayoutDebugger />
           <NextDataInjector />
           <AppProviders>
-            <ChildrenDebugger>
-              {children}
-            </ChildrenDebugger>
+            {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
+            {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
+            {children}
             <ToastProvider />
           </AppProviders>
         </div>
