@@ -45,6 +45,9 @@ function DashboardPageContent() {
 
   useEffect(() => {
     console.log('[Dashboard] Component mounting, setting mounted to true');
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:46',message:'DashboardPageContent mount',data:{pathname:window.location.pathname,isMounted:mounted},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     setMounted(true);
   }, []);
 
@@ -326,6 +329,9 @@ function DashboardContent({ merchantId }: { merchantId: string }) {
 export function DashboardPageClient() {
   // CRITICAL: Add logging to verify this client component is being called
   console.log('[DashboardPageClient] Client component rendering');
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:326',message:'DashboardPageClient render start',data:{pathname:typeof window !== 'undefined' ? window.location.pathname : 'server',timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   
   // Add error handler to catch any errors during render
   try {

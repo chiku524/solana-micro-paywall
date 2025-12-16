@@ -45,6 +45,10 @@ export async function onRequest(context: {
   // Clone the response so we can modify it
   const html = await response.text();
   
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:46',message:'HTML response received',data:{pathname:url.pathname,htmlLength:html.length,hasDoctype:html.includes('<!DOCTYPE'),hasNextData:html.includes('__NEXT_DATA__'),hasRscMarkers:html.includes('<!--$'),hasNextRoot:html.includes('id="__next"'),hasDashboardDiv:html.includes('data-page="dashboard"'),hasDashboardClient:html.includes('DashboardPageClient'),first500Chars:html.substring(0,500)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
+  
   // DEBUG: Log HTML structure to understand what we're working with
   console.log('[Middleware] HTML response received for:', url.pathname);
   console.log('[Middleware] HTML length:', html.length);
@@ -58,9 +62,16 @@ export async function onRequest(context: {
   // CRITICAL: Ensure DOCTYPE is present to prevent Quirks Mode
   // Cloudflare Pages might strip it, so we need to add it back
   let modifiedHtml = html;
+  // #region agent log
+  const hadDoctypeBefore = modifiedHtml.trim().startsWith('<!DOCTYPE');
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:61',message:'Before DOCTYPE check',data:{pathname:url.pathname,hadDoctype:hadDoctypeBefore,htmlStart:modifiedHtml.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+  // #endregion
   if (!modifiedHtml.trim().startsWith('<!DOCTYPE')) {
     console.log('[Middleware] CRITICAL: DOCTYPE missing! Adding it...');
     modifiedHtml = '<!DOCTYPE html>\n' + modifiedHtml;
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:64',message:'DOCTYPE injected',data:{pathname:url.pathname,htmlStartAfter:modifiedHtml.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
   }
   
   // Log first 500 chars of body to see structure
@@ -75,11 +86,20 @@ export async function onRequest(context: {
   // CRITICAL: Replace RSC streaming markers with empty div to allow hydration
   // The markers <!--$--><!--/$--> prevent React from hydrating the content
   // We'll replace them with a placeholder that React can hydrate
+  // #region agent log
+  const rscMarkerCountBefore = (modifiedHtml.match(/<!--\$--><!--\/\$-->/g) || []).length;
+  const otherRscCountBefore = (modifiedHtml.match(/<!--\$[^>]*-->|<!--\/\$[^>]*-->/g) || []).length;
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:78',message:'Before RSC marker replacement',data:{pathname:url.pathname,rscMarkerCount:rscMarkerCountBefore,otherRscCount:otherRscCountBefore},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
   modifiedHtml = modifiedHtml.replace(/<!--\$--><!--\/\$-->/g, '<div data-rsc-placeholder="true"></div>');
   
   // Also check for other RSC streaming patterns
   modifiedHtml = modifiedHtml.replace(/<!--\$[^>]*-->/g, '');
   modifiedHtml = modifiedHtml.replace(/<!--\/\$[^>]*-->/g, '');
+  // #region agent log
+  const rscMarkerCountAfter = (modifiedHtml.match(/<!--\$--><!--\/\$-->/g) || []).length;
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:83',message:'After RSC marker replacement',data:{pathname:url.pathname,rscMarkerCountAfter:rscMarkerCountAfter,replaced:rscMarkerCountBefore-rscMarkerCountAfter},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
   
   // CRITICAL: If the body is empty or only has RSC markers, inject a placeholder
   // This happens when server components don't render on Cloudflare Pages
@@ -186,6 +206,9 @@ export async function onRequest(context: {
   }
   
   // Create new response with modified HTML
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:189',message:'Final HTML before response',data:{pathname:url.pathname,htmlLength:modifiedHtml.length,hasDoctype:modifiedHtml.trim().startsWith('<!DOCTYPE'),hasNextData:modifiedHtml.includes('__NEXT_DATA__'),hasNextRoot:modifiedHtml.includes('id="__next"'),hasDashboardContent:modifiedHtml.includes('data-page="dashboard"'),bodyContentLength:modifiedHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1]?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   const newResponse = new Response(modifiedHtml, {
     status: response.status,
     statusText: response.statusText,

@@ -14,6 +14,9 @@ export function ChildrenDebugger({ children }: { children: React.ReactNode }) {
     console.log('[ChildrenDebugger] Children type:', typeof children);
     console.log('[ChildrenDebugger] Children is null:', children === null);
     console.log('[ChildrenDebugger] Children is undefined:', children === undefined);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'children-debugger.tsx:12',message:'ChildrenDebugger mounted',data:{childrenType:typeof children,isNull:children === null,isUndefined:children === undefined,hasContainer:!!containerRef.current,containerChildrenCount:containerRef.current?.children.length||0,containerHTML:containerRef.current?.innerHTML.substring(0,200)||'none'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     
     if (containerRef.current) {
       console.log('[ChildrenDebugger] Container children count:', containerRef.current.children.length);

@@ -123,6 +123,11 @@ export default function RootLayout({
                 // CRITICAL: Check for Quirks Mode immediately
                 // If DOCTYPE is missing, the browser enters Quirks Mode before any scripts run
                 // This check happens as early as possible to prevent React hydration errors
+                // #region agent log
+                if (typeof document !== 'undefined') {
+                  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:126',message:'Quirks Mode check',data:{compatMode:document.compatMode,doctype:document.doctype ? 'present' : 'missing',pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                }
+                // #endregion
                 if (typeof document !== 'undefined' && document.compatMode === 'BackCompat') {
                   console.error('[Layout] CRITICAL: Page is in Quirks Mode! DOCTYPE is missing. Forcing immediate page reload.');
                   // Force a full page reload IMMEDIATELY - don't wait for React

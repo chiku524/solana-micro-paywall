@@ -46,6 +46,13 @@ export const metadata: Metadata = {
 // export const runtime = 'edge';
 
 export default function DashboardPage() {
+  // #region agent log
+  // Server-side logging - this runs during SSR
+  if (typeof window === 'undefined') {
+    // Server-side: log to console (will appear in build logs)
+    console.log('[DashboardPage] Server component rendering');
+  }
+  // #endregion
   // CRITICAL: Match landing page structure exactly
   // Landing page just returns the client component directly
   // No wrapper div - let Next.js handle it naturally
