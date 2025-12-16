@@ -40,76 +40,60 @@ interface DashboardStats {
 // Read from window.location.search instead, which is only available on client
 function DashboardPageContent() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  // CRITICAL FIX: Initialize mounted to true and use useEffect to read merchantId
+  // This ensures server and client render the same initial structure
+  // The server will render the loading state, and client will match it initially
+  const [mounted, setMounted] = useState(true); // Start as true to match server render
   const [merchantId, setMerchantId] = useState<string>('');
 
   useEffect(() => {
-    console.log('[Dashboard] Component mounting, setting mounted to true');
+    console.log('[Dashboard] Component mounting');
     // #region agent log
     fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:46',message:'DashboardPageContent mount',data:{pathname:window.location.pathname,isMounted:mounted},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
     // #endregion
-    setMounted(true);
-  }, []);
+    
+    // Read merchantId from URL or localStorage after mount
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlMerchantId = params.get('merchantId') || '';
 
-  useEffect(() => {
-    if (!mounted || typeof window === 'undefined') return;
-
-    // CRITICAL: Use setTimeout to defer router operations until after hydration
-    // Calling router.replace during hydration can cause React error #418
-    const timeoutId = setTimeout(() => {
-      try {
-        // Read from URL directly instead of useSearchParams to avoid hydration issues
-        const params = new URLSearchParams(window.location.search);
-        const urlMerchantId = params.get('merchantId') || '';
-
-        if (urlMerchantId) {
-          localStorage.setItem('merchantId', urlMerchantId);
-          setMerchantId(urlMerchantId);
-          return;
-        }
-
-        const storedMerchantId = localStorage.getItem('merchantId') || '';
-        if (storedMerchantId) {
-          // Only update URL if it's different to avoid unnecessary navigation
-          const currentParams = new URLSearchParams(window.location.search);
-          if (currentParams.get('merchantId') !== storedMerchantId) {
-            router.replace(`/dashboard?merchantId=${storedMerchantId}`);
-          }
-          setMerchantId(storedMerchantId);
-          return;
-        }
-
-        setMerchantId('');
-      } catch (error) {
-        console.error('[Dashboard] Error handling merchantId:', error);
-        const storedMerchantId = localStorage.getItem('merchantId') || '';
-        setMerchantId(storedMerchantId);
+      if (urlMerchantId) {
+        localStorage.setItem('merchantId', urlMerchantId);
+        setMerchantId(urlMerchantId);
+        return;
       }
-    }, 0); // Defer until after current execution stack
 
-    return () => clearTimeout(timeoutId);
-  }, [router, mounted]);
+      const storedMerchantId = localStorage.getItem('merchantId') || '';
+      if (storedMerchantId) {
+        // Only update URL if it's different to avoid unnecessary navigation
+        const currentParams = new URLSearchParams(window.location.search);
+        if (currentParams.get('merchantId') !== storedMerchantId) {
+          router.replace(`/dashboard?merchantId=${storedMerchantId}`);
+        }
+        setMerchantId(storedMerchantId);
+        return;
+      }
+
+      setMerchantId('');
+    } catch (error) {
+      console.error('[Dashboard] Error handling merchantId:', error);
+      const storedMerchantId = localStorage.getItem('merchantId') || '';
+      setMerchantId(storedMerchantId);
+    }
+  }, [router]);
 
   const currentMerchantId = merchantId;
 
   console.log('[Dashboard] Rendering. Mounted:', mounted, 'MerchantId:', currentMerchantId);
 
-  // CRITICAL: Always render the same structure to prevent hydration mismatch
-  // The server and client must render identical HTML initially
-  // Return a consistent structure that works for both server and client
-  // Use suppressHydrationWarning on dynamic parts that differ between server/client
+  // CRITICAL FIX: Always render the same structure - no conditional based on mounted
+  // This ensures server and client render identical HTML
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:98',message:'DashboardPageContent render',data:{mounted:mounted,merchantId:currentMerchantId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+  // #endregion
   return (
     <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
-      {!mounted ? (
-        <div className="flex min-h-screen items-center justify-center" suppressHydrationWarning>
-          <div className="text-center">
-            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-400 border-t-transparent mx-auto" />
-            <p className="text-neutral-400">Loading...</p>
-          </div>
-        </div>
-      ) : (
-        <DashboardContent merchantId={currentMerchantId} />
-      )}
+      <DashboardContent merchantId={currentMerchantId} />
     </div>
   );
 }
@@ -117,6 +101,9 @@ function DashboardPageContent() {
 // Extract the main content to a separate component for cleaner code
 function DashboardContent({ merchantId }: { merchantId: string }) {
   console.log('[DashboardContent] Rendering content. merchantId:', merchantId);
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:115',message:'DashboardContent render',data:{merchantId:merchantId,hasMerchantId:!!merchantId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+  // #endregion
 
   const { data: stats, error, isLoading } = useSWR<DashboardStats>(
     merchantId ? `dashboard-${merchantId}` : null,
