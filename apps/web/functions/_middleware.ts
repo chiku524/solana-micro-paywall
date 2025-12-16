@@ -202,20 +202,4 @@ export async function onRequest(context: {
   
   console.log('[Middleware] Successfully processed HTML response');
   return newResponse;
-
-  // If __NEXT_DATA__ already exists, still remove RSC streaming markers and add security headers
-  const newResponse = new Response(modifiedHtml, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
-  });
-
-  newResponse.headers.set('X-Content-Type-Options', 'nosniff');
-  newResponse.headers.set('X-Frame-Options', 'DENY');
-  newResponse.headers.set('X-XSS-Protection', '1; mode=block');
-  // CRITICAL: Disable Cloudflare Rocket Loader for Next.js
-  // Rocket Loader interferes with Next.js script loading and causes MIME type errors
-  newResponse.headers.set('CF-Rocket-Loader', 'off');
-
-  return newResponse;
 }

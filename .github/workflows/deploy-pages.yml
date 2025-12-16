@@ -1,5 +1,9 @@
 name: Deploy to Cloudflare Pages
 
+# DISABLED: This workflow is deprecated in favor of the converged Workers + Pages deployment
+# The converged deployment (deploy-converged.yml) handles both Workers and Pages in a unified setup
+# To re-enable, remove the condition below
+
 on:
   push:
     branches:
@@ -16,6 +20,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy to Cloudflare Pages
+    # DISABLED: This job is skipped - use deploy-converged.yml instead
+    if: false
     permissions:
       contents: read
       deployments: write
