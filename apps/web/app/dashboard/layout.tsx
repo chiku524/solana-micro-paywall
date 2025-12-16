@@ -54,15 +54,10 @@ export default function DashboardLayout({
     console.log('[DashboardLayout] Server component rendering, children type:', typeof children);
   }
   // #endregion
-  // CRITICAL: Render children directly without client wrapper to avoid hydration issues
-  // The layout client component was causing the server component children to not render
-  return (
-    <>
-      <DashboardLayoutClient>
-        {children}
-      </DashboardLayoutClient>
-    </>
-  );
+  // CRITICAL FIX: Render children directly without client wrapper
+  // The client wrapper (DashboardLayoutClient) was preventing server component children from rendering
+  // Move Navbar to page level instead
+  return <>{children}</>;
 }
 
 

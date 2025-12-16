@@ -9,6 +9,7 @@ import { MerchantLogin } from '../../components/merchant-login';
 import { SkeletonTable } from '../../components/ui/skeleton';
 import { ErrorBoundary } from '../../components/ui/error-boundary';
 import { ErrorFallback } from '../../components/ui/error-fallback';
+import { Navbar } from '../../components/dashboard/navbar';
 
 interface DashboardStats {
   merchant: {
@@ -317,27 +318,30 @@ export function DashboardPageClient() {
   // CRITICAL: Add logging to verify this client component is being called
   console.log('[DashboardPageClient] Client component rendering');
   // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:326',message:'DashboardPageClient render start',data:{pathname:typeof window !== 'undefined' ? window.location.pathname : 'server',timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:326',message:'DashboardPageClient render start',data:{pathname:typeof window !== 'undefined' ? window.location.pathname : 'server',timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
   // #endregion
   
   // Add error handler to catch any errors during render
   try {
     return (
-      <ErrorBoundary 
-        fallback={
-          <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard">
-            <div className="flex min-h-screen items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-red-400 mb-2">Error Boundary Caught Error</h2>
-                <p className="text-red-300 mb-4">Check console for details</p>
-                <ErrorFallback />
+      <>
+        <Navbar />
+        <ErrorBoundary 
+          fallback={
+            <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard">
+              <div className="flex min-h-screen items-center justify-center">
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold text-red-400 mb-2">Error Boundary Caught Error</h2>
+                  <p className="text-red-300 mb-4">Check console for details</p>
+                  <ErrorFallback />
+                </div>
               </div>
             </div>
-          </div>
-        }
-      >
-        <DashboardPageContent />
-      </ErrorBoundary>
+          }
+        >
+          <DashboardPageContent />
+        </ErrorBoundary>
+      </>
     );
   } catch (error) {
     console.error('[DashboardPageClient] Error during render:', error);
