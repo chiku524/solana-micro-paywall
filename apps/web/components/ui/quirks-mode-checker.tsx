@@ -71,9 +71,10 @@ export function QuirksModeChecker() {
     // CRITICAL: Check for __NEXT_DATA__ script tag and create if missing
     // This must happen BEFORE React tries to hydrate
     const nextDataScript = document.getElementById('__NEXT_DATA__');
+    const pathname = window.location.pathname;
+    
     if (!nextDataScript) {
       console.warn('[Layout] CRITICAL: __NEXT_DATA__ script tag missing! Creating minimal version...');
-      const pathname = window.location.pathname;
       const minimalNextData = {
         props: { pageProps: {} },
         page: pathname,
@@ -111,13 +112,37 @@ export function QuirksModeChecker() {
     } else {
       console.log('[Layout] __NEXT_DATA__ script tag found');
       // Try to parse and set window property if not already set
-      if (!(window as any).__NEXT_DATA__) {
+      let nextData = (window as any).__NEXT_DATA__;
+      if (!nextData) {
         try {
-          (window as any).__NEXT_DATA__ = JSON.parse(nextDataScript.textContent || '{}');
+          nextData = JSON.parse(nextDataScript.textContent || '{}');
+          (window as any).__NEXT_DATA__ = nextData;
           console.log('[Layout] Parsed __NEXT_DATA__ from script tag');
         } catch (e) {
           console.error('[Layout] Failed to parse __NEXT_DATA__:', e);
+          // Create minimal version if parsing fails
+          nextData = {
+            props: { pageProps: {} },
+            page: pathname,
+            pathname: pathname,
+            query: {},
+            buildId: 'development',
+            isFallback: false,
+            gssp: true,
+            customServer: false,
+            appGip: false,
+          };
+          (window as any).__NEXT_DATA__ = nextData;
         }
+      }
+      
+      // CRITICAL: Ensure pathname is set correctly
+      if (!nextData.pathname || nextData.pathname === undefined) {
+        console.warn('[Layout] __NEXT_DATA__ missing pathname, updating...');
+        nextData.pathname = pathname;
+        nextData.page = pathname;
+        // Update script tag content
+        nextDataScript.textContent = JSON.stringify(nextData);
       }
     }
     

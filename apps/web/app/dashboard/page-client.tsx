@@ -319,15 +319,24 @@ export function DashboardPageClient() {
   console.log('[DashboardPageClient] Client component rendering');
   // #region agent log
   if (typeof window !== 'undefined') {
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:326',message:'DashboardPageClient render start',data:{pathname:window.location.pathname,hasWindow:true,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:326',message:'DashboardPageClient render start',data:{pathname:window.location.pathname,hasWindow:true,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'A'})}).catch(()=>{});
   }
   // #endregion
   
-  // CRITICAL: Add useEffect to verify component mounts
+  // CRITICAL: Add useEffect to verify component mounts and check DOM
   useEffect(() => {
     console.log('[DashboardPageClient] Component mounted in useEffect');
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:332',message:'DashboardPageClient mounted',data:{pathname:window.location.pathname,readyState:document.readyState,reactRootExists:!!document.getElementById('__next')},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'A'})}).catch(()=>{});
+    const reactRoot = document.getElementById('__next');
+    const dashboardContent = document.querySelector('[data-page="dashboard"]');
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:332',message:'DashboardPageClient mounted',data:{pathname:window.location.pathname,readyState:document.readyState,reactRootExists:!!reactRoot,reactRootChildren:reactRoot?.children.length||0,dashboardContentExists:!!dashboardContent,nextDataExists:!!(window as any).__NEXT_DATA__},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'A'})}).catch(()=>{});
+    
+    // Check again after a delay to see if content appears
+    setTimeout(() => {
+      const dashboardContentDelayed = document.querySelector('[data-page="dashboard"]');
+      console.log('[DashboardPageClient] Delayed check - dashboard content exists:', !!dashboardContentDelayed);
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:340',message:'DashboardPageClient delayed check',data:{dashboardContentExists:!!dashboardContentDelayed,reactRootHTML:reactRoot?.innerHTML.substring(0,500)||'none'},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'A'})}).catch(()=>{});
+    }, 1000);
     // #endregion
   }, []);
   

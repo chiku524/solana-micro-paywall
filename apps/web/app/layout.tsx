@@ -123,27 +123,6 @@ export default function RootLayout({
           <AppProviders>
             {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
             {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
-            {/* #region agent log */}
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  (function() {
-                    console.log('[RootLayout] About to render children');
-                    console.log('[RootLayout] Children type:', typeof ${JSON.stringify(children ? 'object' : 'null')});
-                    // Check if we can see the children in the DOM after render
-                    setTimeout(() => {
-                      const nextRoot = document.getElementById('__next');
-                      if (nextRoot) {
-                        console.log('[RootLayout] After render - #__next children count:', nextRoot.children.length);
-                        console.log('[RootLayout] After render - #__next HTML:', nextRoot.innerHTML.substring(0, 500));
-                        fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:260',message:'RootLayout after render check',data:{nextRootChildrenCount:nextRoot.children.length,nextRootHTML:nextRoot.innerHTML.substring(0,300)},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'A'})}).catch(()=>{});
-                      }
-                    }, 1000);
-                  })();
-                `,
-              }}
-            />
-            {/* #endregion */}
             {children}
             <ToastProvider />
           </AppProviders>
