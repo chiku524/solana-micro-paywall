@@ -48,7 +48,21 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
+  // #region agent log
+  // Server-side logging
+  if (typeof window === 'undefined') {
+    console.log('[DashboardLayout] Server component rendering, children type:', typeof children);
+  }
+  // #endregion
+  // CRITICAL: Render children directly without client wrapper to avoid hydration issues
+  // The layout client component was causing the server component children to not render
+  return (
+    <>
+      <DashboardLayoutClient>
+        {children}
+      </DashboardLayoutClient>
+    </>
+  );
 }
 
 

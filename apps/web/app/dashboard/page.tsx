@@ -1,60 +1,14 @@
-import type { Metadata } from 'next';
+'use client';
+
+// CRITICAL FIX: Make dashboard page fully client-side to match landing page pattern
+// Server components don't render HTML on Cloudflare Pages with @cloudflare/next-on-pages
+// By making this a client component, we ensure it renders properly
 import { DashboardPageClient } from './page-client';
-
-const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
-
-export const metadata: Metadata = {
-  title: 'Merchant Dashboard - Solana Micro-Paywall',
-  description: 'Manage your merchant account, view payment statistics, and access your premium content dashboard.',
-  keywords: [
-    'merchant dashboard',
-    'Solana payments',
-    'payment statistics',
-    'merchant account',
-    'content monetization',
-  ],
-  openGraph: {
-    title: 'Merchant Dashboard - Solana Micro-Paywall',
-    description: 'Manage your merchant account and view payment statistics.',
-    url: `${baseUrl}/dashboard`,
-    type: 'website',
-    images: [
-      {
-        url: `${baseUrl}/og-image.svg`,
-        width: 1200,
-        height: 630,
-        alt: 'Solana Micro-Paywall Merchant Dashboard',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Merchant Dashboard - Solana Micro-Paywall',
-    description: 'Manage your merchant account and view payment statistics.',
-    images: [`${baseUrl}/og-image.svg`],
-  },
-  alternates: {
-    canonical: '/dashboard',
-  },
-};
-
-// CRITICAL: Match landing page configuration exactly
-// Landing page works without any dynamic/runtime exports
-// Let Next.js handle static generation naturally
-// export const dynamic = 'force-static';
-// export const revalidate = false;
-// export const runtime = 'edge';
 
 export default function DashboardPage() {
   // #region agent log
-  // Server-side logging - this runs during SSR
-  if (typeof window === 'undefined') {
-    // Server-side: log to console (will appear in build logs)
-    console.log('[DashboardPage] Server component rendering');
-  }
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:8',message:'DashboardPage render (now client component)',data:{pathname:typeof window !== 'undefined' ? window.location.pathname : 'server'},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
   // #endregion
-  // CRITICAL: Match landing page structure exactly
-  // Landing page just returns the client component directly
-  // No wrapper div - let Next.js handle it naturally
+  // Match landing page structure exactly - just return the client component
   return <DashboardPageClient />;
 }
