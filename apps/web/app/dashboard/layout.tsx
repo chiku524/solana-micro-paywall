@@ -3,6 +3,11 @@ import { DashboardLayoutClient } from './dashboard-layout-client';
 
 const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
 
+// CRITICAL: Force static generation for layout too
+// This ensures the layout is also statically generated like the page
+export const dynamic = 'force-static';
+export const revalidate = false;
+
 export const metadata: Metadata = {
   title: 'Merchant Dashboard',
   description: 'Manage your content, track payments, view analytics, and configure your merchant account on Solana Micro-Paywall.',
@@ -51,12 +56,12 @@ export default function DashboardLayout({
   // #region agent log
   // Server-side logging
   if (typeof window === 'undefined') {
-    console.log('[DashboardLayout] Server component rendering, children type:', typeof children);
+    console.log('[DashboardLayout] Server component rendering (static), children type:', typeof children);
   }
   // #endregion
-  // CRITICAL FIX: Render children directly without client wrapper
-  // The client wrapper (DashboardLayoutClient) was preventing server component children from rendering
-  // Move Navbar to page level instead
+  // CRITICAL: Render children directly - no wrapper needed
+  // The landing page has no layout, so we match that pattern
+  // Navbar is now in the page component itself
   return <>{children}</>;
 }
 
