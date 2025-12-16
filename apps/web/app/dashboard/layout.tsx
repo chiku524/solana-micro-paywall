@@ -1,67 +1,18 @@
-import type { Metadata } from 'next';
-import { DashboardLayoutClient } from './dashboard-layout-client';
+'use client';
 
-const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
-
-// CRITICAL: Force static generation for layout too
-// This ensures the layout is also statically generated like the page
-export const dynamic = 'force-static';
-export const revalidate = false;
-
-export const metadata: Metadata = {
-  title: 'Merchant Dashboard',
-  description: 'Manage your content, track payments, view analytics, and configure your merchant account on Solana Micro-Paywall.',
-  keywords: [
-    'merchant dashboard',
-    'content management',
-    'payment tracking',
-    'Solana analytics',
-    'merchant tools',
-    'revenue tracking',
-  ],
-  openGraph: {
-    title: 'Merchant Dashboard | Solana Micro-Paywall',
-    description: 'Manage your content, track payments, and view analytics.',
-    url: `${baseUrl}/dashboard`,
-    type: 'website',
-    images: [
-      {
-        url: `${baseUrl}/og-image.svg`,
-        width: 1200,
-        height: 630,
-        alt: 'Merchant Dashboard - Solana Micro-Paywall',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Merchant Dashboard | Solana Micro-Paywall',
-    description: 'Manage your content, track payments, and view analytics.',
-    images: [`${baseUrl}/og-image.svg`],
-  },
-  alternates: {
-    canonical: '/dashboard',
-  },
-  robots: {
-    index: false, // Dashboard is private, don't index
-    follow: false,
-  },
-};
-
+// CRITICAL FIX: Make dashboard layout fully client-side to bypass server component rendering issues
+// Server components don't render HTML on Cloudflare Pages with @cloudflare/next-on-pages
+// By making this a client component, we bypass server rendering entirely
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   // #region agent log
-  // Server-side logging
-  if (typeof window === 'undefined') {
-    console.log('[DashboardLayout] Server component rendering (static), children type:', typeof children);
-  }
+  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:8',message:'DashboardLayout render (fully client-side)',data:{pathname:typeof window !== 'undefined' ? window.location.pathname : 'server',childrenType:typeof children},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'A'})}).catch(()=>{});
   // #endregion
-  // CRITICAL: Render children directly - no wrapper needed
-  // The landing page has no layout, so we match that pattern
-  // Navbar is now in the page component itself
+  // Render children directly - no wrapper needed
+  // Navbar is in the page component itself
   return <>{children}</>;
 }
 
