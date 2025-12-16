@@ -48,24 +48,63 @@ export async function onRequest(context: {
   // DEBUG: Log HTML structure to understand what we're working with
   console.log('[Middleware] HTML response received for:', url.pathname);
   console.log('[Middleware] HTML length:', html.length);
+  console.log('[Middleware] Contains DOCTYPE:', html.includes('<!DOCTYPE'));
   console.log('[Middleware] Contains __NEXT_DATA__:', html.includes('__NEXT_DATA__'));
   console.log('[Middleware] Contains RSC markers:', html.includes('<!--$'));
   console.log('[Middleware] Contains #__next:', html.includes('id="__next"'));
   console.log('[Middleware] Contains dashboard div:', html.includes('data-page="dashboard"'));
+  console.log('[Middleware] Contains DashboardPageClient:', html.includes('DashboardPageClient'));
+  
+  // CRITICAL: Ensure DOCTYPE is present to prevent Quirks Mode
+  // Cloudflare Pages might strip it, so we need to add it back
+  let modifiedHtml = html;
+  if (!modifiedHtml.trim().startsWith('<!DOCTYPE')) {
+    console.log('[Middleware] CRITICAL: DOCTYPE missing! Adding it...');
+    modifiedHtml = '<!DOCTYPE html>\n' + modifiedHtml;
+  }
+  
   // Log first 500 chars of body to see structure
-  const bodyMatch = html.match(/<body[^>]*>([\s\S]{0,500})/);
+  const bodyMatch = modifiedHtml.match(/<body[^>]*>([\s\S]{0,500})/);
   if (bodyMatch) {
     console.log('[Middleware] Body start:', bodyMatch[1].substring(0, 200));
+  } else {
+    console.log('[Middleware] WARNING: No <body> tag found in HTML!');
+    console.log('[Middleware] HTML start:', modifiedHtml.substring(0, 300));
   }
 
   // CRITICAL: Replace RSC streaming markers with empty div to allow hydration
   // The markers <!--$--><!--/$--> prevent React from hydrating the content
   // We'll replace them with a placeholder that React can hydrate
-  let modifiedHtml = html.replace(/<!--\$--><!--\/\$-->/g, '<div data-rsc-placeholder="true"></div>');
+  modifiedHtml = modifiedHtml.replace(/<!--\$--><!--\/\$-->/g, '<div data-rsc-placeholder="true"></div>');
   
   // Also check for other RSC streaming patterns
   modifiedHtml = modifiedHtml.replace(/<!--\$[^>]*-->/g, '');
   modifiedHtml = modifiedHtml.replace(/<!--\/\$[^>]*-->/g, '');
+  
+  // CRITICAL: If the body is empty or only has RSC markers, inject a placeholder
+  // This happens when server components don't render on Cloudflare Pages
+  const bodyContentMatch = modifiedHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (bodyContentMatch) {
+    const bodyContent = bodyContentMatch[1];
+    // Check if body only has minimal content (background, debuggers, etc.)
+    const hasRealContent = bodyContent.includes('DashboardPageClient') || 
+                          bodyContent.includes('data-page="dashboard"') ||
+                          bodyContent.length > 1000; // Assume real content if body is substantial
+    
+    if (!hasRealContent && url.pathname === '/dashboard') {
+      console.log('[Middleware] CRITICAL: Dashboard body content is empty or minimal!');
+      console.log('[Middleware] Body content length:', bodyContent.length);
+      console.log('[Middleware] Body content:', bodyContent.substring(0, 200));
+      
+      // Inject a placeholder div that the client component can mount into
+      const placeholderDiv = '<div id="dashboard-root" data-page="dashboard"></div>';
+      modifiedHtml = modifiedHtml.replace(
+        /(<body[^>]*>)([\s\S]*?)(<\/body>)/i,
+        `$1$2${placeholderDiv}$3`
+      );
+      console.log('[Middleware] Injected dashboard placeholder div');
+    }
+  }
 
   // CRITICAL: Check if __NEXT_DATA__ exists in the HTML
   // If not, inject it in the <head> section (before </head>) for proper initialization
