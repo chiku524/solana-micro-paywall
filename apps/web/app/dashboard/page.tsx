@@ -38,13 +38,19 @@ export const metadata: Metadata = {
   },
 };
 
+// CRITICAL: Force static generation like landing page
+// The landing page works because it's statically generated at build time
+// This ensures the HTML is fully rendered before deployment
+export const dynamic = 'force-static';
+export const revalidate = false;
+
 // CRITICAL: Match landing page structure exactly - server component returning client component
 // The landing page works with this pattern, so we should match it
 export default function DashboardPage() {
   // #region agent log
   // Server-side logging
   if (typeof window === 'undefined') {
-    console.log('[DashboardPage] Server component rendering');
+    console.log('[DashboardPage] Server component rendering (static)');
   }
   // #endregion
   // Match landing page structure exactly - just return the client component
