@@ -318,14 +318,16 @@ export function DashboardPageClient() {
   // CRITICAL: Add logging to verify this client component is being called
   console.log('[DashboardPageClient] Client component rendering');
   // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:326',message:'DashboardPageClient render start',data:{pathname:typeof window !== 'undefined' ? window.location.pathname : 'server',hasWindow:typeof window !== 'undefined',timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'A'})}).catch(()=>{});
+  if (typeof window !== 'undefined') {
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:326',message:'DashboardPageClient render start',data:{pathname:window.location.pathname,hasWindow:true,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'A'})}).catch(()=>{});
+  }
   // #endregion
   
   // CRITICAL: Add useEffect to verify component mounts
   useEffect(() => {
     console.log('[DashboardPageClient] Component mounted in useEffect');
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:332',message:'DashboardPageClient mounted',data:{pathname:window.location.pathname,readyState:document.readyState},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:332',message:'DashboardPageClient mounted',data:{pathname:window.location.pathname,readyState:document.readyState,reactRootExists:!!document.getElementById('__next')},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
   }, []);
   
