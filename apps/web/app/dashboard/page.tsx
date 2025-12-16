@@ -1,13 +1,53 @@
-'use client';
-
-// CRITICAL FIX: Make dashboard page fully client-side to bypass server component rendering issues
-// Server components don't render HTML on Cloudflare Pages with @cloudflare/next-on-pages
-// By making this a client component, we bypass server rendering entirely
+import type { Metadata } from 'next';
 import { DashboardPageClient } from './page-client';
 
+const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://micropaywall.app';
+
+export const metadata: Metadata = {
+  title: 'Merchant Dashboard - Solana Micro-Paywall',
+  description: 'Manage your merchant account, view payment statistics, and access your premium content dashboard.',
+  keywords: [
+    'merchant dashboard',
+    'Solana payments',
+    'payment statistics',
+    'merchant account',
+    'content monetization',
+  ],
+  openGraph: {
+    title: 'Merchant Dashboard - Solana Micro-Paywall',
+    description: 'Manage your merchant account and view payment statistics.',
+    url: `${baseUrl}/dashboard`,
+    type: 'website',
+    images: [
+      {
+        url: `${baseUrl}/og-image.svg`,
+        width: 1200,
+        height: 630,
+        alt: 'Solana Micro-Paywall Merchant Dashboard',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Merchant Dashboard - Solana Micro-Paywall',
+    description: 'Manage your merchant account and view payment statistics.',
+    images: [`${baseUrl}/og-image.svg`],
+  },
+  alternates: {
+    canonical: '/dashboard',
+  },
+};
+
+// CRITICAL FIX: Match landing page structure exactly
+// Landing page is a server component that returns a client component
+// Landing page has NO layout file - it works without one
+// By removing the layout and making this a server component, we match the working pattern
 export default function DashboardPage() {
   // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:8',message:'DashboardPage render (fully client-side)',data:{pathname:typeof window !== 'undefined' ? window.location.pathname : 'server'},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'A'})}).catch(()=>{});
+  // Server-side logging
+  if (typeof window === 'undefined') {
+    console.log('[DashboardPage] Server component rendering (matching landing page pattern)');
+  }
   // #endregion
   return <DashboardPageClient />;
 }
