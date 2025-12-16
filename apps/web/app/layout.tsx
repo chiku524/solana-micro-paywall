@@ -146,16 +146,29 @@ export default function RootLayout({
                 
                 // CRITICAL: Ensure #__next root element exists for React hydration
                 // Next.js App Router should create this automatically, but Cloudflare Pages might strip it
-                // Check if it exists, and if not, create it immediately before React tries to hydrate
+                // The middleware should ensure it exists in HTML, but this is a safety net
                 if (typeof document !== 'undefined') {
                   let nextRoot = document.getElementById('__next');
+                  
                   if (!nextRoot) {
-                    console.error('[Layout] CRITICAL: #__next root element missing! Creating it now...');
+                    console.error('[Layout] CRITICAL: #__next root element missing! This should have been fixed by middleware.');
+                    console.error('[Layout] Body HTML:', document.body.innerHTML.substring(0, 500));
+                    console.error('[Layout] Body children:', Array.from(document.body.children).map(el => ({
+                      tagName: el.tagName,
+                      id: el.id,
+                      className: el.className,
+                    })));
+                    
+                    // Last resort: create it (but this shouldn't be necessary if middleware works)
                     nextRoot = document.createElement('div');
                     nextRoot.id = '__next';
-                    // Insert before any scripts that might try to hydrate
-                    document.body.insertBefore(nextRoot, document.body.firstChild);
-                    console.log('[Layout] Created #__next root element');
+                    // Insert at the beginning of body
+                    if (document.body.firstChild) {
+                      document.body.insertBefore(nextRoot, document.body.firstChild);
+                    } else {
+                      document.body.appendChild(nextRoot);
+                    }
+                    console.error('[Layout] Created #__next as last resort - middleware should have fixed this!');
                   } else {
                     console.log('[Layout] #__next root element found');
                   }

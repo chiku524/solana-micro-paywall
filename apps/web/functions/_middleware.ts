@@ -106,6 +106,34 @@ export async function onRequest(context: {
     }
   }
 
+  // CRITICAL: Ensure #__next root element exists in the HTML
+  // Cloudflare Pages might strip it, so we need to ensure it's present
+  // Next.js App Router requires this for React hydration
+  if (!modifiedHtml.includes('id="__next"')) {
+    console.log('[Middleware] CRITICAL: #__next root element missing! Ensuring it exists...');
+    
+    // Try to find the body tag and ensure #__next exists inside it
+    // If body has content but no #__next, wrap it
+    const bodyMatch = modifiedHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    if (bodyMatch) {
+      const bodyContent = bodyMatch[1];
+      // If body doesn't have #__next, wrap the content
+      if (!bodyContent.includes('id="__next"')) {
+        console.log('[Middleware] Wrapping body content in #__next div...');
+        modifiedHtml = modifiedHtml.replace(
+          /(<body[^>]*>)([\s\S]*?)(<\/body>)/i,
+          `$1<div id="__next">$2</div>$3`
+        );
+        console.log('[Middleware] Successfully wrapped body content in #__next');
+      }
+    } else {
+      // If no body tag found, this is a serious problem
+      console.error('[Middleware] CRITICAL: No <body> tag found in HTML!');
+    }
+  } else {
+    console.log('[Middleware] #__next root element found in HTML');
+  }
+
   // CRITICAL: Check if __NEXT_DATA__ exists in the HTML
   // If not, inject it in the <head> section (before </head>) for proper initialization
   if (!modifiedHtml.includes('__NEXT_DATA__')) {
@@ -152,24 +180,28 @@ export async function onRequest(context: {
       modifiedHtml = modifiedHtml + nextDataScript;
     }
     
-    // Create new response with modified HTML
-    const newResponse = new Response(modifiedHtml, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    });
-
-    // Add security headers
-    newResponse.headers.set('X-Content-Type-Options', 'nosniff');
-    newResponse.headers.set('X-Frame-Options', 'DENY');
-    newResponse.headers.set('X-XSS-Protection', '1; mode=block');
-    // CRITICAL: Disable Cloudflare Rocket Loader for Next.js
-    // Rocket Loader interferes with Next.js script loading and causes MIME type errors
-    newResponse.headers.set('CF-Rocket-Loader', 'off');
-    
-    console.log('[Middleware] Successfully injected __NEXT_DATA__ and removed RSC streaming markers');
-    return newResponse;
+    console.log('[Middleware] Successfully injected __NEXT_DATA__');
+  } else {
+    console.log('[Middleware] __NEXT_DATA__ already exists in HTML');
   }
+  
+  // Create new response with modified HTML
+  const newResponse = new Response(modifiedHtml, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+
+  // Add security headers
+  newResponse.headers.set('X-Content-Type-Options', 'nosniff');
+  newResponse.headers.set('X-Frame-Options', 'DENY');
+  newResponse.headers.set('X-XSS-Protection', '1; mode=block');
+  // CRITICAL: Disable Cloudflare Rocket Loader for Next.js
+  // Rocket Loader interferes with Next.js script loading and causes MIME type errors
+  newResponse.headers.set('CF-Rocket-Loader', 'off');
+  
+  console.log('[Middleware] Successfully processed HTML response');
+  return newResponse;
 
   // If __NEXT_DATA__ already exists, still remove RSC streaming markers and add security headers
   const newResponse = new Response(modifiedHtml, {
