@@ -89,29 +89,37 @@ function DashboardPageContent() {
 
   const currentMerchantId = merchantId;
 
-  // CRITICAL: Don't render anything until mounted to prevent hydration mismatch
-  // The server should render the same thing as the client initially
-  if (!mounted) {
-    console.log('[Dashboard] Not mounted yet, showing loading state');
-    return (
-      <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
-        <div className="flex min-h-screen items-center justify-center">
+  console.log('[Dashboard] Rendering. Mounted:', mounted, 'MerchantId:', currentMerchantId);
+
+  // CRITICAL: Always render the same structure to prevent hydration mismatch
+  // The server and client must render identical HTML initially
+  // Return a consistent structure that works for both server and client
+  // Use suppressHydrationWarning on dynamic parts that differ between server/client
+  return (
+    <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
+      {!mounted ? (
+        <div className="flex min-h-screen items-center justify-center" suppressHydrationWarning>
           <div className="text-center">
             <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-400 border-t-transparent mx-auto" />
             <p className="text-neutral-400">Loading...</p>
           </div>
         </div>
-      </div>
-    );
-  }
+      ) : (
+        <DashboardContent merchantId={currentMerchantId} />
+      )}
+    </div>
+  );
+}
 
-  console.log('[Dashboard] Mounted, rendering content. merchantId:', currentMerchantId);
+// Extract the main content to a separate component for cleaner code
+function DashboardContent({ merchantId }: { merchantId: string }) {
+  console.log('[DashboardContent] Rendering content. merchantId:', merchantId);
 
   const { data: stats, error, isLoading } = useSWR<DashboardStats>(
-    currentMerchantId ? `dashboard-${currentMerchantId}` : null,
+    merchantId ? `dashboard-${merchantId}` : null,
     async (): Promise<DashboardStats> => {
-      if (!currentMerchantId) throw new Error('Merchant ID required');
-      return apiClient.getMerchantDashboard(currentMerchantId) as Promise<DashboardStats>;
+      if (!merchantId) throw new Error('Merchant ID required');
+      return apiClient.getMerchantDashboard(merchantId) as Promise<DashboardStats>;
     },
     {
       revalidateOnFocus: false,
@@ -144,7 +152,7 @@ function DashboardPageContent() {
     );
   }
 
-  if (!currentMerchantId) {
+  if (!merchantId) {
     return (
       <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
