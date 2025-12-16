@@ -49,5 +49,11 @@ export default function DashboardPage() {
     console.log('[DashboardPage] Server component rendering (matching landing page pattern)');
   }
   // #endregion
-  return <DashboardPageClient />;
+  // CRITICAL: Add a wrapper div with data attribute to verify server component renders HTML
+  // This ensures there's HTML for React to hydrate against
+  return (
+    <div data-dashboard-page="true" style={{ minHeight: '100vh' }}>
+      <DashboardPageClient />
+    </div>
+  );
 }
