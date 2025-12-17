@@ -9,9 +9,14 @@ import { useEffect } from 'react';
 
 export default function DashboardPage() {
   // #region agent log
+  if (typeof window !== 'undefined') {
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:10',message:'DashboardPage render start',data:{pathname:window.location.pathname,hasWindow:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+  }
+  // #endregion
+  // #region agent log
   useEffect(() => {
     console.log('[DashboardPage] Client component mounted');
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:12',message:'DashboardPage mounted (fully client-side)',data:{pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:15',message:'DashboardPage mounted (fully client-side)',data:{pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
   }, []);
   // #endregion
   

@@ -31,6 +31,9 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('[ErrorBoundary] Error stack:', error.stack);
     console.error('[ErrorBoundary] Error info:', errorInfo);
     console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'error-boundary.tsx:27',message:'ErrorBoundary caught error',data:{errorMessage:error.message,errorName:error.name,hasComponentStack:!!errorInfo.componentStack,pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     
     logger.error('Error caught by boundary', error, {
       componentStack: errorInfo.componentStack,
@@ -59,6 +62,11 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   render() {
+    // #region agent log
+    if (typeof window !== 'undefined') {
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'error-boundary.tsx:61',message:'ErrorBoundary render',data:{hasError:this.state.hasError,hasChildren:!!this.props.children,pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    }
+    // #endregion
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;

@@ -99,6 +99,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // #region agent log
+  if (typeof window !== 'undefined') {
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:97',message:'RootLayout render',data:{hasChildren:!!children,pathname:window.location.pathname,childrenType:typeof children},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+  }
+  // #endregion
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <head>

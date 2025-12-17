@@ -65,7 +65,10 @@ export function NavigationHandler() {
     
     history.pushState = function(...args) {
       console.log('[NavigationHandler] Intercepted history.pushState, forcing full page reload');
+      // #region agent log
       const url = args[2] as string;
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navigation-handler.tsx:66',message:'NavigationHandler pushState intercepted',data:{url:url,currentPath:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       if (url && url.startsWith('/')) {
         window.location.href = url;
         return;
@@ -75,6 +78,9 @@ export function NavigationHandler() {
     
     history.replaceState = function(...args) {
       const url = args[2] as string;
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navigation-handler.tsx:76',message:'NavigationHandler replaceState called',data:{url:url,currentPath:window.location.pathname,willIntercept:url && url.startsWith('/') && url !== window.location.pathname + window.location.search},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       // CRITICAL: Don't intercept replaceState for same URL - this causes infinite reloads
       // Only intercept if navigating to a different route
       if (url && url.startsWith('/') && url !== window.location.pathname + window.location.search) {
