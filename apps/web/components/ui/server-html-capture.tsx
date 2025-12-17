@@ -9,6 +9,11 @@ import { useEffect } from 'react';
  */
 export function ServerHtmlCapture() {
   useEffect(() => {
+    const canIngest =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1');
+
     // Capture the HTML as it exists immediately after page load (before React hydrates)
     // This is the server-rendered HTML
     const serverHtml = document.documentElement.outerHTML;
@@ -55,7 +60,9 @@ export function ServerHtmlCapture() {
     console.log('[ServerHtmlCapture] Body innerHTML (first 1000 chars):', bodyContent.substring(0, 1000));
     
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server-html-capture.tsx:45',message:'Server HTML captured',data:{htmlLength:serverHtml.length,hasDoctype:serverHtml.trim().startsWith('<!DOCTYPE'),hasNextRoot:!!reactRoot,nextRootChildrenCount:reactRoot?.children.length||0,nextRootInnerHTML:reactRoot?.innerHTML.substring(0,500)||'none',hasClientOnly:!!clientOnlyWrapper,hasChildrenContent:hasChildrenContent,bodyLength:bodyContent.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    if (canIngest) {
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server-html-capture.tsx:45',message:'Server HTML captured',data:{htmlLength:serverHtml.length,hasDoctype:serverHtml.trim().startsWith('<!DOCTYPE'),hasNextRoot:!!reactRoot,nextRootChildrenCount:reactRoot?.children.length||0,nextRootInnerHTML:reactRoot?.innerHTML.substring(0,500)||'none',hasClientOnly:!!clientOnlyWrapper,hasChildrenContent:hasChildrenContent,bodyLength:bodyContent.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    }
     // #endregion
     
     console.log('[ServerHtmlCapture] ===== END SERVER HTML ANALYSIS =====');

@@ -104,7 +104,10 @@ export default function RootLayout({
 }) {
   // #region agent log
   if (typeof window !== 'undefined') {
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:97',message:'RootLayout render',data:{hasChildren:!!children,pathname:window.location.pathname,childrenType:typeof children},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // Avoid production browsers attempting localhost logging (blocked by Chrome Local Network Access)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:97',message:'RootLayout render',data:{hasChildren:!!children,pathname:window.location.pathname,childrenType:typeof children},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    }
   }
   // #endregion
   return (
