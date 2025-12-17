@@ -11,6 +11,7 @@ import { NextDataInjector } from '../components/ui/next-data-injector';
 import { QuirksModeChecker } from '../components/ui/quirks-mode-checker';
 import { HydrationRecovery } from '../components/ui/hydration-recovery';
 import { ClientOnly } from '../components/ui/client-only';
+import { ServerHtmlCapture } from '../components/ui/server-html-capture';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -123,6 +124,7 @@ export default function RootLayout({
         {/* CRITICAL: Next.js App Router requires a #__next root div for React hydration */}
         {/* Cloudflare Pages/@cloudflare/next-on-pages might be stripping this, so we ensure it exists */}
         <div id="__next">
+          <ServerHtmlCapture />
           <BackgroundAnimation />
           <NavigationHandler />
           <LayoutDebugger />
