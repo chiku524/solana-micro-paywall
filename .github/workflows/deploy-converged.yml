@@ -160,6 +160,28 @@ jobs:
               echo "   ✅ Copied"
             fi
           fi
+
+          echo ""
+          echo "📄 RSC entry files (CRITICAL for App Router on Cloudflare):"
+          # next-on-pages/OpenNext style config.json routes often point to "/index.rsc" and "/$route.rsc"
+          # Those files may be emitted into static/. Ensure they exist at the output root where routes expect them.
+          if [ -d ".vercel/output/static" ]; then
+            echo "   Searching for *.rsc / *.prefetch.rsc / *.action under static/..."
+            RSC_COUNT=$(find .vercel/output/static -maxdepth 2 -type f \\( -name \"*.rsc\" -o -name \"*.prefetch.rsc\" -o -name \"*.action\" \\) 2>/dev/null | wc -l)
+            echo "   Found $RSC_COUNT candidate files"
+            if [ "$RSC_COUNT" -gt 0 ]; then
+              echo "   Copying missing RSC-related files to root..."
+              find .vercel/output/static -maxdepth 2 -type f \\( -name \"*.rsc\" -o -name \"*.prefetch.rsc\" -o -name \"*.action\" \\) 2>/dev/null | while read -r f; do
+                base=$(basename \"$f\")
+                if [ ! -f \".vercel/output/$base\" ]; then
+                  cp \"$f\" \".vercel/output/$base\"
+                fi
+              done
+              echo "   ✅ Copy complete"
+              echo "   Root RSC files now present:"
+              ls -la .vercel/output/ | grep -E \"\\.rsc$|\\.prefetch\\.rsc$|\\.action$\" | head -200 || true
+            fi
+          fi
           echo ""
           echo "📁 _next directory (CRITICAL for static assets):"
           if [ -d ".vercel/output/_next" ]; then
@@ -205,7 +227,7 @@ jobs:
           if [ -f ".vercel/output/config.json" ]; then
             echo "✅ config.json exists"
             echo "   Looking for 'routes' and 'overrides' keys:"
-            grep -n \"\\\"routes\\\"\\|\\\"overrides\\\"\\|\\\"functions\\\"\\|\\\"rewrites\\\"\" .vercel/output/config.json | head -200 || true
+            grep -n '\"routes\"\\|\"overrides\"\\|\"functions\"\\|\"rewrites\"' .vercel/output/config.json | head -200 || true
             echo ""
             echo "   First 120 lines:"
             sed -n '1,120p' .vercel/output/config.json
