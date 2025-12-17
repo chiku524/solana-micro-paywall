@@ -179,6 +179,21 @@ jobs:
             fi
           fi
 
+          echo ""
+          echo "📁 App Router chunks (sanity check):"
+          if [ -d ".vercel/output/_next/static/chunks/app" ]; then
+            echo "✅ Found app chunks directory"
+            echo "   Dashboard-related chunks:"
+            find .vercel/output/_next/static/chunks/app -type f 2>/dev/null | grep -i dashboard | head -50 || echo "   (none)"
+            echo ""
+            echo "   Page-related chunks:"
+            find .vercel/output/_next/static/chunks/app -type f 2>/dev/null | grep -i \"app/page\" | head -20 || true
+          else
+            echo "⚠️  No app chunks directory found at .vercel/output/_next/static/chunks/app"
+            echo "   Listing chunks directory:"
+            ls -la .vercel/output/_next/static/chunks/ | head -50 || true
+          fi
+
       - name: Deploy to Cloudflare Pages (Converged)
         working-directory: apps/web
         run: |
