@@ -231,31 +231,34 @@ export async function onRequest(context: {
     fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:189',message:'Final HTML before response',data:{pathname:url.pathname,htmlLength:modifiedHtml.length,hasDoctype:modifiedHtml.trim().startsWith('<!DOCTYPE'),hasNextData:modifiedHtml.includes('__NEXT_DATA__'),hasNextRoot:modifiedHtml.includes('id="__next"'),hasDashboardContent:modifiedHtml.includes('data-page="dashboard"'),bodyContentLength:modifiedHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1]?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
   }
   // #endregion
+
+  // If requested, inline lightweight debug info into the HTML so we can diagnose via curl without a browser.
+  // We avoid relying on custom headers because some platforms/proxies may strip non-standard headers.
+  if (debugMode) {
+    const bodyLen = modifiedHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1]?.length ?? 0;
+    const mwDebug = {
+      path: url.pathname,
+      hasDoctype: modifiedHtml.trim().startsWith('<!DOCTYPE'),
+      hasNextData: modifiedHtml.includes('__NEXT_DATA__'),
+      hasNextRoot: modifiedHtml.includes('id="__next"'),
+      bodyLen,
+      rscMarkerCount: (modifiedHtml.match(/<!--\$/g) || []).length,
+      hasDashboardMarker: modifiedHtml.includes('data-page="dashboard"') || modifiedHtml.includes('id="dashboard-root"'),
+    };
+
+    const marker = `<!--MWDEBUG:${JSON.stringify(mwDebug)}-->`;
+    if (modifiedHtml.includes('</head>')) {
+      modifiedHtml = modifiedHtml.replace('</head>', `${marker}</head>`);
+    } else {
+      modifiedHtml = `${marker}${modifiedHtml}`;
+    }
+  }
+
   const newResponse = new Response(modifiedHtml, {
     status: response.status,
     statusText: response.statusText,
     headers: response.headers,
   });
-
-  // Debug: always set a version header so we can confirm middleware code is deployed/running via curl.
-  newResponse.headers.set('X-MW-Version', 'addc17a');
-  newResponse.headers.set('MW-Version', 'addc17a');
-
-  // If requested, emit lightweight debug headers so we can diagnose via curl without a browser.
-  // This is safe (no secrets) and helps debug hydration/RSC issues in production.
-  if (debugMode) {
-    const bodyLen =
-      modifiedHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1]?.length ?? 0;
-
-    newResponse.headers.set('X-MW-Debug', '1');
-    newResponse.headers.set('X-MW-Path', url.pathname);
-    newResponse.headers.set('X-MW-Has-Doctype', String(modifiedHtml.trim().startsWith('<!DOCTYPE')));
-    newResponse.headers.set('X-MW-Has-NextData', String(modifiedHtml.includes('__NEXT_DATA__')));
-    newResponse.headers.set('X-MW-Has-NextRoot', String(modifiedHtml.includes('id="__next"')));
-    newResponse.headers.set('X-MW-Body-Len', String(bodyLen));
-    newResponse.headers.set('X-MW-RSC-Marker-Count', String((modifiedHtml.match(/<!--\$/g) || []).length));
-    newResponse.headers.set('X-MW-Has-Dashboard-Marker', String(modifiedHtml.includes('data-page="dashboard"') || modifiedHtml.includes('id="dashboard-root"')));
-  }
 
   // Add security headers
   newResponse.headers.set('X-Content-Type-Options', 'nosniff');
