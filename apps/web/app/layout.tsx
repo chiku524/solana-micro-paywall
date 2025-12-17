@@ -10,6 +10,7 @@ import { ChildrenDebugger } from '../components/ui/children-debugger';
 import { NextDataInjector } from '../components/ui/next-data-injector';
 import { QuirksModeChecker } from '../components/ui/quirks-mode-checker';
 import { HydrationRecovery } from '../components/ui/hydration-recovery';
+import { ClientOnly } from '../components/ui/client-only';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -129,13 +130,13 @@ export default function RootLayout({
           <AppProviders>
             {/* CRITICAL: HydrationRecovery catches React error #418 and logs the issue */}
             <HydrationRecovery>
-              {/* CRITICAL: Use suppressHydrationWarning to prevent React from aborting on mismatch */}
-              {/* This allows client components to render even if server HTML is different */}
-              <div suppressHydrationWarning>
+              {/* CRITICAL: Render children only on client to prevent hydration mismatch */}
+              {/* Server HTML is empty/different, so we render nothing on server and everything on client */}
+              <ClientOnly fallback={null}>
                 {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
                 {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
                 {children}
-              </div>
+              </ClientOnly>
             </HydrationRecovery>
             <ToastProvider />
           </AppProviders>
