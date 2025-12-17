@@ -50,6 +50,7 @@ jobs:
       - name: Build Next.js app for Cloudflare Pages
         working-directory: apps/web
         env:
+          # Note: Linter warnings about context access are expected - secrets may not exist but defaults are provided
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://api.micropaywall.app' }}
           NEXT_PUBLIC_SOLANA_RPC: ${{ secrets.NEXT_PUBLIC_SOLANA_RPC || 'https://api.devnet.solana.com' }}
           NEXT_PUBLIC_SOLANA_RPC_MAINNET: ${{ secrets.NEXT_PUBLIC_SOLANA_RPC_MAINNET || 'https://api.mainnet-beta.solana.com' }}

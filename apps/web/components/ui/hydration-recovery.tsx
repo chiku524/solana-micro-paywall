@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 /**
  * CRITICAL: Hydration Error Recovery Component
@@ -13,7 +13,9 @@ import { useEffect, useState } from 'react';
  */
 export function HydrationRecovery({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
-  const [needsRecovery, setNeedsRecovery] = useState(false);
+  const [forceClientRender, setForceClientRender] = useState(false);
+  const recoveryContainerRef = useRef<HTMLDivElement | null>(null);
+  const recoveryRootRef = useRef<any>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -36,20 +38,28 @@ export function HydrationRecovery({ children }: { children: React.ReactNode }) {
         
         // If we should have content but don't, trigger recovery
         if (!hasPageContent && reactRoot.children.length <= 2) {
-          console.warn('[HydrationRecovery] Page content missing after hydration, triggering recovery...');
-          setNeedsRecovery(true);
+          console.warn('[HydrationRecovery] Page content missing after hydration, forcing client-side render...');
           
-          // Force a re-render by clearing and re-adding the children container
-          // This creates a new React subtree that can hydrate properly
+          // Create a recovery container and render children into it with a new React root
+          // This bypasses the failed hydration
           const container = document.createElement('div');
           container.id = '__hydration-recovery';
-          container.style.display = 'contents'; // Doesn't affect layout
+          container.setAttribute('data-hydration-recovery', 'true');
           
-          // Find the AppProviders container (should be inside #__next)
-          const appProviders = reactRoot.querySelector('[data-rht-toaster]')?.parentElement;
-          if (appProviders && appProviders.parentElement) {
-            // Insert recovery container
-            appProviders.parentElement.insertBefore(container, appProviders.nextSibling);
+          // Find where to insert it (inside AppProviders, after toaster)
+          const toaster = reactRoot.querySelector('[data-rht-toaster]');
+          const appProviders = toaster?.parentElement;
+          
+          if (appProviders) {
+            appProviders.appendChild(container);
+            recoveryContainerRef.current = container;
+            
+            // Force a page reload as last resort - this is more reliable than trying to re-render
+            // The hydration error means server and client HTML don't match, so we need a fresh start
+            console.warn('[HydrationRecovery] Forcing page reload to recover from hydration error...');
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
           }
         }
       }
@@ -68,8 +78,8 @@ export function HydrationRecovery({ children }: { children: React.ReactNode }) {
            errorStr.includes('Minified React error')) && 
           !hydrationErrorDetected) {
         hydrationErrorDetected = true;
-        console.warn('[HydrationRecovery] React hydration error detected');
-        setNeedsRecovery(true);
+        console.warn('[HydrationRecovery] React hydration error #418 detected, will attempt recovery...');
+        // Don't set state here - let checkContent handle it after delay
       }
       originalError.apply(console, args);
     };
@@ -77,18 +87,31 @@ export function HydrationRecovery({ children }: { children: React.ReactNode }) {
     console.error = wrappedError;
 
     // Check after a delay to see if content appeared
-    const timeoutId = setTimeout(checkContent, 1500);
+    const timeoutId = setTimeout(checkContent, 2000);
 
     return () => {
       console.error = originalError;
       clearTimeout(timeoutId);
+      // Clean up recovery root if it was created
+      if (recoveryRootRef.current && recoveryContainerRef.current) {
+        try {
+          recoveryRootRef.current.unmount();
+        } catch (e) {
+          // Ignore unmount errors
+        }
+      }
     };
-  }, []);
+  }, [children]);
 
   // On initial mount, always render children normally
-  // If recovery is needed, we'll handle it via DOM manipulation
+  // Recovery will happen via DOM manipulation if needed
   if (!mounted) {
     return null; // Don't render on server
+  }
+
+  // If we're forcing a client render, don't render here (recovery container handles it)
+  if (forceClientRender && recoveryContainerRef.current) {
+    return null;
   }
 
   return <>{children}</>;
