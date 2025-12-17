@@ -179,7 +179,7 @@ jobs:
               done
               echo "   ✅ Copy complete"
               echo "   Root RSC files now present:"
-              ls -la .vercel/output/ | grep -E \"\\.rsc$|\\.prefetch\\.rsc$|\\.action$\" | head -200 || true
+              ls -la .vercel/output/ | grep -E '\\.rsc$|\\.prefetch\\.rsc$|\\.action$' | head -200 || true
             fi
           fi
           echo ""
