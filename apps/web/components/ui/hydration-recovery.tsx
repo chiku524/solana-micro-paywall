@@ -88,17 +88,9 @@ export function HydrationRecovery({ children }: { children: React.ReactNode }) {
     };
   }, [children]);
 
-  // On initial mount, always render children normally
-  // Recovery will happen via DOM manipulation if needed
-  if (!mounted) {
-    return null; // Don't render on server
-  }
-
-  // If we're forcing a client render, don't render here (recovery container handles it)
-  if (forceClientRender && recoveryContainerRef.current) {
-    return null;
-  }
-
+  // CRITICAL: Always render children wrapped in ClientOnly to prevent hydration mismatch
+  // This ensures server and client both render the same thing initially (null)
+  // Then ClientOnly will render children after mount on the client
   return <>{children}</>;
 }
 

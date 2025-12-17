@@ -128,15 +128,17 @@ export default function RootLayout({
           <LayoutDebugger />
           <NextDataInjector />
           <AppProviders>
-            {/* CRITICAL: HydrationRecovery catches React error #418 and logs the issue */}
+            {/* CRITICAL: Use ClientOnly to prevent hydration mismatch */}
+            {/* Server renders null, client renders null initially, then children after mount */}
+            {/* This prevents React error #418 by ensuring server and client HTML match */}
+            <ClientOnly fallback={null}>
+              {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
+              {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
+              {children}
+            </ClientOnly>
             <HydrationRecovery>
-              {/* CRITICAL: Render children only on client to prevent hydration mismatch */}
-              {/* Server HTML is empty/different, so we render nothing on server and everything on client */}
-              <ClientOnly fallback={null}>
-                {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
-                {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
-                {children}
-              </ClientOnly>
+              {/* HydrationRecovery now just logs issues, doesn't wrap children */}
+              {null}
             </HydrationRecovery>
             <ToastProvider />
           </AppProviders>
