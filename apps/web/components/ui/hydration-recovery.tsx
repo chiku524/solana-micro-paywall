@@ -54,9 +54,19 @@ export function HydrationRecovery({ children }: { children: React.ReactNode }) {
             appProviders.appendChild(container);
             recoveryContainerRef.current = container;
             
-            // Force a page reload as last resort - this is more reliable than trying to re-render
+            // Check if we've already tried to recover (prevent infinite reload loop)
+            const recoveryAttempted = sessionStorage.getItem('__hydration_recovery_attempted');
+            if (recoveryAttempted) {
+              console.warn('[HydrationRecovery] Recovery already attempted, skipping reload to prevent infinite loop');
+              return;
+            }
+            
+            // Mark that we've attempted recovery
+            sessionStorage.setItem('__hydration_recovery_attempted', 'true');
+            
+            // Force a page reload as last resort - but only once
             // The hydration error means server and client HTML don't match, so we need a fresh start
-            console.warn('[HydrationRecovery] Forcing page reload to recover from hydration error...');
+            console.warn('[HydrationRecovery] Forcing page reload to recover from hydration error (one-time attempt)...');
             setTimeout(() => {
               window.location.reload();
             }, 100);
