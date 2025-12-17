@@ -68,27 +68,18 @@ export async function onRequest(context: {
   fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:61',message:'Before DOCTYPE check',data:{pathname:url.pathname,hadDoctype:hadDoctypeBefore,htmlStart:modifiedHtml.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
   // #endregion
   
-  // CRITICAL: Check for DOCTYPE before trimming to detect leading whitespace
-  const originalStartsWithDoctype = modifiedHtml.trimStart().startsWith('<!DOCTYPE');
-  const hasLeadingWhitespace = modifiedHtml.length > 0 && !modifiedHtml.startsWith('<!DOCTYPE') && originalStartsWithDoctype;
-  
   // Remove any leading whitespace/newlines and ensure DOCTYPE is first
   modifiedHtml = modifiedHtml.trim();
-  
   if (!modifiedHtml.startsWith('<!DOCTYPE')) {
     console.log('[Middleware] CRITICAL: DOCTYPE missing! Adding it...');
     // CRITICAL: DOCTYPE must be first with no whitespace before it
     modifiedHtml = '<!DOCTYPE html>' + modifiedHtml;
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:76',message:'DOCTYPE injected',data:{pathname:url.pathname,htmlStartAfter:modifiedHtml.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
-  } else if (hasLeadingWhitespace) {
-    // DOCTYPE exists but had whitespace before it - already fixed by trim(), but log it
-    console.log('[Middleware] DOCTYPE found but had leading whitespace, fixed by trim()');
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:82',message:'DOCTYPE whitespace fixed',data:{pathname:url.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:73',message:'DOCTYPE injected',data:{pathname:url.pathname,htmlStartAfter:modifiedHtml.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
     // #endregion
   }
+  // Note: If DOCTYPE exists after trim(), it's already at position 0 with no leading whitespace.
+  // The previous else block checking indexOf > 0 was unreachable since trim() ensures DOCTYPE is at start.
   
   // Log first 500 chars of body to see structure
   const bodyMatch = modifiedHtml.match(/<body[^>]*>([\s\S]{0,500})/);
