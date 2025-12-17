@@ -167,14 +167,14 @@ jobs:
           # Those files may be emitted into static/. Ensure they exist at the output root where routes expect them.
           if [ -d ".vercel/output/static" ]; then
             echo "   Searching for *.rsc / *.prefetch.rsc / *.action under static/..."
-            RSC_COUNT=$(find .vercel/output/static -maxdepth 2 -type f \\( -name \"*.rsc\" -o -name \"*.prefetch.rsc\" -o -name \"*.action\" \\) 2>/dev/null | wc -l)
+            RSC_COUNT=$(find .vercel/output/static -maxdepth 2 -type f \( -name "*.rsc" -o -name "*.prefetch.rsc" -o -name "*.action" \) 2>/dev/null | wc -l)
             echo "   Found $RSC_COUNT candidate files"
             if [ "$RSC_COUNT" -gt 0 ]; then
               echo "   Copying missing RSC-related files to root..."
-              find .vercel/output/static -maxdepth 2 -type f \\( -name \"*.rsc\" -o -name \"*.prefetch.rsc\" -o -name \"*.action\" \\) 2>/dev/null | while read -r f; do
-                base=$(basename \"$f\")
-                if [ ! -f \".vercel/output/$base\" ]; then
-                  cp \"$f\" \".vercel/output/$base\"
+              find .vercel/output/static -maxdepth 2 -type f \( -name "*.rsc" -o -name "*.prefetch.rsc" -o -name "*.action" \) 2>/dev/null | while read -r f; do
+                base=$(basename "$f")
+                if [ ! -f ".vercel/output/$base" ]; then
+                  cp "$f" ".vercel/output/$base"
                 fi
               done
               echo "   ✅ Copy complete"
