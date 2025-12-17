@@ -9,6 +9,7 @@ import { LayoutDebugger } from '../components/ui/layout-debugger';
 import { ChildrenDebugger } from '../components/ui/children-debugger';
 import { NextDataInjector } from '../components/ui/next-data-injector';
 import { QuirksModeChecker } from '../components/ui/quirks-mode-checker';
+import { HydrationRecovery } from '../components/ui/hydration-recovery';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -126,9 +127,12 @@ export default function RootLayout({
           <LayoutDebugger />
           <NextDataInjector />
           <AppProviders>
-            {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
-            {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
-            {children}
+            {/* CRITICAL: HydrationRecovery catches React error #418 and forces re-render */}
+            <HydrationRecovery>
+              {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
+              {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
+              {children}
+            </HydrationRecovery>
             <ToastProvider />
           </AppProviders>
         </div>

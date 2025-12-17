@@ -61,17 +61,30 @@ export async function onRequest(context: {
   
   // CRITICAL: Ensure DOCTYPE is present to prevent Quirks Mode
   // Cloudflare Pages might strip it, so we need to add it back
+  // MUST be the very first thing in the HTML - no whitespace before it
   let modifiedHtml = html;
   // #region agent log
   const hadDoctypeBefore = modifiedHtml.trim().startsWith('<!DOCTYPE');
   fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:61',message:'Before DOCTYPE check',data:{pathname:url.pathname,hadDoctype:hadDoctypeBefore,htmlStart:modifiedHtml.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
   // #endregion
-  if (!modifiedHtml.trim().startsWith('<!DOCTYPE')) {
+  
+  // Remove any leading whitespace/newlines and ensure DOCTYPE is first
+  modifiedHtml = modifiedHtml.trim();
+  if (!modifiedHtml.startsWith('<!DOCTYPE')) {
     console.log('[Middleware] CRITICAL: DOCTYPE missing! Adding it...');
-    modifiedHtml = '<!DOCTYPE html>\n' + modifiedHtml;
+    // CRITICAL: DOCTYPE must be first with no whitespace before it
+    modifiedHtml = '<!DOCTYPE html>' + modifiedHtml;
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:64',message:'DOCTYPE injected',data:{pathname:url.pathname,htmlStartAfter:modifiedHtml.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:69',message:'DOCTYPE injected',data:{pathname:url.pathname,htmlStartAfter:modifiedHtml.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
     // #endregion
+  } else {
+    // Even if DOCTYPE exists, ensure it's at the very start with no whitespace
+    const doctypeMatch = modifiedHtml.match(/^<!DOCTYPE[^>]*>/i);
+    if (doctypeMatch && modifiedHtml.indexOf('<!DOCTYPE') > 0) {
+      // DOCTYPE exists but has whitespace before it - fix it
+      console.log('[Middleware] DOCTYPE found but has leading whitespace, fixing...');
+      modifiedHtml = doctypeMatch[0] + modifiedHtml.substring(doctypeMatch[0].length).trim();
+    }
   }
   
   // Log first 500 chars of body to see structure
