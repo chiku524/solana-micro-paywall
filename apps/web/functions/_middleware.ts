@@ -16,6 +16,7 @@ interface Env {
   DB: any; // D1Database - available at runtime
   CACHE: any; // KVNamespace - available at runtime
   NODE_ENV: string;
+  BUILD_ID?: string;
   FRONTEND_URL: string;
   CORS_ORIGIN: string;
 }
@@ -28,6 +29,7 @@ export async function onRequest(context: {
 }): Promise<Response> {
   const { request, env, next } = context;
   const url = new URL(request.url);
+  const debugMode = url.searchParams.has('__debug');
 
   // Handle API routes - these should be handled by backend workers
   // For now, let Pages handle everything and we'll inject __NEXT_DATA__ for HTML responses
@@ -234,6 +236,22 @@ export async function onRequest(context: {
     statusText: response.statusText,
     headers: response.headers,
   });
+
+  // If requested, emit lightweight debug headers so we can diagnose via curl without a browser.
+  // This is safe (no secrets) and helps debug hydration/RSC issues in production.
+  if (debugMode) {
+    const bodyLen =
+      modifiedHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1]?.length ?? 0;
+
+    newResponse.headers.set('X-MW-Debug', '1');
+    newResponse.headers.set('X-MW-Path', url.pathname);
+    newResponse.headers.set('X-MW-Has-Doctype', String(modifiedHtml.trim().startsWith('<!DOCTYPE')));
+    newResponse.headers.set('X-MW-Has-NextData', String(modifiedHtml.includes('__NEXT_DATA__')));
+    newResponse.headers.set('X-MW-Has-NextRoot', String(modifiedHtml.includes('id="__next"')));
+    newResponse.headers.set('X-MW-Body-Len', String(bodyLen));
+    newResponse.headers.set('X-MW-RSC-Marker-Count', String((modifiedHtml.match(/<!--\$/g) || []).length));
+    newResponse.headers.set('X-MW-Has-Dashboard-Marker', String(modifiedHtml.includes('data-page="dashboard"') || modifiedHtml.includes('id="dashboard-root"')));
+  }
 
   // Add security headers
   newResponse.headers.set('X-Content-Type-Options', 'nosniff');
