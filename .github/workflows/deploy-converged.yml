@@ -139,6 +139,12 @@ jobs:
           if [ -d ".vercel/output/functions" ]; then
             echo "✅ Functions directory exists"
             ls -la .vercel/output/functions/ | head -10
+            echo ""
+            echo "🔎 Functions directory (dashboard/bookmarks/not-found mapping):"
+            ls -la .vercel/output/functions/ | grep -E "dashboard|bookmarks|_not-found|index|middleware" || true
+            echo ""
+            echo "📁 Functions directory (first 200 entries):"
+            ls -la .vercel/output/functions/ | head -200
           else
             echo "⚠️  No functions directory (may be OK for static pages)"
           fi
@@ -192,6 +198,19 @@ jobs:
             echo "⚠️  No app chunks directory found at .vercel/output/_next/static/chunks/app"
             echo "   Listing chunks directory:"
             ls -la .vercel/output/_next/static/chunks/ | head -50 || true
+          fi
+
+          echo ""
+          echo "📄 .vercel/output/config.json (routes excerpt):"
+          if [ -f ".vercel/output/config.json" ]; then
+            echo "✅ config.json exists"
+            echo "   Looking for 'routes' and 'overrides' keys:"
+            grep -n \"\\\"routes\\\"\\|\\\"overrides\\\"\\|\\\"functions\\\"\\|\\\"rewrites\\\"\" .vercel/output/config.json | head -200 || true
+            echo ""
+            echo "   First 120 lines:"
+            sed -n '1,120p' .vercel/output/config.json
+          else
+            echo "❌ config.json missing"
           fi
 
       - name: Deploy to Cloudflare Pages (Converged)
