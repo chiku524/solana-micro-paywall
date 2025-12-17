@@ -237,6 +237,9 @@ export async function onRequest(context: {
     headers: response.headers,
   });
 
+  // Debug: always set a version header so we can confirm middleware code is deployed/running via curl.
+  newResponse.headers.set('X-MW-Version', 'addc17a');
+
   // If requested, emit lightweight debug headers so we can diagnose via curl without a browser.
   // This is safe (no secrets) and helps debug hydration/RSC issues in production.
   if (debugMode) {
