@@ -127,11 +127,15 @@ export default function RootLayout({
           <LayoutDebugger />
           <NextDataInjector />
           <AppProviders>
-            {/* CRITICAL: HydrationRecovery catches React error #418 and forces re-render */}
+            {/* CRITICAL: HydrationRecovery catches React error #418 and logs the issue */}
             <HydrationRecovery>
-              {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
-              {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
-              {children}
+              {/* CRITICAL: Use suppressHydrationWarning to prevent React from aborting on mismatch */}
+              {/* This allows client components to render even if server HTML is different */}
+              <div suppressHydrationWarning>
+                {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
+                {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
+                {children}
+              </div>
             </HydrationRecovery>
             <ToastProvider />
           </AppProviders>

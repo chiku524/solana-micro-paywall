@@ -36,41 +36,16 @@ export function HydrationRecovery({ children }: { children: React.ReactNode }) {
           document.querySelector('[role="main"]') ||
           reactRoot.children.length > 2; // More than just background + toaster
         
-        // If we should have content but don't, trigger recovery
+        // If we should have content but don't, log the issue but don't auto-reload
+        // Auto-reload doesn't fix the root cause and causes infinite loops
         if (!hasPageContent && reactRoot.children.length <= 2) {
-          console.warn('[HydrationRecovery] Page content missing after hydration, forcing client-side render...');
-          
-          // Create a recovery container and render children into it with a new React root
-          // This bypasses the failed hydration
-          const container = document.createElement('div');
-          container.id = '__hydration-recovery';
-          container.setAttribute('data-hydration-recovery', 'true');
-          
-          // Find where to insert it (inside AppProviders, after toaster)
-          const toaster = reactRoot.querySelector('[data-rht-toaster]');
-          const appProviders = toaster?.parentElement;
-          
-          if (appProviders) {
-            appProviders.appendChild(container);
-            recoveryContainerRef.current = container;
-            
-            // Check if we've already tried to recover (prevent infinite reload loop)
-            const recoveryAttempted = sessionStorage.getItem('__hydration_recovery_attempted');
-            if (recoveryAttempted) {
-              console.warn('[HydrationRecovery] Recovery already attempted, skipping reload to prevent infinite loop');
-              return;
-            }
-            
-            // Mark that we've attempted recovery
-            sessionStorage.setItem('__hydration_recovery_attempted', 'true');
-            
-            // Force a page reload as last resort - but only once
-            // The hydration error means server and client HTML don't match, so we need a fresh start
-            console.warn('[HydrationRecovery] Forcing page reload to recover from hydration error (one-time attempt)...');
-            setTimeout(() => {
-              window.location.reload();
-            }, 100);
-          }
+          console.error('[HydrationRecovery] CRITICAL: Page content missing after hydration!');
+          console.error('[HydrationRecovery] React root children:', reactRoot.children.length);
+          console.error('[HydrationRecovery] Pathname:', pathname);
+          console.error('[HydrationRecovery] This indicates React error #418 caused rendering to abort');
+          console.error('[HydrationRecovery] Root cause: Hydration mismatch - server HTML does not match client expectations');
+          // Don't auto-reload - it doesn't fix the issue and causes infinite loops
+          // The real fix needs to address why server HTML doesn't match client expectations
         }
       }
     };
