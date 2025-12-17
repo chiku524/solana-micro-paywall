@@ -1,5 +1,10 @@
 'use client';
 
+// Ensure Next generates an edge-compatible, statically addressable route for Cloudflare.
+// Without this, next-on-pages has been mapping dashboard to _not-found in the generated functions.
+export const runtime = 'edge';
+export const dynamic = 'force-static';
+
 // CRITICAL FIX: Make dashboard page fully client-side to bypass server component rendering issues
 // Server components don't render HTML on Cloudflare Pages with @cloudflare/next-on-pages
 // By making this a client component, we bypass server rendering entirely

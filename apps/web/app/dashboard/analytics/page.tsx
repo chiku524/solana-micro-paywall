@@ -1,5 +1,9 @@
 'use client';
 
+// Ensure Next generates an edge-compatible, statically addressable route for Cloudflare.
+export const runtime = 'edge';
+export const dynamic = 'force-static';
+
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
