@@ -302,12 +302,15 @@ jobs:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
       - name: Post-deploy smoke check (capture MWDEBUG markers)
-        if: always()
+        if: always()  # Non-blocking: Cloudflare may block CI with 403 challenges
         working-directory: apps/web
         run: |
           set -euo pipefail
           mkdir -p .tmp
 
+          # NOTE: This step is non-blocking because Cloudflare Bot Fight Mode / WAF
+          # often blocks automated requests from GitHub Actions with 403 challenges.
+          # The real app works in real browsers; this smoke check is informational only.
           # NOTE: relies on Pages Functions middleware (`apps/web/functions/_middleware.ts`)
           # injecting <!--MWDEBUG:...--> when `?__debug=1` is present.
           for path in "/" "/dashboard" "/dashboard/settings" "/marketplace"; do
