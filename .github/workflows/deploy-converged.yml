@@ -327,6 +327,10 @@ jobs:
             grep -o 'MWDEBUG:{[^}]*}' "$out" | head -1 || echo "(no MWDEBUG marker found)"
             echo "🔎 HTTP status line:"
             head -1 "$headers" 2>/dev/null || echo "(no headers captured)"
+            echo "🔎 Key headers:"
+            (grep -iE '^(server:|cf-ray:|cf-cache-status:|content-type:|location:|set-cookie:|cf-mitigated:|cf-chl-|x-frame-options:|content-security-policy:)' "$headers" || true) | head -80
+            echo "🔎 Body snippet (first 60 lines):"
+            sed -n '1,60p' "$out" 2>/dev/null || true
             echo ""
           done
 
