@@ -312,11 +312,21 @@ jobs:
           # injecting <!--MWDEBUG:...--> when `?__debug=1` is present.
           for path in "/" "/dashboard" "/dashboard/settings" "/marketplace"; do
             url="https://micropaywall.app${path}?__debug=1"
-            out=".tmp/smoke$(echo "$path" | sed 's#[/]*#_#g').html"
+            safe_path="$(echo "$path" | sed 's#/#_#g')"
+            out=".tmp/smoke${safe_path}.html"
+            headers=".tmp/smoke${safe_path}.headers.txt"
             echo "🌐 Fetching $url"
-            curl -fsSL "$url" -o "$out" || true
+            # Use a browser-like UA and ALWAYS save body+headers (even if 403) so we can see what blocked it.
+            curl -sSL \
+              -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36" \
+              -D "$headers" \
+              "$url" -o "$out" || true
+            echo "   Saved: $out"
+            echo "   Saved headers: $headers"
             echo "🔎 MWDEBUG marker for $path:"
             grep -o 'MWDEBUG:{[^}]*}' "$out" | head -1 || echo "(no MWDEBUG marker found)"
+            echo "🔎 HTTP status line:"
+            head -1 "$headers" 2>/dev/null || echo "(no headers captured)"
             echo ""
           done
 
@@ -328,7 +338,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: smoke-html
-          path: apps/web/.tmp/*.html
+          path: |
+            apps/web/.tmp/*.html
+            apps/web/.tmp/*.headers.txt
 
       - name: Purge Cloudflare Cache
         run: |
