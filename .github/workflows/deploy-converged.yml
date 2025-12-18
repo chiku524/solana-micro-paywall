@@ -301,6 +301,35 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
+      - name: Post-deploy smoke check (capture MWDEBUG markers)
+        if: always()
+        working-directory: apps/web
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp
+
+          # NOTE: relies on Pages Functions middleware (`apps/web/functions/_middleware.ts`)
+          # injecting <!--MWDEBUG:...--> when `?__debug=1` is present.
+          for path in "/" "/dashboard" "/dashboard/settings" "/marketplace"; do
+            url="https://micropaywall.app${path}?__debug=1"
+            out=".tmp/smoke$(echo "$path" | sed 's#[/]*#_#g').html"
+            echo "🌐 Fetching $url"
+            curl -fsSL "$url" -o "$out" || true
+            echo "🔎 MWDEBUG marker for $path:"
+            grep -o 'MWDEBUG:{[^}]*}' "$out" | head -1 || echo "(no MWDEBUG marker found)"
+            echo ""
+          done
+
+          echo "📦 Captured smoke HTML files:"
+          ls -la .tmp | head -200 || true
+
+      - name: Upload smoke check HTML artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-html
+          path: apps/web/.tmp/*.html
+
       - name: Purge Cloudflare Cache
         run: |
           echo "🧹 Purging Cloudflare cache to clear cached responses..."

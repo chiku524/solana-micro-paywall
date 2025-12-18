@@ -44,8 +44,7 @@ export const metadata: Metadata = {
 // Static pages don't require RSC streaming, which is the root cause
 export const dynamic = 'force-static';
 export const revalidate = false;
-// CRITICAL: Cloudflare Pages requires edge runtime for dynamic routes
-export const runtime = 'edge';
+// Static route; do not force edge runtime (Next warns runtime=edge is incompatible with force-static).
 
 export default function MarketplacePage() {
   // CRITICAL: Return a simple div wrapper to avoid RSC streaming issues
