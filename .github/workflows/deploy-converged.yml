@@ -246,11 +246,56 @@ jobs:
           echo ""
           echo "   Deploying with wrangler..."
           # Safely pass commit message via environment variable to prevent shell interpretation
-          wrangler pages deploy .vercel/output \
-            --project-name=micropaywall \
-            --branch=${{ github.ref_name }} \
-            --commit-hash=${{ github.sha }} \
-            --commit-message="$COMMIT_MESSAGE"
+          #
+          # Cloudflare occasionally throttles API calls (error code 971). Retry with backoff.
+          # This is safe because Pages deploys are idempotent for the same artifact+commit hash.
+          MAX_ATTEMPTS=5
+          ATTEMPT=1
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo ""
+            echo "   Attempt $ATTEMPT/$MAX_ATTEMPTS..."
+            set +e
+            DEPLOY_OUT=$(wrangler pages deploy .vercel/output \
+              --project-name=micropaywall \
+              --branch=${{ github.ref_name }} \
+              --commit-hash=${{ github.sha }} \
+              --commit-message="$COMMIT_MESSAGE" 2>&1)
+            DEPLOY_EXIT=$?
+            set -e
+
+            echo "$DEPLOY_OUT"
+
+            if [ $DEPLOY_EXIT -eq 0 ]; then
+              echo ""
+              echo "✅ Wrangler deploy succeeded"
+              break
+            fi
+
+            if echo "$DEPLOY_OUT" | grep -q "code: 971"; then
+              # Exponential-ish backoff: 5s, 15s, 30s, 60s
+              case $ATTEMPT in
+                1) SLEEP_SECS=5 ;;
+                2) SLEEP_SECS=15 ;;
+                3) SLEEP_SECS=30 ;;
+                *) SLEEP_SECS=60 ;;
+              esac
+              echo ""
+              echo "⚠️  Cloudflare throttled request (code 971). Backing off for ${SLEEP_SECS}s then retrying..."
+              sleep $SLEEP_SECS
+              ATTEMPT=$((ATTEMPT+1))
+              continue
+            fi
+
+            echo ""
+            echo "❌ Wrangler deploy failed with exit code $DEPLOY_EXIT (non-971)."
+            exit $DEPLOY_EXIT
+          done
+
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            echo ""
+            echo "❌ Wrangler deploy failed after $MAX_ATTEMPTS attempts due to repeated throttling (code 971)."
+            exit $DEPLOY_EXIT
+          fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
