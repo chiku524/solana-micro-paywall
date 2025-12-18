@@ -10,7 +10,6 @@ import { ChildrenDebugger } from '../components/ui/children-debugger';
 import { NextDataInjector } from '../components/ui/next-data-injector';
 import { QuirksModeChecker } from '../components/ui/quirks-mode-checker';
 import { HydrationRecovery } from '../components/ui/hydration-recovery';
-import { ClientOnly } from '../components/ui/client-only';
 import { ServerHtmlCapture } from '../components/ui/server-html-capture';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -133,14 +132,10 @@ export default function RootLayout({
           <LayoutDebugger />
           <NextDataInjector />
           <AppProviders>
-            {/* CRITICAL: Use ClientOnly to prevent hydration mismatch */}
-            {/* Server renders null, client renders null initially, then children after mount */}
-            {/* This prevents React error #418 by ensuring server and client HTML match */}
-            <ClientOnly fallback={null}>
-              {/* CRITICAL FIX: Render children directly - ChildrenDebugger wrapper was preventing server components from rendering */}
-              {/* ChildrenDebugger is a client component wrapping server component children, which breaks rendering on Cloudflare Pages */}
-              {children}
-            </ClientOnly>
+            {/* Render children normally (server + client). */}
+            {/* We previously wrapped with ClientOnly(fallback=null), which prevents the server from emitting page UI at all */}
+            {/* and can result in empty RSC boundaries on Cloudflare. */}
+            {children}
             <HydrationRecovery>
               {/* HydrationRecovery now just logs issues, doesn't wrap children */}
               {null}
