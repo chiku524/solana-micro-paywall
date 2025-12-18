@@ -8,12 +8,19 @@ import { useEffect } from 'react';
  */
 export function QuirksModeChecker() {
   useEffect(() => {
+    const canIngest =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1');
+
     // CRITICAL: Log immediately to verify script is executing
     console.log('[Layout] Quirks Mode detection script executing...');
     console.log('[Layout] document.compatMode:', document.compatMode);
     
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'quirks-mode-checker.tsx:12',message:'Quirks Mode check',data:{compatMode:document.compatMode,doctype:document.doctype ? 'present' : 'missing',pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run4',hypothesisId:'C'})}).catch(()=>{});
+    if (canIngest) {
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'quirks-mode-checker.tsx:18',message:'Quirks Mode check',data:{compatMode:document.compatMode,doctype:document.doctype ? 'present' : 'missing',pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'C'})}).catch(()=>{});
+    }
     // #endregion
     
     // CRITICAL: Check for Quirks Mode immediately
@@ -67,83 +74,17 @@ export function QuirksModeChecker() {
     } else {
       console.log('[Layout] #__next root element found');
     }
-    
-    // CRITICAL: Check for __NEXT_DATA__ script tag and create if missing
-    // This must happen BEFORE React tries to hydrate
+
+    // CRITICAL:
+    // DO NOT create/mutate __NEXT_DATA__ in production.
+    // This DOM mutation is a common trigger for React hydration mismatch (#418),
+    // and Next.js App Router does not rely on __NEXT_DATA__ the way Pages Router did.
+    //
+    // If we ever need local experimentation, keep it localhost-only and use `NextDataInjector`,
+    // not this component.
     const nextDataScript = document.getElementById('__NEXT_DATA__');
-    const pathname = window.location.pathname;
-    
     if (!nextDataScript) {
-      console.warn('[Layout] CRITICAL: __NEXT_DATA__ script tag missing! Creating minimal version...');
-      const minimalNextData = {
-        props: { pageProps: {} },
-        page: pathname,
-        pathname: pathname,
-        query: {},
-        buildId: 'development',
-        isFallback: false,
-        gssp: true,
-        customServer: false,
-        appGip: false,
-        locale: undefined,
-        locales: undefined,
-        defaultLocale: undefined,
-        domainLocales: undefined,
-        scriptLoader: [],
-      };
-      
-      // Create script tag
-      const script = document.createElement('script');
-      script.id = '__NEXT_DATA__';
-      script.type = 'application/json';
-      script.setAttribute('data-nextjs-data', '');
-      script.textContent = JSON.stringify(minimalNextData);
-      
-      // Insert at the very beginning of body, before any other scripts
-      if (document.body.firstChild) {
-        document.body.insertBefore(script, document.body.firstChild);
-      } else {
-        document.body.appendChild(script);
-      }
-      
-      // Also set window property
-      (window as any).__NEXT_DATA__ = minimalNextData;
-      console.log('[Layout] Created __NEXT_DATA__ script tag with pathname:', pathname);
-    } else {
-      console.log('[Layout] __NEXT_DATA__ script tag found');
-      // Try to parse and set window property if not already set
-      let nextData = (window as any).__NEXT_DATA__;
-      if (!nextData) {
-        try {
-          nextData = JSON.parse(nextDataScript.textContent || '{}');
-          (window as any).__NEXT_DATA__ = nextData;
-          console.log('[Layout] Parsed __NEXT_DATA__ from script tag');
-        } catch (e) {
-          console.error('[Layout] Failed to parse __NEXT_DATA__:', e);
-          // Create minimal version if parsing fails
-          nextData = {
-            props: { pageProps: {} },
-            page: pathname,
-            pathname: pathname,
-            query: {},
-            buildId: 'development',
-            isFallback: false,
-            gssp: true,
-            customServer: false,
-            appGip: false,
-          };
-          (window as any).__NEXT_DATA__ = nextData;
-        }
-      }
-      
-      // CRITICAL: Ensure pathname is set correctly
-      if (!nextData.pathname || nextData.pathname === undefined) {
-        console.warn('[Layout] __NEXT_DATA__ missing pathname, updating...');
-        nextData.pathname = pathname;
-        nextData.page = pathname;
-        // Update script tag content
-        nextDataScript.textContent = JSON.stringify(nextData);
-      }
+      console.warn('[Layout] __NEXT_DATA__ script tag missing (expected on App Router). Not injecting.');
     }
     
     // Disable Cloudflare Rocket Loader immediately
