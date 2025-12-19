@@ -19,6 +19,30 @@ export function LayoutDebugger() {
     console.log('[LayoutDebugger] Current pathname:', pathname);
     console.log('[LayoutDebugger] Window location:', typeof window !== 'undefined' ? window.location.href : 'server');
     
+    // #region agent log
+    // Production-safe: Log children prop check
+    if (typeof window !== 'undefined') {
+      const reactRoot = document.getElementById('__next');
+      const childrenDebug = {
+        location: 'layout-debugger.tsx:20',
+        message: 'Layout children prop check',
+        data: {
+          pathname: pathname,
+          reactRootExists: !!reactRoot,
+          reactRootChildren: reactRoot?.children.length ?? 0,
+          hasDashboardContent: !!document.querySelector('[data-page="dashboard"]'),
+          hasMarketplaceContent: !!document.querySelector('[data-page="marketplace"]'),
+          hasDocsContent: !!document.querySelector('[data-page="docs"]'),
+        },
+        timestamp: Date.now(),
+        sessionId: 'prod-debug',
+        runId: 'layout-children',
+        hypothesisId: 'H5'
+      };
+      console.log('[DEBUG] Layout children check', JSON.stringify(childrenDebug, null, 2));
+    }
+    // #endregion
+    
     // Check if React has hydrated
     const checkHydration = () => {
       // CRITICAL: Check for React root - Next.js should create #__next

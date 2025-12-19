@@ -135,22 +135,6 @@ export default function RootLayout({
             {/* Render children normally (server + client). */}
             {/* We previously wrapped with ClientOnly(fallback=null), which prevents the server from emitting page UI at all */}
             {/* and can result in empty RSC boundaries on Cloudflare. */}
-            {/* #region agent log */}
-            {typeof window !== 'undefined' && console.log('[DEBUG] Layout children check', JSON.stringify({
-              location: 'layout.tsx:138',
-              message: 'Layout children prop check',
-              data: {
-                hasChildren: !!children,
-                childrenType: typeof children,
-                childrenIsArray: Array.isArray(children),
-                pathname: window.location.pathname
-              },
-              timestamp: Date.now(),
-              sessionId: 'prod-debug',
-              runId: 'layout-children',
-              hypothesisId: 'H5'
-            }, null, 2))}
-            {/* #endregion */}
             {children}
             <HydrationRecovery>
               {/* HydrationRecovery now just logs issues, doesn't wrap children */}
