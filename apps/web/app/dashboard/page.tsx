@@ -35,23 +35,22 @@ export default function DashboardPage() {
   }
   // #endregion
   
-  // CRITICAL FIX: Use Suspense with a fallback to ensure server renders HTML
-  // Without Suspense, @cloudflare/next-on-pages may not serialize the client component
-  // The fallback ensures there's always HTML for the client to hydrate into
+  // CRITICAL FIX: Render fallback content directly in server component
+  // @cloudflare/next-on-pages doesn't serialize client components properly,
+  // so we render the fallback HTML directly and let the client component replace it
   return (
     <div data-page="dashboard" data-route="/dashboard" suppressHydrationWarning>
-      <Suspense fallback={
-        <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <div className="mb-8">
-              <div className="mb-4 h-8 w-48 animate-pulse rounded bg-neutral-800" />
-              <div className="h-4 w-64 animate-pulse rounded bg-neutral-800" />
-            </div>
+      {/* Server-rendered fallback that ensures HTML is always present */}
+      <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" id="dashboard-server-fallback">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <div className="mb-4 h-8 w-48 animate-pulse rounded bg-neutral-800" />
+            <div className="h-4 w-64 animate-pulse rounded bg-neutral-800" />
           </div>
         </div>
-      }>
-        <DashboardClientWrapper />
-      </Suspense>
+      </div>
+      {/* Client component will replace the fallback on mount */}
+      <DashboardClientWrapper />
     </div>
   );
 }

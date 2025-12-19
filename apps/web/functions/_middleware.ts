@@ -77,10 +77,13 @@ export async function onRequest(context: {
   
   // Ensure DOCTYPE exists (but avoid rewriting the rest of the document).
   // NOTE: Avoid trimming/rewriting App Router HTML streams; it can trigger hydration mismatches.
-  if (!modifiedHtml.trimStart().startsWith('<!DOCTYPE')) {
+  // Check if DOCTYPE is missing (accounting for any leading whitespace/comments)
+  const trimmedStart = modifiedHtml.trimStart();
+  if (!trimmedStart.startsWith('<!DOCTYPE')) {
     console.log('[Middleware] CRITICAL: DOCTYPE missing! Adding it...');
     // CRITICAL: DOCTYPE must be first with no whitespace before it
-    modifiedHtml = '<!DOCTYPE html>' + modifiedHtml;
+    // Remove any leading whitespace/comments and prepend DOCTYPE
+    modifiedHtml = '<!DOCTYPE html>' + trimmedStart;
     // #region agent log (disabled in production)
     if (env.NODE_ENV === 'development') {
       fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'_middleware.ts:73',message:'DOCTYPE injected',data:{pathname:url.pathname,htmlStartAfter:modifiedHtml.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
