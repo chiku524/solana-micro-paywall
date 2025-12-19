@@ -18,7 +18,7 @@ export default function DashboardPage() {
   // Server-side: Log to console (Cloudflare Workers logs)
   if (typeof window === 'undefined') {
     console.log('[DashboardPage] Server render', JSON.stringify({
-      location: 'app/dashboard/page.tsx:13',
+      location: 'app/dashboard/page.tsx:16',
       message: 'DashboardPage (server) render - EXECUTING',
       data: { 
         envNodeEnv: process.env.NODE_ENV ?? 'unknown',
@@ -32,7 +32,7 @@ export default function DashboardPage() {
   } else {
     // Client-side: Log to browser console
     console.log('[DEBUG] DashboardPage server render (client-side)', JSON.stringify({
-      location: 'app/dashboard/page.tsx:13',
+      location: 'app/dashboard/page.tsx:16',
       message: 'DashboardPage (server) render - CLIENT HYDRATION',
       data: { 
         pathname: window.location.pathname,
@@ -46,5 +46,12 @@ export default function DashboardPage() {
   }
   // #endregion
   
-  return <DashboardPageClient />;
+  // CRITICAL FIX: Render a stable wrapper div that ensures HTML is always present
+  // This prevents empty RSC boundaries that cause hydration mismatches
+  // The client component will hydrate into this structure
+  return (
+    <div data-page="dashboard" data-route="/dashboard" suppressHydrationWarning>
+      <DashboardPageClient />
+    </div>
+  );
 }
