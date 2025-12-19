@@ -87,9 +87,46 @@ export async function onRequest(context: {
     }
     // #endregion
   }
-  // IMPORTANT: Do NOT rewrite RSC markers / body structure / __NEXT_DATA__.
+  // IMPORTANT: Do NOT rewrite RSC markers / body structure.
   // We have runtime evidence that the RSC marker replacement is producing a hidden
   // `<div data-rsc-placeholder="true">` in production, and React is throwing hydration error #418.
+  
+  // CRITICAL: Inject __NEXT_DATA__ if missing (required for Next.js App Router initialization)
+  // @cloudflare/next-on-pages doesn't inject it for edge runtime pages
+  if (!modifiedHtml.includes('__NEXT_DATA__')) {
+    const buildId = env.BUILD_ID || 'development';
+    const nextData = {
+      props: {
+        pageProps: {},
+        __NEXT_ROUTER_BASEPATH: '',
+        __NEXT_ROUTER_STATE_TREE: [url.pathname, { pathname: url.pathname, query: {}, asPath: url.pathname }, null, null, true, null, null, false],
+      },
+      page: url.pathname,
+      pathname: url.pathname,
+      query: {},
+      buildId: buildId,
+      isFallback: false,
+      gssp: true,
+      customServer: false,
+      appGip: false,
+      scriptLoader: [],
+    };
+    
+    const nextDataScript = `<script id="__NEXT_DATA__" type="application/json" data-nextjs-data="">${JSON.stringify(nextData)}</script>`;
+    
+    // Insert before closing </head> or before first script
+    if (modifiedHtml.includes('</head>')) {
+      modifiedHtml = modifiedHtml.replace('</head>', `${nextDataScript}</head>`);
+    } else if (modifiedHtml.includes('<body')) {
+      // If no </head>, insert right after <body>
+      modifiedHtml = modifiedHtml.replace(/<body[^>]*>/, `$&${nextDataScript}`);
+    } else {
+      // Last resort: prepend to HTML
+      modifiedHtml = `${nextDataScript}${modifiedHtml}`;
+    }
+    
+    console.log('[Middleware] Injected __NEXT_DATA__ for path:', url.pathname);
+  }
   
   // Create new response with modified HTML
   // #region agent log (disabled in production)
