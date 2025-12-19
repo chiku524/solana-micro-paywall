@@ -45,11 +45,30 @@ export function HydrationRecovery({ children }: { children: React.ReactNode }) {
           console.error('[HydrationRecovery] This indicates React error #418 caused rendering to abort');
           console.error('[HydrationRecovery] Root cause: Hydration mismatch - server HTML does not match client expectations');
           // #region agent log
-          const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-          if (isLocalhost) {
-            const childrenArray = Array.from(reactRoot.children);
-            fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run-local',hypothesisId:'H3',location:'hydration-recovery.tsx:42',message:'CRITICAL: Page content missing after hydration',data:{pathname:pathname,reactRootChildren:reactRoot.children.length,childrenTags:childrenArray.map(c=>({tag:c.tagName,id:c.id,className:c.className,textContent:c.textContent?.substring(0,50)})),hasPageContent:hasPageContent,shouldHaveContent:shouldHaveContent,reactRootHTML:reactRoot.innerHTML.substring(0,500)},timestamp:Date.now()})}).catch(()=>{});
-          }
+          // Production-safe: Log structured JSON to console for easy copying
+          const childrenArray = Array.from(reactRoot.children);
+          const debugData = {
+            sessionId: 'prod-debug',
+            runId: 'hydration-check',
+            hypothesisId: 'H3',
+            location: 'hydration-recovery.tsx:42',
+            message: 'CRITICAL: Page content missing after hydration',
+            data: {
+              pathname: pathname,
+              reactRootChildren: reactRoot.children.length,
+              childrenTags: childrenArray.map(c => ({
+                tag: c.tagName,
+                id: c.id,
+                className: c.className,
+                textContent: c.textContent?.substring(0, 50)
+              })),
+              hasPageContent: hasPageContent,
+              shouldHaveContent: shouldHaveContent,
+              reactRootHTML: reactRoot.innerHTML.substring(0, 500)
+            },
+            timestamp: Date.now()
+          };
+          console.error('[DEBUG] Hydration failure details:', JSON.stringify(debugData, null, 2));
           // #endregion
           // Don't auto-reload - it doesn't fix the issue and causes infinite loops
           // The real fix needs to address why server HTML doesn't match client expectations
@@ -72,11 +91,24 @@ export function HydrationRecovery({ children }: { children: React.ReactNode }) {
         hydrationErrorDetected = true;
         console.warn('[HydrationRecovery] React hydration error #418 detected, will attempt recovery...');
         // #region agent log
-        const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-        if (isLocalhost) {
-          const reactRoot = document.getElementById('__next');
-          fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run-local',hypothesisId:'H4',location:'hydration-recovery.tsx:66',message:'React hydration error #418 detected in console',data:{pathname:window.location.pathname,errorMessage:errorStr.substring(0,500),reactRootExists:!!reactRoot,reactRootChildren:reactRoot?.children.length ?? 0,reactRootHTML:reactRoot?.innerHTML.substring(0,500) ?? 'N/A'},timestamp:Date.now()})}).catch(()=>{});
-        }
+        // Production-safe: Log structured JSON to console
+        const reactRoot = document.getElementById('__next');
+        const debugData = {
+          sessionId: 'prod-debug',
+          runId: 'hydration-error',
+          hypothesisId: 'H4',
+          location: 'hydration-recovery.tsx:66',
+          message: 'React hydration error #418 detected in console',
+          data: {
+            pathname: window.location.pathname,
+            errorMessage: errorStr.substring(0, 500),
+            reactRootExists: !!reactRoot,
+            reactRootChildren: reactRoot?.children.length ?? 0,
+            reactRootHTML: reactRoot?.innerHTML.substring(0, 500) ?? 'N/A'
+          },
+          timestamp: Date.now()
+        };
+        console.error('[DEBUG] React #418 error details:', JSON.stringify(debugData, null, 2));
         // #endregion
         // Don't set state here - let checkContent handle it after delay
       }
