@@ -4,6 +4,7 @@ export const runtime = 'edge';
 // This ensures the server component actually renders HTML instead of empty RSC payload
 export const dynamic = 'force-dynamic';
 
+import { Suspense } from 'react';
 import { DashboardClientWrapper } from './dashboard-client-wrapper';
 
 export default function DashboardPage() {
@@ -34,12 +35,23 @@ export default function DashboardPage() {
   }
   // #endregion
   
-  // CRITICAL FIX: Wrap client component in a stable server-rendered div
-  // This ensures the server always renders HTML that the client can hydrate into
-  // Without this wrapper, the server might render an empty RSC payload
+  // CRITICAL FIX: Use Suspense with a fallback to ensure server renders HTML
+  // Without Suspense, @cloudflare/next-on-pages may not serialize the client component
+  // The fallback ensures there's always HTML for the client to hydrate into
   return (
-    <div data-server-rendered="true" suppressHydrationWarning>
-      <DashboardClientWrapper />
+    <div data-page="dashboard" data-route="/dashboard" suppressHydrationWarning>
+      <Suspense fallback={
+        <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="mb-8">
+              <div className="mb-4 h-8 w-48 animate-pulse rounded bg-neutral-800" />
+              <div className="h-4 w-64 animate-pulse rounded bg-neutral-800" />
+            </div>
+          </div>
+        </div>
+      }>
+        <DashboardClientWrapper />
+      </Suspense>
     </div>
   );
 }

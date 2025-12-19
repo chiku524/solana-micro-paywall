@@ -18,6 +18,10 @@ export function NextDataInjector() {
     // Only run on client
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
+    // CRITICAL: We MUST inject __NEXT_DATA__ in production because @cloudflare/next-on-pages
+    // doesn't inject it for edge runtime pages. Without it, Next.js cannot initialize.
+    // This is a necessary workaround until we migrate to Workers + Pages convergence.
+
     // Check if __NEXT_DATA__ script tag exists in HTML
     const existingScript = document.getElementById('__NEXT_DATA__');
     if (existingScript) {
