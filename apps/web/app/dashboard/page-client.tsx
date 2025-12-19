@@ -46,6 +46,29 @@ function DashboardPageContent() {
   // The server will render the loading state, and client will match it initially
   const [mounted, setMounted] = useState(true); // Start as true to match server render
   const [merchantId, setMerchantId] = useState<string>('');
+  
+  // #region agent log
+  // Log when component renders
+  if (typeof window !== 'undefined') {
+    console.log('[DEBUG] DashboardPageContent render', JSON.stringify({
+      location: 'page-client.tsx:42',
+      message: 'DashboardPageContent (client) render',
+      data: {
+        pathname: window.location.pathname,
+        mounted: mounted,
+        merchantId: merchantId,
+      },
+      timestamp: Date.now(),
+      sessionId: 'debug-session',
+      runId: 'client-render',
+      hypothesisId: 'H4'
+    }, null, 2));
+    // Also send to ingest if localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:42',message:'DashboardPageContent render',data:{pathname:window.location.pathname,mounted:mounted,merchantId:merchantId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H4'})}).catch(()=>{});
+    }
+  }
+  // #endregion
 
   useEffect(() => {
     console.log('[Dashboard] Component mounting');
@@ -315,6 +338,27 @@ function DashboardContent({ merchantId }: { merchantId: string }) {
 // This eliminates the hydration mismatch caused by Suspense boundaries
 // Wrap in ErrorBoundary at page level instead of layout level
 export function DashboardPageClient() {
+  // #region agent log
+  // Log when DashboardPageClient renders
+  if (typeof window !== 'undefined') {
+    console.log('[DEBUG] DashboardPageClient render', JSON.stringify({
+      location: 'page-client.tsx:317',
+      message: 'DashboardPageClient (client) render - ENTRY POINT',
+      data: {
+        pathname: window.location.pathname,
+        timestamp: Date.now(),
+      },
+      timestamp: Date.now(),
+      sessionId: 'debug-session',
+      runId: 'client-render',
+      hypothesisId: 'H4'
+    }, null, 2));
+    // Also send to ingest if localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:317',message:'DashboardPageClient render',data:{pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H4'})}).catch(()=>{});
+    }
+  }
+  // #endregion
   // CRITICAL: Add logging to verify this client component is being called
   console.log('[DashboardPageClient] Client component rendering');
   // #region agent log

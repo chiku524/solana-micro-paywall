@@ -102,10 +102,47 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   // #region agent log
-  if (typeof window !== 'undefined') {
-    // Avoid production browsers attempting localhost logging (blocked by Chrome Local Network Access)
+  // Server-side: Log to console (Cloudflare Workers logs)
+  if (typeof window === 'undefined') {
+    const childrenInfo = {
+      hasChildren: !!children,
+      childrenType: typeof children,
+      childrenIsArray: Array.isArray(children),
+      childrenIsNull: children === null,
+      childrenIsUndefined: children === undefined,
+      childrenStringified: String(children).substring(0, 200),
+    };
+    console.log('[RootLayout] Server render', JSON.stringify({
+      location: 'layout.tsx:104',
+      message: 'RootLayout (server) render',
+      data: childrenInfo,
+      timestamp: Date.now(),
+      sessionId: 'debug-session',
+      runId: 'server-render',
+      hypothesisId: 'H2'
+    }));
+  } else {
+    // Client-side: Log to console with structured JSON
+    const childrenInfo = {
+      hasChildren: !!children,
+      childrenType: typeof children,
+      pathname: window.location.pathname,
+      childrenIsArray: Array.isArray(children),
+      childrenIsNull: children === null,
+      childrenIsUndefined: children === undefined,
+    };
+    console.log('[DEBUG] RootLayout client render', JSON.stringify({
+      location: 'layout.tsx:104',
+      message: 'RootLayout (client) render',
+      data: childrenInfo,
+      timestamp: Date.now(),
+      sessionId: 'debug-session',
+      runId: 'client-render',
+      hypothesisId: 'H2'
+    }, null, 2));
+    // Also send to ingest if localhost
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:97',message:'RootLayout render',data:{hasChildren:!!children,pathname:window.location.pathname,childrenType:typeof children},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:104',message:'RootLayout render',data:childrenInfo,timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
     }
   }
   // #endregion
