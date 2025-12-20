@@ -94,30 +94,37 @@ export async function onRequest(context: {
   // We have runtime evidence that the RSC marker replacement is producing a hidden
   // `<div data-rsc-placeholder="true">` in production, and React is throwing hydration error #418.
   
-  // CRITICAL: Inject __NEXT_DATA__ if missing (required for Next.js App Router initialization)
-  // @cloudflare/next-on-pages doesn't inject it for edge runtime pages
-  if (!modifiedHtml.includes('__NEXT_DATA__')) {
-    const buildId = env.BUILD_ID || 'development';
-    const nextData = {
-      props: {
-        pageProps: {},
-        __NEXT_ROUTER_BASEPATH: '',
-        __NEXT_ROUTER_STATE_TREE: [url.pathname, { pathname: url.pathname, query: {}, asPath: url.pathname }, null, null, true, null, null, false],
-      },
-      page: url.pathname,
-      pathname: url.pathname,
-      query: {},
-      buildId: buildId,
-      isFallback: false,
-      gssp: true,
-      customServer: false,
-      appGip: false,
-      scriptLoader: [],
-    };
-    
-    const nextDataScript = `<script id="__NEXT_DATA__" type="application/json" data-nextjs-data="">${JSON.stringify(nextData)}</script>`;
-    
-    // Insert before closing </head> or before first script
+  // CRITICAL: Always ensure __NEXT_DATA__ exists with correct values
+  // @cloudflare/next-on-pages doesn't inject it properly, or injects it with undefined values
+  // We need to either inject it or replace existing one with correct values
+  const buildId = env.BUILD_ID || 'development';
+  const correctNextData = {
+    props: {
+      pageProps: {},
+      __NEXT_ROUTER_BASEPATH: '',
+      __NEXT_ROUTER_STATE_TREE: [url.pathname, { pathname: url.pathname, query: {}, asPath: url.pathname }, null, null, true, null, null, false],
+    },
+    page: url.pathname,
+    pathname: url.pathname,
+    query: {},
+    buildId: buildId,
+    isFallback: false,
+    gssp: true,
+    customServer: false,
+    appGip: false,
+    scriptLoader: [],
+  };
+  
+  const nextDataScript = `<script id="__NEXT_DATA__" type="application/json" data-nextjs-data="">${JSON.stringify(correctNextData)}</script>`;
+  
+  // Check if __NEXT_DATA__ already exists
+  const nextDataRegex = /<script[^>]*id="__NEXT_DATA__"[^>]*>[\s\S]*?<\/script>/i;
+  if (nextDataRegex.test(modifiedHtml)) {
+    // Replace existing __NEXT_DATA__ with correct values
+    modifiedHtml = modifiedHtml.replace(nextDataRegex, nextDataScript);
+    console.log('[Middleware] Replaced existing __NEXT_DATA__ with correct values for path:', url.pathname);
+  } else {
+    // Inject __NEXT_DATA__ if missing
     if (modifiedHtml.includes('</head>')) {
       modifiedHtml = modifiedHtml.replace('</head>', `${nextDataScript}</head>`);
     } else if (modifiedHtml.includes('<body')) {
@@ -127,7 +134,6 @@ export async function onRequest(context: {
       // Last resort: prepend to HTML
       modifiedHtml = `${nextDataScript}${modifiedHtml}`;
     }
-    
     console.log('[Middleware] Injected __NEXT_DATA__ for path:', url.pathname);
   }
   
