@@ -115,12 +115,9 @@ function DashboardPageContent() {
   // #region agent log
   fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:98',message:'DashboardPageContent render',data:{mounted:mounted,merchantId:currentMerchantId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
   // #endregion
-  // Match landing page pattern - client component handles its own wrapper
-  return (
-    <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
-      <DashboardContent merchantId={currentMerchantId} />
-    </div>
-  );
+  // Server component already provides the wrapper div, so we just render content
+  // The wrapper structure must match what server renders for proper hydration
+  return <DashboardContent merchantId={currentMerchantId} />;
 }
 
 // Extract the main content to a separate component for cleaner code
@@ -343,7 +340,7 @@ export function DashboardPageClient() {
   // Log when DashboardPageClient renders
   if (typeof window !== 'undefined') {
     console.log('[DEBUG] DashboardPageClient render', JSON.stringify({
-      location: 'page-client.tsx:317',
+      location: 'page-client.tsx:339',
       message: 'DashboardPageClient (client) render - ENTRY POINT',
       data: {
         pathname: window.location.pathname,
@@ -356,26 +353,22 @@ export function DashboardPageClient() {
     }, null, 2));
     // Also send to ingest if localhost
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:317',message:'DashboardPageClient render',data:{pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H4'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:339',message:'DashboardPageClient render',data:{pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H4'})}).catch(()=>{});
     }
   }
   // #endregion
-  // CRITICAL: Add logging to verify this client component is being called
-  console.log('[DashboardPageClient] Client component rendering');
-  // #region agent log
-  // Production-safe: Log structured JSON to console
-  if (typeof window !== 'undefined') {
-    console.log('[DEBUG] DashboardPageClient render', JSON.stringify({
-      location: 'page-client.tsx:317',
-      message: 'DashboardPageClient render start',
-      data: { pathname: window.location.pathname, hasWindow: true },
-      timestamp: Date.now(),
-      sessionId: 'prod-debug',
-      runId: 'client-render',
-      hypothesisId: 'A'
-    }, null, 2));
-  }
-  // #endregion
+  
+  // CRITICAL: Remove server-rendered placeholder on mount and render into existing wrapper
+  useEffect(() => {
+    // Find the server-rendered wrapper div
+    const wrapper = document.querySelector('[data-page="dashboard"]');
+    if (wrapper) {
+      // Remove the placeholder content (animate-pulse elements)
+      const pulseElements = wrapper.querySelectorAll('.animate-pulse');
+      pulseElements.forEach(el => el.remove());
+      console.log('[DashboardPageClient] Removed server placeholder, rendering into existing wrapper');
+    }
+  }, []);
   
   // CRITICAL: Add useEffect to verify component mounts and check DOM
   useEffect(() => {
