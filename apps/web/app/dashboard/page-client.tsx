@@ -115,10 +115,12 @@ function DashboardPageContent() {
   // #region agent log
   fetch('http://127.0.0.1:7243/ingest/58d8abd3-b384-4728-8b61-35208e2e155a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page-client.tsx:98',message:'DashboardPageContent render',data:{mounted:mounted,merchantId:currentMerchantId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
   // #endregion
-  // CRITICAL: The outer wrapper div must match what the server component renders
-  // The server component now wraps DashboardPageClient in a div with data-page="dashboard"
-  // So we don't need another wrapper here - just render the content directly
-  return <DashboardContent merchantId={currentMerchantId} />;
+  // Match landing page pattern - client component handles its own wrapper
+  return (
+    <div className="min-h-screen bg-transparent relative z-10" data-page="dashboard" data-route="/dashboard">
+      <DashboardContent merchantId={currentMerchantId} />
+    </div>
+  );
 }
 
 // Extract the main content to a separate component for cleaner code
