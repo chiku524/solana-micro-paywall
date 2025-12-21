@@ -15,6 +15,14 @@ const loginSchema = z.object({
 
 app.post('/login', async (c) => {
   try {
+    // Validate bindings are available
+    if (!c.env.DB) {
+      return c.json({ error: 'Configuration Error', message: 'Database binding not configured' }, 500);
+    }
+    if (!c.env.JWT_SECRET) {
+      return c.json({ error: 'Configuration Error', message: 'JWT secret not configured' }, 500);
+    }
+    
     const body = await c.req.json();
     const { email, merchantId } = loginSchema.parse(body);
     
