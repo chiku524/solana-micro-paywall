@@ -21,7 +21,7 @@ export default function SettingsPage() {
   
   const { data: merchant, mutate } = useSWR(
     token ? ['/api/merchants/me', token] : null,
-    ([url, t]) => apiGet(url, t)
+    ([url, t]: [string, string]) => apiGet(url, t)
   );
   
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

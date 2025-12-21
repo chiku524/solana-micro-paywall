@@ -133,7 +133,7 @@ export function PaymentWidget({
       setIsProcessing(false);
       onPaymentError?.(err);
     }
-  }, [connected, publicKey, sendTransaction, connection, contentId, onPaymentSuccess, onPaymentError]);
+  }, [connected, publicKey, sendTransaction, connection, contentId, priceLamports, onPaymentSuccess, onPaymentError]);
 
   return (
     <>

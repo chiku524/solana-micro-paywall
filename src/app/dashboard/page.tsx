@@ -33,12 +33,12 @@ export default function DashboardPage() {
   
   const { data: stats } = useSWR(
     token ? ['/api/analytics/stats', token] : null,
-    ([url, t]) => apiGet(url, t)
+    ([url, t]: [string, string]) => apiGet(url, t)
   );
   
   const { data: recentPayments } = useSWR(
     token ? ['/api/analytics/recent-payments', token] : null,
-    ([url, t]) => apiGet(url, t)
+    ([url, t]: [string, string]) => apiGet(url, t)
   );
   
   const handleLogin = async () => {

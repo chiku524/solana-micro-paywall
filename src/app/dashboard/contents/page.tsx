@@ -29,7 +29,7 @@ export default function ContentsPage() {
   
   const { data, mutate } = useSWR<{ contents: Content[] }>(
     token ? ['/api/contents', token] : null,
-    ([url, t]) => apiGet(url, t)
+    ([url, t]: [string, string]) => apiGet(url, t)
   );
   
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
