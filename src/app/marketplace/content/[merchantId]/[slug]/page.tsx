@@ -16,7 +16,7 @@ export default function ContentDetailPage() {
   
   const { data: content, error } = useSWR<Content>(
     `/api/contents/merchant/${merchantId}/${slug}`,
-    apiGet
+    (url: string) => apiGet(url)
   );
   
   if (error) {
