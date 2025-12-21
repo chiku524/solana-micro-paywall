@@ -15,11 +15,11 @@ export function Navbar() {
   ];
   
   return (
-    <nav className="border-b border-neutral-800 bg-neutral-950">
+    <nav className="border-b border-neutral-800 bg-neutral-950/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-emerald-400">
+            <Link href="/" className="text-xl font-bold text-emerald-400 hover:text-emerald-300 transition-colors">
               Solana Paywall
             </Link>
             <div className="ml-10 flex space-x-4">
@@ -44,7 +44,10 @@ export function Navbar() {
               <Button variant="ghost" size="sm">My Library</Button>
             </Link>
             <Link href="/dashboard">
-              <Button variant="primary" size="sm">Dashboard</Button>
+              <Button variant="ghost" size="sm">Sign In</Button>
+            </Link>
+            <Link href="/dashboard">
+              <Button variant="primary" size="sm">Get Started</Button>
             </Link>
           </div>
         </div>

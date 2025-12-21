@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { Navbar } from '@/components/navbar';
+import { Footer } from '@/components/footer';
 import { PaymentWidget } from '@/components/payment-widget-enhanced';
 import { apiGet } from '@/lib/api';
 import { formatSol } from '@/lib/utils';
@@ -57,9 +58,9 @@ function ContentDetailContent() {
   }
   
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-neutral-950 flex flex-col">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {content.thumbnailUrl && (
           <div className="relative w-full aspect-video bg-neutral-900 rounded-lg overflow-hidden mb-8">
             <img
@@ -109,6 +110,7 @@ function ContentDetailContent() {
           />
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { SolanaWalletProvider } from '@/lib/wallet-provider';
+import { AnimatedBackground } from '@/components/ui/animated-background';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,6 +20,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={inter.className}>
         <SolanaWalletProvider>
+          <AnimatedBackground />
           {children}
         </SolanaWalletProvider>
       </body>

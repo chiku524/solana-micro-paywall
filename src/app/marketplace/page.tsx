@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Navbar } from '@/components/navbar';
+import { Footer } from '@/components/footer';
 import { ContentCard } from '@/components/content-card';
 import { apiGet } from '@/lib/api';
 import type { Content } from '@/types';
@@ -60,6 +61,7 @@ export default function MarketplacePage() {
           )}
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

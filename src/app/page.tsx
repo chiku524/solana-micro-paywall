@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/navbar';
+import { Footer } from '@/components/footer';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-neutral-950 flex flex-col">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <section className="text-center py-20">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
@@ -59,6 +60,7 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

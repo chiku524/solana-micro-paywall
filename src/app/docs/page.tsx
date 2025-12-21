@@ -1,10 +1,11 @@
 import { Navbar } from '@/components/navbar';
+import { Footer } from '@/components/footer';
 
 export default function DocsPage() {
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-neutral-950 flex flex-col">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold text-white mb-8">Documentation</h1>
         
         <section className="mb-12">
@@ -36,6 +37,7 @@ export default function DocsPage() {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

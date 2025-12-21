@@ -7,10 +7,6 @@ const nextConfig = {
   },
   trailingSlash: true,
   reactStrictMode: true,
-  // Disable static optimization for dynamic routes in export mode
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  },
 };
 
 module.exports = nextConfig;

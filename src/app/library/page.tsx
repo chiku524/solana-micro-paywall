@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Navbar } from '@/components/navbar';
+import { Footer } from '@/components/footer';
 import { ContentCard } from '@/components/content-card';
 import { apiGet } from '@/lib/api';
 import type { Purchase, Content } from '@/types';
@@ -19,9 +20,9 @@ export default function LibraryPage() {
   const [contents, setContents] = useState<Record<string, Content>>({});
   
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-neutral-950 flex flex-col">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold text-white mb-8">My Library</h1>
         
         <div className="mb-8">
@@ -56,6 +57,7 @@ export default function LibraryPage() {
           <p className="text-neutral-400">Enter your wallet address to view your library</p>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
