@@ -51,8 +51,12 @@ export async function verifyTransaction(
     }
 
     // Check SOL balance changes
-    const recipientIndex = tx.transaction.message.accountKeys.findIndex(
-      (key) => key.toString() === expectedRecipient
+    // Note: This is a legacy function - use verifyPaymentTransaction from transaction-verification.ts instead
+    const accountKeys = tx.transaction.message instanceof Transaction
+      ? tx.transaction.message.accountKeys
+      : (tx.transaction.message as any).staticAccountKeys || [];
+    const recipientIndex = accountKeys.findIndex(
+      (key: any) => key.toString() === expectedRecipient
     );
 
     if (recipientIndex !== -1) {

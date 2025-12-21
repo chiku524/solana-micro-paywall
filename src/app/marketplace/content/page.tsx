@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { Navbar } from '@/components/navbar';
 import { PaymentWidget } from '@/components/payment-widget-enhanced';
@@ -9,15 +9,26 @@ import { apiGet } from '@/lib/api';
 import { formatSol } from '@/lib/utils';
 import type { Content } from '@/types';
 
-export default function ContentDetailPage() {
-  const params = useParams();
-  const merchantId = params.merchantId as string;
-  const slug = params.slug as string;
+function ContentDetailContent() {
+  const searchParams = useSearchParams();
+  const merchantId = searchParams.get('merchantId');
+  const slug = searchParams.get('slug');
   
   const { data: content, error } = useSWR<Content>(
-    `/api/contents/merchant/${merchantId}/${slug}`,
-    (url: string) => apiGet(url)
+    merchantId && slug ? `/api/contents/merchant/${merchantId}/${slug}` : null,
+    (url: string) => apiGet<Content>(url)
   );
+  
+  if (!merchantId || !slug) {
+    return (
+      <div className="min-h-screen bg-neutral-950">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <p className="text-red-400">Invalid content URL</p>
+        </div>
+      </div>
+    );
+  }
   
   if (error) {
     return (
@@ -34,7 +45,7 @@ export default function ContentDetailPage() {
     return (
       <div className="min-h-screen bg-neutral-950">
         <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse">
             <div className="bg-neutral-900 h-96 rounded-lg mb-6" />
             <div className="bg-neutral-900 h-8 w-1/2 rounded-lg mb-4" />
@@ -99,5 +110,24 @@ export default function ContentDetailPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ContentDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-neutral-950">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="animate-pulse">
+            <div className="bg-neutral-900 h-96 rounded-lg mb-6" />
+            <div className="bg-neutral-900 h-8 w-1/2 rounded-lg mb-4" />
+            <div className="bg-neutral-900 h-4 w-full rounded-lg" />
+          </div>
+        </div>
+      </div>
+    }>
+      <ContentDetailContent />
+    </Suspense>
   );
 }

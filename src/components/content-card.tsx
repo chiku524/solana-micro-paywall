@@ -10,7 +10,7 @@ interface ContentCardProps {
 export function ContentCard({ content, merchantName }: ContentCardProps) {
   return (
     <Link
-      href={`/marketplace/content/${content.merchantId}/${content.slug}`}
+      href={`/marketplace/content?merchantId=${content.merchantId}&slug=${content.slug}`}
       className="block bg-neutral-900 rounded-lg overflow-hidden hover:bg-neutral-800 transition-colors"
     >
       {content.thumbnailUrl && (

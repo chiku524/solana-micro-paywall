@@ -12,7 +12,7 @@ export default function LibraryPage() {
   
   const { data: purchases } = useSWR<{ purchases: Purchase[] }>(
     walletAddress ? `/api/purchases/wallet/${walletAddress}` : null,
-    (url: string) => apiGet(url)
+    walletAddress ? (url: string) => apiGet<{ purchases: Purchase[] }>(url) : null
   );
   
   // Fetch content for each purchase (simplified - in production, backend should return content)

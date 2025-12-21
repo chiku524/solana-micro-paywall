@@ -10,12 +10,12 @@ import type { Content } from '@/types';
 export default function MarketplacePage() {
   const { data: trending, isLoading: trendingLoading } = useSWR<{ content: Content[] }>(
     '/api/discover/trending',
-    (url: string) => apiGet(url)
+    (url: string) => apiGet<{ content: Content[] }>(url)
   );
   
   const { data: recent, isLoading: recentLoading } = useSWR<{ content: Content[] }>(
     '/api/discover/recent',
-    (url: string) => apiGet(url)
+    (url: string) => apiGet<{ content: Content[] }>(url)
   );
   
   return (
