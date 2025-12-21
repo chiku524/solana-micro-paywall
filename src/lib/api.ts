@@ -1,6 +1,23 @@
 // API client utilities
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+// Use relative URLs for production (same origin), or allow override via env var for local dev
+function getApiUrl(): string {
+  // In browser, check for environment variable override (for local dev)
+  if (typeof window !== 'undefined') {
+    // If NEXT_PUBLIC_API_URL is explicitly set, use it (for local development)
+    if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== 'https://micropaywall.app') {
+      return process.env.NEXT_PUBLIC_API_URL;
+    }
+    // Otherwise use relative URLs (same origin) - works for production
+    // Cloudflare Pages + Workers converged deployment serves both frontend and API from same domain
+    return '';
+  }
+  
+  // Fallback for server-side (shouldn't happen with static export)
+  return process.env.NEXT_PUBLIC_API_URL || '';
+}
+
+const API_URL = getApiUrl();
 
 export class ApiError extends Error {
   constructor(
