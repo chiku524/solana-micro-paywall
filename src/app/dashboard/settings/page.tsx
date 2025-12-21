@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { apiGet, apiPut } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import type { Merchant } from '@/types';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function SettingsPage() {
     }
   }, [router]);
   
-  const { data: merchant, mutate } = useSWR(
+  const { data: merchant, mutate } = useSWR<Merchant>(
     token ? ['/api/merchants/me', token] : null,
     ([url, t]: [string, string]) => apiGet(url, t)
   );
