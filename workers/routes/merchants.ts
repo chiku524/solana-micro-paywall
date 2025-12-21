@@ -27,6 +27,14 @@ const updateMerchantSchema = z.object({
 // Create merchant (public)
 app.post('/', async (c) => {
   try {
+    // Validate bindings are available
+    if (!c.env.DB) {
+      return c.json({ error: 'Configuration Error', message: 'Database binding not configured' }, 500);
+    }
+    if (!c.env.CACHE) {
+      return c.json({ error: 'Configuration Error', message: 'KV cache binding not configured' }, 500);
+    }
+    
     // Rate limiting
     const ip = c.req.header('CF-Connecting-IP') || 'unknown';
     const rateLimitKey = getRateLimitKey(ip, 'create-merchant');
@@ -68,6 +76,7 @@ app.post('/', async (c) => {
     if (error instanceof z.ZodError) {
       return c.json({ error: 'Bad Request', message: error.errors[0].message }, 400);
     }
+    console.error('Error creating merchant:', error);
     throw error;
   }
 });

@@ -6,10 +6,16 @@ export interface RateLimitConfig {
 }
 
 export async function checkRateLimit(
-  kv: KVNamespace,
+  kv: KVNamespace | undefined,
   key: string,
   config: RateLimitConfig
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  // If KV is not available, allow the request (fail open)
+  if (!kv) {
+    console.warn('KV namespace not available, skipping rate limiting');
+    return { allowed: true, remaining: config.limit, resetAt: Math.floor(Date.now() / 1000) + config.windowSeconds };
+  }
+  
   const cacheKey = `ratelimit:${key}`;
   const now = Math.floor(Date.now() / 1000);
   
