@@ -1,4 +1,4 @@
-name = "solana-micro-paywall"
+name = "micropaywall-api"
 main = "workers/index.ts"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 # Pages deployments use command-line flags instead
 
 [env.production]
-name = "solana-micro-paywall"
+name = "micropaywall-api"
 
 [env.production.vars]
 NODE_ENV = "production"
@@ -22,7 +22,7 @@ binding = "CACHE"
 id = "YOUR_KV_NAMESPACE_ID"
 
 [env.development]
-name = "solana-micro-paywall-dev"
+name = "micropaywall-api-dev"
 
 [env.development.vars]
 NODE_ENV = "development"

@@ -1,20 +1,24 @@
 // API client utilities
 
-// Use relative URLs for production (same origin), or allow override via env var for local dev
+// Use API subdomain for production, or allow override via env var for local dev
 function getApiUrl(): string {
   // In browser, check for environment variable override (for local dev)
   if (typeof window !== 'undefined') {
     // If NEXT_PUBLIC_API_URL is explicitly set, use it (for local development)
-    if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== 'https://micropaywall.app') {
+    if (process.env.NEXT_PUBLIC_API_URL) {
       return process.env.NEXT_PUBLIC_API_URL;
     }
-    // Otherwise use relative URLs (same origin) - works for production
-    // Cloudflare Pages + Workers converged deployment serves both frontend and API from same domain
+    // In production, use API subdomain
+    // Pages: micropaywall.app, Workers: api.micropaywall.app
+    if (window.location.hostname === 'micropaywall.app' || window.location.hostname.endsWith('.micropaywall.app')) {
+      return 'https://api.micropaywall.app';
+    }
+    // Fallback for other domains (e.g., preview deployments)
     return '';
   }
   
   // Fallback for server-side (shouldn't happen with static export)
-  return process.env.NEXT_PUBLIC_API_URL || '';
+  return process.env.NEXT_PUBLIC_API_URL || 'https://api.micropaywall.app';
 }
 
 const API_URL = getApiUrl();
