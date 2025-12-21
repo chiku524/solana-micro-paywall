@@ -44,13 +44,27 @@ async function request<T>(
     },
   });
   
-  const data = await response.json();
+  // Handle empty responses (like 405 Method Not Allowed with no body)
+  const contentType = response.headers.get('content-type');
+  let data: any;
+  
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      const text = await response.text();
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      data = {};
+    }
+  } else {
+    // Non-JSON response or empty body
+    data = {};
+  }
   
   if (!response.ok) {
     throw new ApiError(
       response.status,
-      data.error || 'Unknown Error',
-      data.message || 'An error occurred'
+      data.error || `HTTP ${response.status}`,
+      data.message || response.statusText || 'An error occurred'
     );
   }
   
