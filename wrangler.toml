@@ -14,12 +14,12 @@ NODE_ENV = "production"
 
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "solana-paywall-db"
-database_id = "YOUR_DATABASE_ID"
+database_name = "micropaywall-db"
+database_id = "9fb849f1-b895-4670-baca-cdec2767f8c4"
 
 [[env.production.kv_namespaces]]
 binding = "CACHE"
-id = "YOUR_KV_NAMESPACE_ID"
+id = "7b095fcc4cb74cc787c1e7a20bf895a0"
 
 [env.development]
 name = "micropaywall-api-dev"
@@ -29,10 +29,10 @@ NODE_ENV = "development"
 
 [[env.development.d1_databases]]
 binding = "DB"
-database_name = "solana-paywall-db"
-database_id = "YOUR_DATABASE_ID"
+database_name = "micropaywall-db"
+database_id = "9fb849f1-b895-4670-baca-cdec2767f8c4"
 
 [[env.development.kv_namespaces]]
 binding = "CACHE"
-id = "YOUR_KV_NAMESPACE_ID"
+id = "0ab7737d5e184851a1127d4ecc4b1102"
 
