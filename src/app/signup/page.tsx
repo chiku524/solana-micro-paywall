@@ -76,12 +76,31 @@ export default function SignupPage() {
           {success ? (
             <div className="space-y-4">
               <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-4">
-                <p className="text-emerald-400 font-semibold mb-2">Account Created Successfully!</p>
-                <p className="text-neutral-300 text-sm mb-4">
-                  Your Merchant ID: <code className="bg-neutral-800 px-2 py-1 rounded text-emerald-400">{merchantId}</code>
-                </p>
+                <p className="text-emerald-400 font-semibold mb-4">Account Created Successfully!</p>
+                
+                <div className="bg-neutral-800 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-neutral-400 mb-1">Your Merchant ID (save this for reference):</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 bg-neutral-900 px-3 py-2 rounded text-emerald-400 text-sm break-all">
+                      {merchantId}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(merchantId);
+                        alert('Merchant ID copied to clipboard!');
+                      }}
+                      className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm transition-colors"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                
                 <p className="text-neutral-400 text-sm">
-                  Redirecting to dashboard...
+                  Logging you in and redirecting to dashboard...
+                </p>
+                <p className="text-xs text-neutral-500 mt-2">
+                  💡 Tip: You can always login with your email address instead of Merchant ID
                 </p>
               </div>
             </div>
