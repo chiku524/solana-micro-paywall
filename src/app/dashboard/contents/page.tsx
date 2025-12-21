@@ -6,6 +6,8 @@ import useSWR from 'swr';
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
+import { Navbar } from '@/components/navbar';
+import { Footer } from '@/components/footer';
 import { formatSol } from '@/lib/utils';
 import type { Content } from '@/types';
 
@@ -56,8 +58,9 @@ export default function ContentsPage() {
   };
   
   return (
-    <div className="min-h-screen bg-neutral-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-neutral-950 flex flex-col">
+      <Navbar />
+      <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-white">Content Management</h1>
           <Button onClick={() => setIsCreateModalOpen(true)}>Create Content</Button>
@@ -134,6 +137,7 @@ export default function ContentsPage() {
           </form>
         </Modal>
       </div>
+      <Footer />
     </div>
   );
 }

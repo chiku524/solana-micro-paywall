@@ -20,8 +20,8 @@ export function AnimatedBackground() {
     setCanvasSize();
     window.addEventListener('resize', setCanvasSize);
 
-    // Particle class for Solana blocks/transactions
-    class SolanaBlock {
+    // Particle class for blockchain transaction blocks
+    class TransactionBlock {
       x: number;
       y: number;
       size: number;
@@ -34,9 +34,9 @@ export function AnimatedBackground() {
       constructor(canvasWidth: number, canvasHeight: number) {
         this.x = Math.random() * canvasWidth;
         this.y = Math.random() * canvasHeight;
-        this.size = Math.random() * 3 + 1;
-        this.speed = Math.random() * 0.5 + 0.2;
-        this.opacity = Math.random() * 0.3 + 0.1;
+      this.size = Math.random() * 5 + 3; // Increased size for better visibility
+      this.speed = Math.random() * 1 + 0.4; // Slightly faster movement
+      this.opacity = Math.random() * 0.5 + 0.3; // Increased opacity for better visibility
         this.glow = Math.random() * 0.5 + 0.5;
         this.rotation = Math.random() * Math.PI * 2;
         this.rotationSpeed = (Math.random() - 0.5) * 0.02;
@@ -57,24 +57,28 @@ export function AnimatedBackground() {
         ctx.translate(this.x, this.y);
         ctx.rotate(this.rotation);
 
-        // Create glow effect
-        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 3);
-        gradient.addColorStop(0, `rgba(16, 185, 129, ${this.opacity * this.glow})`);
-        gradient.addColorStop(0.5, `rgba(16, 185, 129, ${this.opacity * 0.5})`);
-        gradient.addColorStop(1, `rgba(16, 185, 129, 0)`);
+        // Create glow effect (blockchain-agnostic neon color)
+        // Color can be easily changed: Emerald (16,185,129), Blue (59,130,246), Purple (147,51,234)
+        const glowColor = '16, 185, 129'; // Emerald green - default, easily configurable
+        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 5);
+        gradient.addColorStop(0, `rgba(${glowColor}, ${this.opacity * this.glow * 0.8})`);
+        gradient.addColorStop(0.3, `rgba(${glowColor}, ${this.opacity * 0.7})`);
+        gradient.addColorStop(0.6, `rgba(${glowColor}, ${this.opacity * 0.4})`);
+        gradient.addColorStop(0.9, `rgba(${glowColor}, ${this.opacity * 0.1})`);
+        gradient.addColorStop(1, `rgba(${glowColor}, 0)`);
 
         ctx.fillStyle = gradient;
-        ctx.fillRect(-this.size, -this.size, this.size * 2, this.size * 2);
+        ctx.fillRect(-this.size * 2.5, -this.size * 2.5, this.size * 5, this.size * 5);
 
-        // Draw block/transaction shape (small rectangle)
-        ctx.fillStyle = `rgba(16, 185, 129, ${this.opacity})`;
-        ctx.fillRect(-this.size * 0.8, -this.size * 0.4, this.size * 1.6, this.size * 0.8);
+        // Draw blockchain transaction block shape (rectangular block)
+        ctx.fillStyle = `rgba(${glowColor}, ${this.opacity * 1.2})`;
+        ctx.fillRect(-this.size * 0.9, -this.size * 0.5, this.size * 1.8, this.size * 1);
 
         ctx.restore();
       }
     }
 
-    // Connection lines between blocks (representing transactions)
+    // Connection lines between blocks (representing transaction chains)
     class ConnectionLine {
       x1: number;
       y1: number;
@@ -84,7 +88,7 @@ export function AnimatedBackground() {
       speed: number;
       length: number;
 
-      constructor(block1: SolanaBlock, block2: SolanaBlock) {
+      constructor(block1: TransactionBlock, block2: TransactionBlock) {
         this.x1 = block1.x;
         this.y1 = block1.y;
         this.x2 = block2.x;
@@ -96,7 +100,7 @@ export function AnimatedBackground() {
         );
       }
 
-      update(block1: SolanaBlock, block2: SolanaBlock) {
+      update(block1: TransactionBlock, block2: TransactionBlock) {
         this.x1 = block1.x;
         this.y1 = block1.y;
         this.x2 = block2.x;
@@ -108,20 +112,27 @@ export function AnimatedBackground() {
       draw(ctx: CanvasRenderingContext2D) {
         if (this.length > 200) return; // Don't draw long connections
 
+        // Blockchain-agnostic connection color
+        const glowColor = '16, 185, 129'; // Emerald green - default
         ctx.beginPath();
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
-        ctx.strokeStyle = `rgba(16, 185, 129, ${this.opacity})`;
-        ctx.lineWidth = 0.5;
+        
+        // Add glow effect to connection lines
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = `rgba(${glowColor}, ${this.opacity * 0.8})`;
+        ctx.strokeStyle = `rgba(${glowColor}, ${this.opacity * 1.2})`;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
+        ctx.shadowBlur = 0;
       }
     }
 
-    // Create particles (Solana blocks)
-    const blocks: SolanaBlock[] = [];
-    const numBlocks = 30;
+    // Create particles (blockchain transaction blocks)
+    const blocks: TransactionBlock[] = [];
+    const numBlocks = 50; // Increased for better visibility
     for (let i = 0; i < numBlocks; i++) {
-      blocks.push(new SolanaBlock(canvas.width, canvas.height));
+      blocks.push(new TransactionBlock(canvas.width, canvas.height));
     }
 
     // Create connection lines between nearby blocks
@@ -168,10 +179,15 @@ export function AnimatedBackground() {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none -z-10"
-      style={{ background: 'transparent' }}
-    />
+    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0"
+        style={{ 
+          background: 'transparent',
+          mixBlendMode: 'screen', // Makes the glow effect more visible
+        }}
+      />
+    </div>
   );
 }

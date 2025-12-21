@@ -46,7 +46,7 @@ export function Navbar() {
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">Sign In</Button>
             </Link>
-            <Link href="/dashboard">
+            <Link href="/signup">
               <Button variant="primary" size="sm">Get Started</Button>
             </Link>
           </div>

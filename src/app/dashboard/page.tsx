@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { apiGet, apiPost } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { Navbar } from '@/components/navbar';
+import { Footer } from '@/components/footer';
 import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
 import type { PaymentStats } from '@/types';
 
@@ -67,38 +69,55 @@ function DashboardContent() {
   
   if (!merchantId) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
-        <div className="bg-neutral-900 p-8 rounded-lg max-w-md w-full">
-          <h1 className="text-2xl font-bold text-white mb-4">Merchant Login</h1>
-          <p className="text-neutral-400 mb-6">
-            Enter your Merchant ID to access the dashboard
-          </p>
-          <input
-            type="text"
-            placeholder="Merchant ID"
-            className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg mb-4"
-            value={merchantId || ''}
-            onChange={(e) => setMerchantId(e.target.value)}
-          />
-          <Button onClick={handleLogin} className="w-full">Login</Button>
-        </div>
+      <div className="min-h-screen bg-neutral-950 flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-neutral-900 p-8 rounded-lg max-w-md w-full shadow-xl">
+            <h1 className="text-3xl font-bold text-white mb-2">Merchant Login</h1>
+            <p className="text-neutral-400 mb-6">
+              Enter your Merchant ID to access the dashboard
+            </p>
+            <input
+              type="text"
+              placeholder="Merchant ID"
+              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg mb-4 border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
+              value={merchantId || ''}
+              onChange={(e) => setMerchantId(e.target.value)}
+            />
+            <Button onClick={handleLogin} className="w-full mb-4" size="lg">
+              Login
+            </Button>
+            <p className="text-center text-sm text-neutral-400">
+              Don&apos;t have an account?{' '}
+              <a href="/signup" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+                Sign up
+              </a>
+            </p>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
   
   if (!token) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
-        <div className="bg-neutral-900 p-8 rounded-lg max-w-md w-full">
-          <h1 className="text-2xl font-bold text-white mb-4">Authenticating...</h1>
-          <Button onClick={handleLogin} className="w-full">Login</Button>
-        </div>
+      <div className="min-h-screen bg-neutral-950 flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-neutral-900 p-8 rounded-lg max-w-md w-full shadow-xl">
+            <h1 className="text-2xl font-bold text-white mb-4">Authenticating...</h1>
+            <Button onClick={handleLogin} className="w-full" size="lg">Login</Button>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
-  
+
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-neutral-950 flex flex-col">
+      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold text-white mb-8">Dashboard</h1>
         
@@ -174,6 +193,7 @@ function DashboardContent() {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
