@@ -34,6 +34,9 @@ jobs:
   deploy-pages:
     runs-on: ubuntu-latest
     name: Deploy Pages
+    permissions:
+      contents: read
+      deployments: write
     steps:
       - uses: actions/checkout@v4
       
