@@ -1,27 +1,42 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
 import { createJWT } from '../lib/jwt';
-import { getMerchantById } from '../lib/db';
+import { getMerchantById, getMerchantByEmail } from '../lib/db';
 import { z } from 'zod';
 
 const app = new Hono<{ Bindings: Env }>();
 
 const loginSchema = z.object({
-  merchantId: z.string().min(1),
+  email: z.string().email().optional(),
+  merchantId: z.string().optional(),
+}).refine((data) => data.email || data.merchantId, {
+  message: 'Either email or merchantId must be provided',
 });
 
 app.post('/login', async (c) => {
   try {
     const body = await c.req.json();
-    const { merchantId } = loginSchema.parse(body);
+    const { email, merchantId } = loginSchema.parse(body);
     
-    const merchant = await getMerchantById(c.env.DB, merchantId);
-    if (!merchant) {
-      return c.json({ error: 'Not Found', message: 'Merchant not found' }, 404);
+    // Find merchant by email or merchantId
+    let merchant;
+    if (email) {
+      merchant = await getMerchantByEmail(c.env.DB, email);
+      if (!merchant) {
+        return c.json({ error: 'Not Found', message: 'No account found with this email address' }, 404);
+      }
+    } else if (merchantId) {
+      merchant = await getMerchantById(c.env.DB, merchantId);
+      if (!merchant) {
+        return c.json({ error: 'Not Found', message: 'Merchant not found' }, 404);
+      }
+    } else {
+      return c.json({ error: 'Bad Request', message: 'Either email or merchantId must be provided' }, 400);
     }
     
-    if (merchant.status !== 'active') {
-      return c.json({ error: 'Forbidden', message: 'Merchant account is not active' }, 403);
+    // Allow login for pending and active accounts (new signups are pending by default)
+    if (merchant.status === 'suspended') {
+      return c.json({ error: 'Forbidden', message: 'Merchant account is suspended' }, 403);
     }
     
     const jwtSecret = c.env.JWT_SECRET;

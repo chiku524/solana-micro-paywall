@@ -31,6 +31,20 @@ function DashboardContent() {
     
     if (storedToken) {
       setToken(storedToken);
+      // If we have a token but no merchantId, fetch merchant info from token
+      if (!storedMerchantId && !urlMerchantId) {
+        // The merchantId will be extracted from the token when we make API calls
+        // For now, we can decode the JWT to get the merchantId (base64 decode payload)
+        try {
+          const payload = JSON.parse(atob(storedToken.split('.')[1]));
+          if (payload.merchantId) {
+            setMerchantId(payload.merchantId);
+            localStorage.setItem('merchantId', payload.merchantId);
+          }
+        } catch (e) {
+          // If we can't decode, that's okay - we'll get it from API calls
+        }
+      }
     }
   }, [searchParams]);
   
@@ -44,30 +58,36 @@ function DashboardContent() {
     ([url, t]: [string, string]) => apiGet(url, t)
   );
   
+  const [email, setEmail] = useState('');
+  const [useEmail, setUseEmail] = useState(true);
+  
   const handleLogin = async () => {
-    if (!merchantId) {
-      const id = prompt('Enter your Merchant ID:');
-      if (id) {
-        setMerchantId(id);
-        localStorage.setItem('merchantId', id);
-      } else {
+    try {
+      const loginData = useEmail && email
+        ? { email }
+        : { merchantId: merchantId || '' };
+      
+      if (!loginData.email && !loginData.merchantId) {
+        alert('Please enter your email or Merchant ID');
         return;
       }
-    }
-    
-    try {
+      
       const response = await apiPost<{ token: string; merchant: any }>(
         '/api/auth/login',
-        { merchantId: merchantId || '' }
+        loginData
       );
       setToken(response.token);
       localStorage.setItem('token', response.token);
-    } catch (error) {
-      alert('Login failed. Please check your Merchant ID.');
+      if (response.merchant.id) {
+        setMerchantId(response.merchant.id);
+        localStorage.setItem('merchantId', response.merchant.id);
+      }
+    } catch (error: any) {
+      alert(error.message || 'Login failed. Please check your credentials.');
     }
   };
   
-  if (!merchantId) {
+  if (!token) {
     return (
       <div className="min-h-screen bg-neutral-950 flex flex-col">
         <Navbar />
@@ -75,15 +95,55 @@ function DashboardContent() {
           <div className="bg-neutral-900 p-8 rounded-lg max-w-md w-full shadow-xl">
             <h1 className="text-3xl font-bold text-white mb-2">Merchant Login</h1>
             <p className="text-neutral-400 mb-6">
-              Enter your Merchant ID to access the dashboard
+              Sign in with your email or Merchant ID
             </p>
-            <input
-              type="text"
-              placeholder="Merchant ID"
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg mb-4 border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
-              value={merchantId || ''}
-              onChange={(e) => setMerchantId(e.target.value)}
-            />
+            
+            {/* Toggle between email and Merchant ID */}
+            <div className="flex gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => setUseEmail(true)}
+                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  useEmail
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+                }`}
+              >
+                Email
+              </button>
+              <button
+                type="button"
+                onClick={() => setUseEmail(false)}
+                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  !useEmail
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+                }`}
+              >
+                Merchant ID
+              </button>
+            </div>
+            
+            {useEmail ? (
+              <input
+                type="email"
+                placeholder="your@email.com"
+                className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg mb-4 border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              />
+            ) : (
+              <input
+                type="text"
+                placeholder="Merchant ID"
+                className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg mb-4 border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
+                value={merchantId || ''}
+                onChange={(e) => setMerchantId(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              />
+            )}
+            
             <Button onClick={handleLogin} className="w-full mb-4" size="lg">
               Login
             </Button>
@@ -99,6 +159,7 @@ function DashboardContent() {
       </div>
     );
   }
+  
   
   if (!token) {
     return (

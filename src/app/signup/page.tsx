@@ -34,13 +34,28 @@ export default function SignupPage() {
       setMerchantId(response.id);
       setSuccess(true);
       
-      // Store merchant ID for auto-login
-      localStorage.setItem('merchantId', response.id);
-      
-      // Redirect to dashboard after a brief delay
-      setTimeout(() => {
-        router.push(`/dashboard?merchantId=${response.id}`);
-      }, 2000);
+      // Automatically log in the user after signup
+      try {
+        const loginResponse = await apiPost<{ token: string; merchant: any }>(
+          '/api/auth/login',
+          { email: email }
+        );
+        
+        // Store authentication token
+        localStorage.setItem('token', loginResponse.token);
+        localStorage.setItem('merchantId', response.id);
+        
+        // Redirect to dashboard immediately
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1500);
+      } catch (loginError: any) {
+        // If auto-login fails, still store merchant ID and redirect
+        localStorage.setItem('merchantId', response.id);
+        setTimeout(() => {
+          router.push(`/dashboard?merchantId=${response.id}`);
+        }, 2000);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');
     } finally {
