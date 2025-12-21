@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
-    "db:migrate": "wrangler d1 migrations apply solana-paywall-db",
+    "db:migrate": "wrangler d1 migrations apply micropaywall-db --env production",
     "db:generate": "wrangler d1 migrations create"
   },
   "dependencies": {
