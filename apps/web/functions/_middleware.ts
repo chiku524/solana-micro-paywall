@@ -119,10 +119,32 @@ export async function onRequest(context: {
   
   // Check if __NEXT_DATA__ already exists
   const nextDataRegex = /<script[^>]*id="__NEXT_DATA__"[^>]*>[\s\S]*?<\/script>/i;
-  if (nextDataRegex.test(modifiedHtml)) {
+  const existingNextDataMatch = modifiedHtml.match(nextDataRegex);
+  
+  if (existingNextDataMatch) {
+    // Log what we found before replacement
+    const existingContent = existingNextDataMatch[0];
+    console.log('[Middleware] Found existing __NEXT_DATA__:', existingContent.substring(0, 200));
+    
+    // Try to parse existing JSON to see what values it has
+    try {
+      const jsonMatch = existingContent.match(/>([\s\S]*?)<\/script>/);
+      if (jsonMatch) {
+        const existingData = JSON.parse(jsonMatch[1]);
+        console.log('[Middleware] Existing __NEXT_DATA__ values:', {
+          page: existingData.page,
+          pathname: existingData.pathname,
+          hasProps: !!existingData.props,
+        });
+      }
+    } catch (e) {
+      console.log('[Middleware] Could not parse existing __NEXT_DATA__ JSON');
+    }
+    
     // Replace existing __NEXT_DATA__ with correct values
     modifiedHtml = modifiedHtml.replace(nextDataRegex, nextDataScript);
     console.log('[Middleware] Replaced existing __NEXT_DATA__ with correct values for path:', url.pathname);
+    console.log('[Middleware] New __NEXT_DATA__ script:', nextDataScript.substring(0, 200));
   } else {
     // Inject __NEXT_DATA__ if missing
     if (modifiedHtml.includes('</head>')) {
@@ -135,6 +157,24 @@ export async function onRequest(context: {
       modifiedHtml = `${nextDataScript}${modifiedHtml}`;
     }
     console.log('[Middleware] Injected __NEXT_DATA__ for path:', url.pathname);
+  }
+  
+  // Verify replacement worked
+  const verifyMatch = modifiedHtml.match(nextDataRegex);
+  if (verifyMatch) {
+    try {
+      const jsonMatch = verifyMatch[0].match(/>([\s\S]*?)<\/script>/);
+      if (jsonMatch) {
+        const verifyData = JSON.parse(jsonMatch[1]);
+        console.log('[Middleware] VERIFIED __NEXT_DATA__ after replacement:', {
+          page: verifyData.page,
+          pathname: verifyData.pathname,
+          matchesExpected: verifyData.page === url.pathname && verifyData.pathname === url.pathname,
+        });
+      }
+    } catch (e) {
+      console.error('[Middleware] Could not verify __NEXT_DATA__ replacement');
+    }
   }
   
   // Create new response with modified HTML
