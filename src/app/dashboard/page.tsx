@@ -6,6 +6,7 @@ import useSWR from 'swr';
 import { apiGet, apiPost } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
+import type { PaymentStats } from '@/types';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -31,12 +32,12 @@ export default function DashboardPage() {
     }
   }, [searchParams]);
   
-  const { data: stats } = useSWR(
+  const { data: stats } = useSWR<PaymentStats>(
     token ? ['/api/analytics/stats', token] : null,
     ([url, t]: [string, string]) => apiGet(url, t)
   );
   
-  const { data: recentPayments } = useSWR(
+  const { data: recentPayments } = useSWR<{ payments: any[] }>(
     token ? ['/api/analytics/recent-payments', token] : null,
     ([url, t]: [string, string]) => apiGet(url, t)
   );
