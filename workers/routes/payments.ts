@@ -10,6 +10,7 @@ import {
 } from '../lib/db';
 import { generateNonce } from '../lib/solana';
 import { checkRateLimit, getRateLimitKey } from '../lib/rate-limit';
+import { verifyPaymentTransaction } from '../lib/transaction-verification';
 import { z } from 'zod';
 import { encodeURL } from '@solana/pay';
 
@@ -83,6 +84,7 @@ app.post('/create-payment-request', async (c) => {
     return c.json({
       paymentIntent,
       paymentUrl: paymentUrl.toString(),
+      recipientAddress: merchant.payoutAddress,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -143,28 +145,39 @@ app.post('/verify-payment', async (c) => {
     );
     
     try {
-      const tx = await connection.getTransaction(transactionSignature, {
-        commitment: 'confirmed',
-        maxSupportedTransactionVersion: 0,
-      });
-      
-      if (!tx || !tx.meta || tx.meta.err) {
-        await updatePaymentIntent(c.env.DB, paymentIntentId, { status: 'failed' });
-        return c.json({ error: 'Bad Request', message: 'Transaction failed or not found' }, 400);
+      // Get merchant to verify recipient address
+      const merchant = await getMerchantById(c.env.DB, paymentIntent.merchantId);
+      if (!merchant || !merchant.payoutAddress) {
+        return c.json({ error: 'Bad Request', message: 'Merchant payout address not configured' }, 400);
       }
       
-      // Verify amount and recipient (simplified - would need full transaction parsing)
-      // For now, we'll trust the transaction signature and mark as confirmed
-      // In production, you should verify the exact amount and recipient
+      // Verify transaction with proper parsing
+      const verification = await verifyPaymentTransaction(
+        connection,
+        transactionSignature,
+        merchant.payoutAddress,
+        paymentIntent.amountLamports,
+        paymentIntent.memo || undefined
+      );
       
-      // Extract payer address from transaction (simplified - in production, parse transaction properly)
-      const payerAddress = tx.transaction.message.accountKeys[0]?.toString() || '';
+      if (!verification.valid) {
+        await updatePaymentIntent(c.env.DB, paymentIntentId, { status: 'failed' });
+        return c.json({ 
+          error: 'Bad Request', 
+          message: verification.error || 'Transaction verification failed' 
+        }, 400);
+      }
+      
+      if (!verification.payerAddress) {
+        await updatePaymentIntent(c.env.DB, paymentIntentId, { status: 'failed' });
+        return c.json({ error: 'Bad Request', message: 'Could not determine payer address' }, 400);
+      }
       
       const confirmedAt = Math.floor(Date.now() / 1000);
       await updatePaymentIntent(c.env.DB, paymentIntentId, {
         status: 'confirmed',
         transactionSignature,
-        payerAddress,
+        payerAddress: verification.payerAddress,
         confirmedAt,
       });
       

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import useSWR from 'swr';
 import { Navbar } from '@/components/navbar';
-import { Button } from '@/components/ui/button';
+import { PaymentWidget } from '@/components/payment-widget-enhanced';
 import { apiGet } from '@/lib/api';
 import { formatSol } from '@/lib/utils';
 import type { Content } from '@/types';
@@ -84,12 +84,18 @@ export default function ContentDetailPage() {
         )}
         
         <div className="border-t border-neutral-800 pt-8">
-          <Button size="lg" className="w-full">
-            Purchase for {formatSol(content.priceLamports)} SOL
-          </Button>
-          <p className="text-sm text-neutral-400 text-center mt-4">
-            Connect your Solana wallet to purchase
-          </p>
+          <PaymentWidget
+            merchantId={content.merchantId}
+            contentId={content.id}
+            priceLamports={content.priceLamports}
+            onPaymentSuccess={(token) => {
+              alert('Payment successful! Access token: ' + token);
+              // Redirect or unlock content here
+            }}
+            onPaymentError={(error) => {
+              console.error('Payment error:', error);
+            }}
+          />
         </div>
       </main>
     </div>

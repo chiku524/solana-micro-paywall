@@ -139,6 +139,7 @@ export interface PaymentRequestResponse {
   paymentIntent: PaymentIntent;
   paymentUrl: string;
   qrCode?: string;
+  recipientAddress?: string; // Merchant payout address
 }
 
 export interface VerifyPaymentResponse {
