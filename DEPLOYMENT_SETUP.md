@@ -64,16 +64,47 @@ Set these in Cloudflare Dashboard → Workers & Pages → `micropaywall-api` →
 
 ## Database & KV Setup
 
-### D1 Database
-1. Create database: `wrangler d1 create solana-paywall-db`
-2. Copy the database ID
-3. Update `wrangler.toml` with the database ID
-4. Run migrations: `npm run db:migrate`
+### Required Bindings
 
-### KV Namespace (for rate limiting)
-1. Create namespace: `wrangler kv:namespace create CACHE`
-2. Copy the namespace ID
-3. Update `wrangler.toml` with the namespace ID
+The Worker requires the following bindings to function:
+
+1. **D1 Database (DB)** - **REQUIRED**
+   - Used for: Merchants, Contents, Payment Intents, Purchases, Bookmarks
+   - Setup:
+     ```bash
+     wrangler d1 create solana-paywall-db
+     ```
+   - Copy the database ID from output
+   - Update `wrangler.toml` with the database ID
+   - Run migrations: `npm run db:migrate`
+
+2. **KV Namespace (CACHE)** - **REQUIRED**
+   - Used for: Rate limiting
+   - Setup:
+     ```bash
+     wrangler kv:namespace create CACHE
+     wrangler kv:namespace create CACHE --preview  # For development
+     ```
+   - Copy the namespace ID from output
+   - Update `wrangler.toml` with the namespace ID
+
+3. **R2 Bucket** - **NOT REQUIRED**
+   - Not used in this application
+   - No R2 bindings needed
+
+### Setting Bindings in Cloudflare Dashboard
+
+After creating the database and KV namespace, add them to your Worker:
+
+1. Go to Workers & Pages → `micropaywall-api` → Settings → Variables
+2. Under **D1 Database bindings**, click **Add binding**
+   - Variable name: `DB`
+   - D1 database: `solana-paywall-db`
+3. Under **KV Namespace bindings**, click **Add binding**
+   - Variable name: `CACHE`
+   - KV namespace: (your CACHE namespace)
+
+Alternatively, these are configured in `wrangler.toml` and will be automatically applied when deploying via Wrangler CLI.
 
 ## Deployment
 
