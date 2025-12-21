@@ -1,43 +1,51 @@
 {
   "name": "solana-micro-paywall",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
-  "description": "Micro-paywall / pay-per-use SDK platform for Solana Pay.",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "dependencies": {
-    "reflect-metadata": "^0.2.2"
-  },
   "scripts": {
-    "build": "npm run build --workspaces",
-    "dev": "npm run dev:web",
-    "dev:workers": "npm run dev --prefix apps/backend-workers",
-    "dev:web": "npm run dev --prefix apps/web",
-    "lint": "npm run lint --workspaces",
-    "test": "npm run test --workspaces"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply solana-paywall-db",
+    "db:generate": "wrangler d1 migrations create"
   },
-  "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
-  },
-  "packageManager": "npm@10.9.2",
-  "license": "UNLICENSED",
-  "overrides": {
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "@solana/web3.js": "^1.95.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/pay": "^0.2.2",
+    "hono": "^4.0.0",
+    "jose": "^5.2.3",
+    "zod": "^3.22.4",
+    "swr": "^2.2.5",
+    "react-hook-form": "^7.51.0",
+    "@hookform/resolvers": "^3.3.4",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.2.1",
+    "qrcode": "^1.5.3",
+    "date-fns": "^3.0.6"
   },
   "devDependencies": {
-    "@floating-ui/react": "^0.26.28",
-    "@react-aria/focus": "^3.21.2",
-    "@react-aria/interactions": "^3.25.6",
-    "@types/express": "^5.0.5",
-    "@types/node": "^22.10.5",
-    "@types/pg": "^8.11.10",
-    "concurrently": "^9.2.1",
-    "dotenv": "^16.4.7",
-    "pg": "^8.13.1",
-    "ts-node": "^10.9.2"
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/qrcode": "^1.5.5",
+    "typescript": "^5.3.3",
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.33",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^15.0.0",
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "wrangler": "^3.28.0"
   }
 }

@@ -1,157 +1,125 @@
 # Solana Micro-Paywall
 
-A Solana-native micro-paywall / pay-per-use SDK built on Solana Pay, targeting publishers, creators, and API providers. Built with NestJS, Next.js, Prisma, and optimized for the Solana blockchain.
+A Solana-native micro-paywall and pay-per-use platform that enables publishers, creators, and API providers to monetize their content using instant Solana blockchain payments.
 
-## 🚀 Quick Start
+## Features
+
+- **Instant Payment Processing**: Sub-second Solana transaction confirmations with near-zero fees
+- **Access Token System**: Short-lived JWT tokens (1-24 hours) that grant access to premium content after payment
+- **Embeddable Widget SDK**: Drop-in payment buttons that can be integrated into any website
+- **Merchant Dashboard**: Complete analytics, content management, and payment tracking
+- **Public Marketplace**: Content discovery and browsing for end users
+- **User Library**: Personal library of purchased content with access management
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 (static export), React, TypeScript, Tailwind CSS
+- **Backend**: Cloudflare Workers, Hono, TypeScript
+- **Database**: Cloudflare D1 (SQLite)
+- **Caching**: Cloudflare KV
+- **Blockchain**: Solana (Web3.js, Solana Pay)
+
+## Setup
 
 ### Prerequisites
-- Node.js 20+ (LTS recommended)
-- npm 10+
-- Cloudflare account (for Workers & Pages)
-- Solana RPC endpoint (Helius configured ✅)
 
-### Setup
+- Node.js 18+ and npm
+- Cloudflare account with Workers and D1 access
+- Solana RPC endpoint (Helius recommended)
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+### Installation
 
-2. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration (already configured ✅)
-   ```
-
-3. **Set up database:**
-   
-   The database is managed via Cloudflare D1. For local development:
-   
-   ```bash
-   cd apps/backend-workers
-   npm run db:migrate
-   ```
-
-4. **Start development servers:**
-   ```bash
-   # Start web app (frontend)
-   npm run dev:web
-   
-   # Or start Workers locally (backend API)
-   npm run dev:workers
-   ```
-
-The Web App (Marketplace + Dashboard) will be available at `http://localhost:3001`  
-The Workers API will be available at `http://localhost:8787` (when running locally)
-
-## 📁 Project Structure
-
-```
-solana-micro-paywall/
-├── apps/
-│   ├── backend-workers/  # Cloudflare Workers API
-│   └── web/              # Next.js unified app (Marketplace + Dashboard)
-├── packages/
-│   ├── widget-sdk/       # Embeddable payment widget
-│   ├── shared/           # Shared types and utilities
-│   └── config/           # Environment configuration
-├── scripts/              # Utility scripts (migrations, etc.)
-└── docs/                 # Documentation
-```
-
-## 🎯 Features
-
-### Backend API ✅
-- ✅ On-chain payment verification via Solana Pay
-- ✅ Short-lived access tokens (JWT)
-- ✅ Merchant dashboard APIs
-- ✅ Payment request generation
-- ✅ Transaction verification with fallback
-- ✅ Refund tracking
-- ✅ Audit logging
-- ✅ Analytics events
-
-### Widget SDK ✅
-- ✅ Drop-in payment button component
-- ✅ QR code modal for mobile payments
-- ✅ Wallet integration (Phantom, Solflare, etc.)
-- ✅ Automatic payment status polling
-- ✅ Event-driven architecture
-
-### Web App (Marketplace + Dashboard) ✅
-- ✅ **Marketplace**: Public content discovery, browsing, and purchase
-- ✅ **Dashboard**: Merchant creation and management
-- ✅ Content management (CRUD)
-- ✅ Payment analytics and stats
-- ✅ Settings management
-- ✅ Responsive design
-- ✅ Unified navigation between marketplace and dashboard
-
-## 📚 Documentation
-
-- [Deployment Guide](./DEPLOYMENT.md) - **Complete Cloudflare deployment instructions**
-- [Environment Variables](./ENVIRONMENT_VARIABLES.md) - Environment variable reference
-- [Product Blueprint](./docs/product-blueprint.md) - Full specification
-- [API Guide](./docs/API_GUIDE.md) - API documentation
-- [Widget SDK Guide](./packages/widget-sdk/README.md) - Widget usage
-- [Integration Guide](./docs/INTEGRATION_GUIDE.md) - Integration examples
-
-## 🔧 Tech Stack
-
-- **Backend**: Cloudflare Workers, Hono 4.10+, D1 Database, KV Cache
-- **Frontend**: Next.js 15, React 19, Tailwind CSS
-- **Blockchain**: Solana Web3.js 1.95+, Solana Pay
-- **Widget**: Vanilla JS/TypeScript with Solana Wallet Adapter
-- **Infrastructure**: Cloudflare Workers & Pages, D1, KV
-- **TypeScript**: 5.9+
-- **Node.js**: 20+ (LTS)
-
-## 📝 Quick API Examples
-
-### Create Merchant
+1. Clone the repository:
 ```bash
-curl -X POST http://localhost:3000/api/merchants \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "merchant@example.com",
-    "payoutAddress": "YourSolanaWalletAddress"
-  }'
+git clone <repository-url>
+cd solana-micro-paywall
 ```
 
-### Create Content
+2. Install dependencies:
 ```bash
-curl -X POST http://localhost:3000/api/contents \
-  -H "Content-Type: application/json" \
-  -d '{
-    "merchantId": "merchant-id",
-    "slug": "premium-article",
-    "priceLamports": 1000000000,
-    "currency": "SOL",
-    "durationSecs": 86400
-  }'
+npm install
 ```
 
-### Create Payment Request
+3. Create a Cloudflare D1 database:
 ```bash
-curl -X POST http://localhost:3000/api/payments/create-payment-request \
-  -H "Content-Type: application/json" \
-  -d '{
-    "merchantId": "merchant-id",
-    "contentId": "content-id"
-  }'
+wrangler d1 create solana-paywall-db
 ```
 
-## 🎯 Next Steps After Setup
+4. Update `wrangler.toml` with your database ID and KV namespace ID
 
-1. ✅ **Run manual SQL migration** in Supabase SQL Editor
-2. ✅ **Generate Prisma client** - `npm run db:generate` in `apps/backend`
-3. ✅ **Start development servers** - `npm run dev` from project root
-4. ✅ **Access web app** - Navigate to `http://localhost:3001`
-5. ✅ **Create merchant** - Use the web app or API
-6. ✅ **Add content** - Create paywall content via dashboard
-7. ✅ **Browse marketplace** - Discover and purchase content
-8. ✅ **Test payments** - Use widget SDK on a test page
+5. Run migrations:
+```bash
+npm run db:migrate
+```
 
-## 📝 License
+6. Set up environment variables in `wrangler.toml` or `.dev.vars`:
+```
+JWT_SECRET=your-secret-key-here
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+HELIUS_API_KEY=your-helius-api-key (optional)
+NEXT_PUBLIC_WEB_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:8787
+```
 
-Private - All Rights Reserved
+### Development
+
+1. Start the Cloudflare Worker (backend API):
+```bash
+npm run worker:dev
+```
+
+2. Start the Next.js frontend (in another terminal):
+```bash
+npm run dev
+```
+
+The frontend will be available at `http://localhost:3000` and the API at `http://localhost:8787`.
+
+### Deployment
+
+1. Build the frontend:
+```bash
+npm run build
+```
+
+2. Deploy the Cloudflare Worker:
+```bash
+npm run worker:deploy
+```
+
+3. Deploy the frontend to Cloudflare Pages (or use the converged deployment)
+
+## Project Structure
+
+```
+├── src/                    # Frontend source code
+│   ├── app/               # Next.js app router pages
+│   ├── components/        # React components
+│   ├── lib/              # Utilities and API client
+│   └── types/            # TypeScript types
+├── workers/              # Cloudflare Workers backend
+│   ├── routes/          # API route handlers
+│   ├── lib/             # Backend utilities
+│   ├── middleware/      # Middleware functions
+│   └── migrations/      # Database migrations
+└── wrangler.toml        # Cloudflare Workers configuration
+```
+
+## API Endpoints
+
+- `POST /api/merchants` - Create merchant account
+- `POST /api/auth/login` - Merchant login
+- `GET /api/merchants/me` - Get current merchant (protected)
+- `GET /api/contents` - List merchant's content (protected)
+- `POST /api/contents` - Create content (protected)
+- `GET /api/payments/create-payment-request` - Create payment intent
+- `POST /api/payments/verify-payment` - Verify transaction
+- `POST /api/purchases` - Create purchase record
+- `GET /api/discover` - Discover content
+- `GET /api/analytics/stats` - Get payment statistics (protected)
+
+See `APPLICATION_SPECIFICATION.md` for complete API documentation.
+
+## License
+
+MIT
