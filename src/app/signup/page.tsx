@@ -1,20 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/auth-context';
 import { apiPost } from '@/lib/api';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [payoutAddress, setPayoutAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [merchantId, setMerchantId] = useState('');
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, router]);
+  
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
+          <p className="text-neutral-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (isAuthenticated) {
+    return null;
+  }
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,20 +65,17 @@ export default function SignupPage() {
           { email: email }
         );
         
-        // Store authentication token
-        localStorage.setItem('token', loginResponse.token);
-        localStorage.setItem('merchantId', response.id);
+        // Use auth context to login
+        login(loginResponse.token, response.id);
         
         // Redirect to dashboard immediately
         setTimeout(() => {
           router.push('/dashboard');
         }, 1500);
       } catch (loginError: any) {
-        // If auto-login fails, still store merchant ID and redirect
-        localStorage.setItem('merchantId', response.id);
-        setTimeout(() => {
-          router.push(`/dashboard?merchantId=${response.id}`);
-        }, 2000);
+        // If auto-login fails, show error but still show success
+        console.error('Auto-login failed:', loginError);
+        setError('Account created but auto-login failed. Please login manually.');
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');

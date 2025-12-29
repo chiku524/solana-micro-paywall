@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 
 export function Navbar() {
   const pathname = usePathname();
+  const { isAuthenticated, logout, merchant } = useAuth();
   
   const navItems = [
     { href: '/', label: 'Home' },
@@ -40,15 +42,38 @@ export function Navbar() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Link href="/library">
-              <Button variant="ghost" size="sm">My Library</Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">Sign In</Button>
-            </Link>
-            <Link href="/signup">
-              <Button variant="primary" size="sm">Get Started</Button>
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="sm">Dashboard</Button>
+                </Link>
+                {merchant?.displayName && (
+                  <span className="text-sm text-neutral-400 hidden sm:block">
+                    {merchant.displayName}
+                  </span>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={logout}
+                  className="hover:bg-red-900/20 hover:border-red-500/50 hover:text-red-400"
+                >
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/library">
+                  <Button variant="ghost" size="sm">My Library</Button>
+                </Link>
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="sm">Sign In</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button variant="primary" size="sm">Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

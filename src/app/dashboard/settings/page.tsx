@@ -1,26 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { apiGet, apiPut } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useAuth } from '@/lib/auth-context';
 import type { Merchant } from '@/types';
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setToken(storedToken);
-    } else {
-      router.push('/dashboard');
-    }
-  }, [router]);
+  const { token } = useAuth();
   
   const { data: merchant, mutate } = useSWR<Merchant>(
     token ? ['/api/merchants/me', token] : null,
@@ -57,9 +47,10 @@ export default function SettingsPage() {
   }
   
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
-      <Navbar />
-      <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-neutral-950 flex flex-col">
+        <Navbar />
+        <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <h1 className="text-4xl font-bold text-white mb-8">Settings</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6 bg-neutral-900 p-6 rounded-lg">
@@ -149,7 +140,9 @@ export default function SettingsPage() {
           
           <Button type="submit">Save Settings</Button>
         </form>
+        </div>
+        <Footer />
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

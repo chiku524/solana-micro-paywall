@@ -1,33 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useAuth } from '@/lib/auth-context';
 import { formatSol } from '@/lib/utils';
 import type { Content } from '@/types';
 
 export default function ContentsPage() {
-  const router = useRouter();
-  const [merchantId, setMerchantId] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const { token } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  
-  useEffect(() => {
-    const storedMerchantId = localStorage.getItem('merchantId');
-    const storedToken = localStorage.getItem('token');
-    
-    if (storedMerchantId) setMerchantId(storedMerchantId);
-    if (storedToken) setToken(storedToken);
-    
-    if (!storedToken || !storedMerchantId) {
-      router.push('/dashboard');
-    }
-  }, [router]);
   
   const { data, mutate } = useSWR<{ contents: Content[] }>(
     token ? ['/api/contents', token] : null,
@@ -58,9 +45,10 @@ export default function ContentsPage() {
   };
   
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
-      <Navbar />
-      <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-neutral-950 flex flex-col">
+        <Navbar />
+        <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-white">Content Management</h1>
           <Button onClick={() => setIsCreateModalOpen(true)}>Create Content</Button>
@@ -136,8 +124,9 @@ export default function ContentsPage() {
             <Button type="submit" className="w-full">Create</Button>
           </form>
         </Modal>
+        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </ProtectedRoute>
   );
 }
