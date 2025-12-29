@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { apiGet } from '@/lib/api';
 import type { Content } from '@/types';
 
+// Note: Metadata for client components should be handled via layout or head component
+// For now, we'll add it via a separate metadata export in a layout file if needed
+
 export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

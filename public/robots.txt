@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /library/
+Disallow: /api/
+
+Sitemap: https://micropaywall.app/sitemap.xml
+

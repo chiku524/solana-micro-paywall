@@ -1,0 +1,23 @@
+{
+  "name": "Micro Paywall",
+  "short_name": "Micro Paywall",
+  "description": "Multi-chain micro-paywall and pay-per-use platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "200x200",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+

@@ -1,7 +1,15 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { generateMetadata as generateSEOMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = generateSEOMetadata({
+  title: 'Micro Paywall - Blockchain Payment Platform',
+  description: 'Monetize your content with instant blockchain payments. Multi-chain support, sub-second confirmations, near-zero fees, and seamless integration.',
+  url: '/',
+});
 
 export default function HomePage() {
   return (

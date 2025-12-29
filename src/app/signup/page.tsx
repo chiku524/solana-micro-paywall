@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { apiPost } from '@/lib/api';
 
+// Note: Metadata for client components should be in a layout file
+// Creating layout.tsx for signup page
+
 export default function SignupPage() {
   const router = useRouter();
   const { login, isAuthenticated, isLoading: authLoading } = useAuth();

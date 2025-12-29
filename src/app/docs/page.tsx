@@ -1,5 +1,13 @@
+import type { Metadata } from 'next';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { generateMetadata as generateSEOMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = generateSEOMetadata({
+  title: 'Documentation - Integration Guide',
+  description: 'Complete integration guide for Micro Paywall. Learn how to integrate payment widgets, use the API, and monetize your content with blockchain payments.',
+  url: '/docs',
+});
 
 export default function DocsPage() {
   return (
