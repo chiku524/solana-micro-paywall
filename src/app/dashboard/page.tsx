@@ -161,35 +161,85 @@ function DashboardContent() {
       <div className="min-h-screen bg-neutral-950 flex flex-col">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold text-white mb-8">Dashboard</h1>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
+              <p className="text-neutral-400">Manage your content and track your earnings</p>
+            </div>
+            <div className="flex gap-3 mt-4 md:mt-0">
+              <Link href="/dashboard/contents">
+                <Button variant="primary">Manage Content</Button>
+              </Link>
+              <Link href="/dashboard/settings">
+                <Button variant="outline">Settings</Button>
+              </Link>
+            </div>
+          </div>
         
         {/* Stats */}
         {stats && (
-          <div className="grid md:grid-cols-4 gap-6 mb-12">
-            <div className="bg-neutral-900 p-6 rounded-lg">
-              <p className="text-neutral-400 text-sm mb-2">Total Payments</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div className="glass-strong p-6 rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-neutral-400 text-sm">Total Payments</p>
+                <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
               <p className="text-3xl font-bold text-white">{stats.totalPayments}</p>
+              <p className="text-xs text-neutral-500 mt-1">All time</p>
             </div>
-            <div className="bg-neutral-900 p-6 rounded-lg">
-              <p className="text-neutral-400 text-sm mb-2">Today</p>
+            <div className="glass-strong p-6 rounded-xl border border-blue-500/20 hover:border-blue-500/40 transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-neutral-400 text-sm">Today</p>
+                <div className="w-10 h-10 rounded-lg bg-gradient-secondary flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
               <p className="text-3xl font-bold text-white">{stats.todayPayments}</p>
+              <p className="text-xs text-neutral-500 mt-1">Last 24 hours</p>
             </div>
-            <div className="bg-neutral-900 p-6 rounded-lg">
-              <p className="text-neutral-400 text-sm mb-2">This Week</p>
+            <div className="glass-strong p-6 rounded-xl border border-purple-500/20 hover:border-purple-500/40 transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-neutral-400 text-sm">This Week</p>
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+              </div>
               <p className="text-3xl font-bold text-white">{stats.weekPayments}</p>
+              <p className="text-xs text-neutral-500 mt-1">Last 7 days</p>
             </div>
-            <div className="bg-neutral-900 p-6 rounded-lg">
-              <p className="text-neutral-400 text-sm mb-2">Total Revenue</p>
+            <div className="glass-strong p-6 rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-neutral-400 text-sm">Total Revenue</p>
+                <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
               <p className="text-3xl font-bold text-emerald-400">
                 {formatSol(stats.totalRevenueLamports)} SOL
               </p>
+              <p className="text-xs text-neutral-500 mt-1">All time earnings</p>
             </div>
           </div>
         )}
         
         {/* Recent Payments */}
-        <div className="bg-neutral-900 rounded-lg p-6">
-          <h2 className="text-2xl font-semibold text-white mb-6">Recent Payments</h2>
+        <div className="glass-strong rounded-xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-white">Recent Payments</h2>
+            <Link href="/dashboard/payments">
+              <Button variant="ghost" size="sm">View All</Button>
+            </Link>
+          </div>
           {recentPayments?.payments && recentPayments.payments.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">

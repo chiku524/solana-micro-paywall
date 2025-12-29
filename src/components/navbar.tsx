@@ -13,7 +13,6 @@ export function Navbar() {
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/marketplace', label: 'Marketplace' },
-    { href: '/docs', label: 'Docs' },
   ];
   
   return (
@@ -44,6 +43,9 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
+                <Link href="/library">
+                  <Button variant="ghost" size="sm">My Library</Button>
+                </Link>
                 <Link href="/dashboard">
                   <Button variant="ghost" size="sm">Dashboard</Button>
                 </Link>
@@ -63,9 +65,6 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/library">
-                  <Button variant="ghost" size="sm">My Library</Button>
-                </Link>
                 <Link href="/dashboard">
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>

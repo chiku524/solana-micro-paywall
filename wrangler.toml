@@ -1,11 +1,11 @@
+# Main Worker configuration
+# Note: We use production environment by default, secrets and bindings are environment-specific
 name = "micropaywall-api"
 main = "workers/index.ts"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
 
-# Pages configuration - this prevents Pages from trying to use this config
-# Pages deployments use command-line flags instead
-
+# Production environment (this is what gets deployed)
 [env.production]
 name = "micropaywall-api"
 

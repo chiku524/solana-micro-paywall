@@ -1,63 +1,265 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import useSWR from 'swr';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ContentCard } from '@/components/content-card';
 import { apiGet } from '@/lib/api';
+import { formatSol, formatDate } from '@/lib/utils';
 import type { Purchase, Content } from '@/types';
+import Link from 'next/link';
 
 export default function LibraryPage() {
-  const [walletAddress, setWalletAddress] = useState<string>('');
+  const { publicKey, connected } = useWallet();
+  const walletAddress = publicKey?.toBase58() || '';
   
-  const { data: purchases } = useSWR<{ purchases: Purchase[] }>(
+  const { data: purchasesData, isLoading } = useSWR<{ purchases: Purchase[] }>(
     walletAddress ? `/api/purchases/wallet/${walletAddress}` : null,
     walletAddress ? (url: string) => apiGet<{ purchases: Purchase[] }>(url) : null
   );
   
-  // Fetch content for each purchase (simplified - in production, backend should return content)
-  const [contents, setContents] = useState<Record<string, Content>>({});
+  const [filter, setFilter] = useState<'all' | 'active' | 'expired'>('all');
+  const [groupBy, setGroupBy] = useState<'merchant' | 'date'>('date');
+  
+  // Fetch content details for each purchase
+  const purchaseIds = useMemo(() => 
+    purchasesData?.purchases.map(p => p.contentId) || [], 
+    [purchasesData]
+  );
+  
+  const { data: contentsData } = useSWR<Record<string, Content>>(
+    purchaseIds.length > 0 ? ['contents', purchaseIds] : null,
+    async () => {
+      const contents: Record<string, Content> = {};
+      await Promise.all(
+        purchaseIds.map(async (contentId) => {
+          try {
+            const content = await apiGet<Content>(`/api/contents/${contentId}`);
+            contents[contentId] = content;
+          } catch (e) {
+            console.error(`Failed to fetch content ${contentId}:`, e);
+          }
+        })
+      );
+      return contents;
+    }
+  );
+  
+  const filteredPurchases = useMemo(() => {
+    if (!purchasesData?.purchases) return [];
+    
+    const now = Math.floor(Date.now() / 1000);
+    return purchasesData.purchases.filter(purchase => {
+      if (filter === 'active') {
+        return !purchase.expiresAt || purchase.expiresAt > now;
+      }
+      if (filter === 'expired') {
+        return purchase.expiresAt && purchase.expiresAt <= now;
+      }
+      return true;
+    });
+  }, [purchasesData, filter]);
+  
+  const groupedPurchases = useMemo(() => {
+    if (groupBy === 'merchant') {
+      const groups: Record<string, Purchase[]> = {};
+      filteredPurchases.forEach(purchase => {
+        const content = contentsData?.[purchase.contentId];
+        const merchantId = content?.merchantId || 'unknown';
+        if (!groups[merchantId]) groups[merchantId] = [];
+        groups[merchantId].push(purchase);
+      });
+      return groups;
+    } else {
+      const groups: Record<string, Purchase[]> = {};
+      filteredPurchases.forEach(purchase => {
+        const date = new Date(purchase.confirmedAt * 1000).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(purchase);
+      });
+      return groups;
+    }
+  }, [filteredPurchases, groupBy, contentsData]);
   
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col">
-      <Navbar />
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold text-white mb-8">My Library</h1>
-        
-        <div className="mb-8">
-          <input
-            type="text"
-            placeholder="Enter your wallet address"
-            className="w-full max-w-md px-4 py-2 bg-neutral-900 text-white rounded-lg border border-neutral-800"
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-          />
-        </div>
-        
-        {purchases && purchases.purchases.length > 0 ? (
-          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {purchases.purchases.map((purchase) => (
-              <div key={purchase.id} className="bg-neutral-900 p-4 rounded-lg">
-                <p className="text-sm text-neutral-400 mb-2">Purchase #{purchase.id.slice(0, 8)}</p>
-                <p className="text-emerald-400 font-semibold">
-                  {purchase.amountLamports / 1_000_000_000} SOL
+        <Navbar />
+        <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">My Library</h1>
+              <p className="text-neutral-400">
+                Access all your purchased content in one place
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0">
+              {!connected ? (
+                <WalletMultiButton className="!bg-gradient-primary !rounded-lg" />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-neutral-400">
+                    {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {!connected ? (
+            <div className="glass-strong p-12 rounded-xl text-center">
+              <div className="max-w-md mx-auto">
+                <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
+                <p className="text-neutral-400 mb-6">
+                  Connect your Solana wallet to view your purchased content library
                 </p>
-                {purchase.expiresAt && (
-                  <p className="text-xs text-neutral-500 mt-2">
-                    Expires: {new Date(purchase.expiresAt * 1000).toLocaleDateString()}
-                  </p>
+                <WalletMultiButton className="!bg-gradient-primary !rounded-lg" />
+              </div>
+            </div>
+          ) : isLoading ? (
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-neutral-900 rounded-lg h-64 animate-pulse" />
+              ))}
+            </div>
+          ) : filteredPurchases.length === 0 ? (
+            <div className="glass-strong p-12 rounded-xl text-center">
+              <div className="max-w-md mx-auto">
+                <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">No Purchases Found</h2>
+                <p className="text-neutral-400 mb-6">
+                  {filter === 'all' 
+                    ? "You haven't purchased any content yet. Browse the marketplace to get started!"
+                    : filter === 'active'
+                    ? "You don't have any active purchases."
+                    : "You don't have any expired purchases."}
+                </p>
+                {filter === 'all' && (
+                  <Link href="/marketplace">
+                    <button className="px-6 py-3 bg-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
+                      Browse Marketplace
+                    </button>
+                  </Link>
                 )}
               </div>
-            ))}
-          </div>
-        ) : walletAddress ? (
-          <p className="text-neutral-400">No purchases found for this wallet</p>
-        ) : (
-          <p className="text-neutral-400">Enter your wallet address to view your library</p>
-        )}
-      </main>
-      <Footer />
+            </div>
+          ) : (
+            <>
+              {/* Filters and Grouping */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <div className="flex gap-2">
+                  {(['all', 'active', 'expired'] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        filter === f
+                          ? 'bg-gradient-primary text-white'
+                          : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                      }`}
+                    >
+                      {f.charAt(0).toUpperCase() + f.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  {(['date', 'merchant'] as const).map((g) => (
+                    <button
+                      key={g}
+                      onClick={() => setGroupBy(g)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        groupBy === g
+                          ? 'bg-neutral-800 text-white border border-emerald-500/50'
+                          : 'bg-neutral-800/50 text-neutral-300 hover:bg-neutral-700'
+                      }`}
+                    >
+                      Group by {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Purchased Content */}
+              <div className="space-y-8">
+                {Object.entries(groupedPurchases).map(([groupKey, purchases]) => (
+                  <div key={groupKey}>
+                    <h2 className="text-xl font-semibold text-white mb-4">{groupKey}</h2>
+                    <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+                      {purchases.map((purchase) => {
+                        const content = contentsData?.[purchase.contentId];
+                        const isExpired = purchase.expiresAt && purchase.expiresAt <= Math.floor(Date.now() / 1000);
+                        
+                        if (!content) {
+                          return (
+                            <div key={purchase.id} className="glass p-6 rounded-xl">
+                              <p className="text-neutral-400 text-sm">Loading content...</p>
+                            </div>
+                          );
+                        }
+                        
+                        return (
+                          <div key={purchase.id} className="glass-strong rounded-xl overflow-hidden hover:border-emerald-500/30 transition-all group">
+                            <Link href={`/marketplace/content?merchantId=${content.merchantId}&slug=${content.slug}`}>
+                              {content.thumbnailUrl && (
+                                <div className="relative w-full aspect-video bg-neutral-800">
+                                  <img
+                                    src={content.thumbnailUrl}
+                                    alt={content.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                  />
+                                  {isExpired && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                      <span className="text-red-400 font-semibold">Expired</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              <div className="p-4">
+                                <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                                  {content.title}
+                                </h3>
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className={`px-2 py-1 rounded ${isExpired ? 'bg-red-900/20 text-red-400' : 'bg-emerald-900/20 text-emerald-400'}`}>
+                                    {isExpired ? 'Expired' : 'Active'}
+                                  </span>
+                                  <span className="text-neutral-400">
+                                    {formatDate(purchase.confirmedAt)}
+                                  </span>
+                                </div>
+                                {purchase.expiresAt && !isExpired && (
+                                  <p className="text-xs text-neutral-500 mt-2">
+                                    Expires: {formatDate(purchase.expiresAt)}
+                                  </p>
+                                )}
+                              </div>
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 }
