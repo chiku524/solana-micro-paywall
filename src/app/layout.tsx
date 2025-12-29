@@ -7,8 +7,8 @@ import { AnimatedBackground } from '@/components/ui/animated-background';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Solana Micro-Paywall',
-  description: 'Solana-native micro-paywall and pay-per-use platform',
+  title: 'Micro Paywall - Blockchain Payment Platform',
+  description: 'Multi-chain micro-paywall and pay-per-use platform. Monetize content with instant blockchain payments.',
 };
 
 export default function RootLayout({

@@ -2,15 +2,15 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="border-t border-neutral-800 bg-neutral-950">
+    <footer className="border-t border-neutral-800/50 glass mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-xl font-bold text-emerald-400 mb-4">Solana Paywall</h3>
+            <h3 className="text-xl font-bold gradient-text mb-4">Micro Paywall</h3>
             <p className="text-neutral-400 text-sm mb-4">
-              Monetize your content with instant Solana blockchain payments.
-              Sub-second confirmations, near-zero fees, and seamless integration.
+              Monetize your content with instant blockchain payments.
+              Multi-chain support, near-zero fees, and seamless integration.
             </p>
             <div className="flex space-x-4">
               <a
@@ -95,7 +95,7 @@ export function Footer() {
 
         <div className="mt-8 pt-8 border-t border-neutral-800">
           <p className="text-neutral-400 text-sm text-center">
-            © {new Date().getFullYear()} Solana Paywall. All rights reserved.
+            © {new Date().getFullYear()} Micro Paywall. All rights reserved.
           </p>
         </div>
       </div>
