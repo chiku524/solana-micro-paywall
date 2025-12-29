@@ -260,6 +260,5 @@ export default function LibraryPage() {
         </main>
         <Footer />
       </div>
-    </div>
   );
 }

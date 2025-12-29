@@ -27,8 +27,8 @@ export default function MarketplacePage() {
   // Extract unique categories from content
   const categories = Array.from(
     new Set([
-      ...(trending?.content.map(c => c.category).filter(Boolean) || []),
-      ...(recent?.content.map(c => c.category).filter(Boolean) || [])
+      ...(trending?.content.map(c => c.category).filter((cat): cat is string => Boolean(cat)) || []),
+      ...(recent?.content.map(c => c.category).filter((cat): cat is string => Boolean(cat)) || [])
     ])
   );
   
