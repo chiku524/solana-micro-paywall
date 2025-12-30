@@ -16,24 +16,25 @@ export function Navbar() {
   ];
   
   return (
-    <nav className="border-b border-neutral-800/50 glass-strong sticky top-0 z-50">
+    <nav className="border-b border-neutral-800/50 glass-strong sticky top-0 z-50" role="navigation" aria-label="Main navigation">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold gradient-text hover:opacity-80 transition-opacity">
+            <Link href="/" className="text-xl font-bold gradient-text hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-neutral-900 rounded px-2 py-1" aria-label="Micro Paywall Home">
               Micro Paywall
             </Link>
-            <div className="ml-10 flex space-x-4">
+            <div className="ml-10 flex space-x-4" role="menubar">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                    'px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-neutral-900',
                     pathname === item.href
                       ? 'text-emerald-400 bg-neutral-800/50'
                       : 'text-neutral-300 hover:text-emerald-400 hover:bg-neutral-800/30'
                   )}
+                  role="menuitem"
                 >
                   {item.label}
                 </Link>

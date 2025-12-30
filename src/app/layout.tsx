@@ -3,9 +3,11 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { SolanaWalletProvider } from '@/lib/wallet-provider';
 import { AuthProvider } from '@/lib/auth-context';
+import { SWRProvider } from '@/lib/swr-config';
 import { AnimatedBackground } from '@/components/ui/animated-background';
 import { ToastProvider } from '@/components/toast-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { SkipLink } from '@/components/accessibility-skip-link';
 import { generateMetadata as generateSEOMetadata, generateStructuredData } from '@/lib/seo';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -63,14 +65,17 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <SkipLink />
         <ErrorBoundary>
-          <SolanaWalletProvider>
-            <AuthProvider>
-              <ToastProvider />
-              <AnimatedBackground />
-              {children}
-            </AuthProvider>
-          </SolanaWalletProvider>
+          <SWRProvider>
+            <SolanaWalletProvider>
+              <AuthProvider>
+                <ToastProvider />
+                <AnimatedBackground />
+                {children}
+              </AuthProvider>
+            </SolanaWalletProvider>
+          </SWRProvider>
         </ErrorBoundary>
       </body>
     </html>

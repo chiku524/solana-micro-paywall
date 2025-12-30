@@ -12,6 +12,10 @@ export const metadata: Metadata = generateSEOMetadata({
 });
 
 export default function HomePage() {
+  useEffect(() => {
+    analytics.trackPageView('/', 'Home');
+  }, []);
+
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col relative">
       <Navbar />
