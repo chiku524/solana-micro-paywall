@@ -1,15 +1,11 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
-import { generateMetadata as generateSEOMetadata } from '@/lib/seo';
-
-export const metadata: Metadata = generateSEOMetadata({
-  title: 'Micro Paywall - Blockchain Payment Platform',
-  description: 'Monetize your content with instant blockchain payments. Multi-chain support, sub-second confirmations, near-zero fees, and seamless integration.',
-  url: '/',
-});
+import { analytics } from '@/lib/analytics';
 
 export default function HomePage() {
   useEffect(() => {
@@ -19,7 +15,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col relative">
       <Navbar />
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+      <main id="main-content" className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10" role="main">
         {/* Hero Section */}
         <section className="text-center py-20 md:py-32">
           <div className="animate-float">
