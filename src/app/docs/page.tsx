@@ -23,12 +23,8 @@ const sections = [
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState<string>('overview');
 
-  const scrollToSection = (sectionId: string) => {
+  const selectSection = (sectionId: string) => {
     setActiveSection(sectionId);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   };
 
   return (
@@ -44,7 +40,7 @@ export default function DocsPage() {
                 {sections.map((section) => (
                   <button
                     key={section.id}
-                    onClick={() => scrollToSection(section.id)}
+                    onClick={() => selectSection(section.id)}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                       activeSection === section.id
                         ? 'bg-gradient-primary text-white'
@@ -60,13 +56,26 @@ export default function DocsPage() {
           </aside>
 
           {/* Documentation Content */}
-          <div className="flex-1 space-y-12">
+          <div className="flex-1">
+            {/* Section Header */}
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-white mb-2">
+                {sections.find(s => s.id === activeSection)?.icon} {sections.find(s => s.id === activeSection)?.title || 'Documentation'}
+              </h1>
+              {activeSection === 'overview' && (
+                <p className="text-xl text-neutral-400">
+                  Complete guide to Micro Paywall - the multi-chain micro-paywall and pay-per-use platform
+                </p>
+              )}
+            </div>
+            
             {/* Overview */}
-            <section id="overview" className="scroll-mt-24">
-              <h1 className="text-4xl font-bold text-white mb-4">Documentation</h1>
-              <p className="text-xl text-neutral-400 mb-8">
-                Complete guide to Micro Paywall - the multi-chain micro-paywall and pay-per-use platform
-              </p>
+            {activeSection === 'overview' && (
+              <section 
+                id="overview" 
+                className="animate-in fade-in duration-300"
+                key="overview"
+              >
               <div className="glass-strong p-6 rounded-xl">
                 <h2 className="text-2xl font-semibold text-white mb-4">What is Micro Paywall?</h2>
                 <p className="text-neutral-300 mb-4">
@@ -87,11 +96,16 @@ export default function DocsPage() {
                   </div>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* Getting Started */}
-            <section id="getting-started" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">🚀 Getting Started</h2>
+            {activeSection === 'getting-started' && (
+              <section 
+                id="getting-started" 
+                className="animate-in fade-in duration-300"
+                key="getting-started"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">For Content Creators (Merchants)</h3>
@@ -131,11 +145,16 @@ export default function DocsPage() {
                   </ol>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* Merchant Guide */}
-            <section id="merchant-guide" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">👤 Merchant Guide</h2>
+            {activeSection === 'merchant-guide' && (
+              <section 
+                id="merchant-guide" 
+                className="animate-in fade-in duration-300"
+                key="merchant-guide"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">Account Creation</h3>
@@ -177,11 +196,16 @@ export default function DocsPage() {
                   </p>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* Content Management */}
-            <section id="content-management" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">📝 Content Management</h2>
+            {activeSection === 'content-management' && (
+              <section 
+                id="content-management" 
+                className="animate-in fade-in duration-300"
+                key="content-management"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">Creating Content</h3>
@@ -217,11 +241,16 @@ export default function DocsPage() {
                   </ul>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* Payment System */}
-            <section id="payment-system" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">💳 Payment System</h2>
+            {activeSection === 'payment-system' && (
+              <section 
+                id="payment-system" 
+                className="animate-in fade-in duration-300"
+                key="payment-system"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">Payment Flow</h3>
@@ -268,11 +297,16 @@ export default function DocsPage() {
                   </div>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* Widget SDK */}
-            <section id="widget-sdk" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">🔧 Widget SDK</h2>
+            {activeSection === 'widget-sdk' && (
+              <section 
+                id="widget-sdk" 
+                className="animate-in fade-in duration-300"
+                key="widget-sdk"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">Integration Methods</h3>
@@ -323,11 +357,16 @@ export default function DocsPage() {
                   </ul>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* API Reference */}
-            <section id="api-reference" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">🔌 API Reference</h2>
+            {activeSection === 'api-reference' && (
+              <section 
+                id="api-reference" 
+                className="animate-in fade-in duration-300"
+                key="api-reference"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-4">Base URL</h3>
@@ -406,11 +445,16 @@ export default function DocsPage() {
                   </div>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* Marketplace */}
-            <section id="marketplace" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">🛒 Marketplace</h2>
+            {activeSection === 'marketplace' && (
+              <section 
+                id="marketplace" 
+                className="animate-in fade-in duration-300"
+                key="marketplace"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">Features</h3>
@@ -445,11 +489,16 @@ export default function DocsPage() {
                   </div>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* Library */}
-            <section id="library" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">📦 User Library</h2>
+            {activeSection === 'library' && (
+              <section 
+                id="library" 
+                className="animate-in fade-in duration-300"
+                key="library"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">My Purchases</h3>
@@ -477,11 +526,16 @@ export default function DocsPage() {
                   </ul>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* Dashboard */}
-            <section id="dashboard" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">📊 Dashboard & Analytics</h2>
+            {activeSection === 'dashboard' && (
+              <section 
+                id="dashboard" 
+                className="animate-in fade-in duration-300"
+                key="dashboard"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">Overview</h3>
@@ -519,11 +573,16 @@ export default function DocsPage() {
                   </ul>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* Authentication */}
-            <section id="authentication" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">🔐 Authentication</h2>
+            {activeSection === 'authentication' && (
+              <section 
+                id="authentication" 
+                className="animate-in fade-in duration-300"
+                key="authentication"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">JWT Tokens</h3>
@@ -560,11 +619,16 @@ export default function DocsPage() {
                   </p>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
 
             {/* FAQ */}
-            <section id="faq" className="scroll-mt-24">
-              <h2 className="text-3xl font-bold text-white mb-6">❓ Frequently Asked Questions</h2>
+            {activeSection === 'faq' && (
+              <section 
+                id="faq" 
+                className="animate-in fade-in duration-300"
+                key="faq"
+              >
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-3">How do I get started as a merchant?</h3>
@@ -609,7 +673,8 @@ export default function DocsPage() {
                   </p>
                 </div>
               </div>
-            </section>
+              </section>
+            )}
           </div>
         </div>
       </main>
