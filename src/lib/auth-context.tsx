@@ -47,10 +47,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const merchantData = await apiGet<any>('/api/merchants/me', authToken);
       setMerchant(merchantData);
       setIsLoading(false);
-    } catch (error) {
-      // Token is invalid or expired
-      console.error('Token validation failed:', error);
-      logout();
+    } catch (error: any) {
+      // Token is invalid or expired - silently handle it
+      if (error?.status === 401) {
+        // Only logout if it's an auth error, don't log to console
+        logout();
+      } else {
+        // For other errors, still set loading to false
+        setIsLoading(false);
+      }
     }
   };
 
