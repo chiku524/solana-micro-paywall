@@ -3,12 +3,15 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiGet } from './api';
+import { showToast } from './toast';
+
+import type { Merchant } from '@/types';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   token: string | null;
   merchantId: string | null;
-  merchant: any | null;
+  merchant: Merchant | null;
   login: (token: string, merchantId: string) => void;
   logout: () => void;
   isLoading: boolean;
@@ -19,7 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [merchantId, setMerchantId] = useState<string | null>(null);
-  const [merchant, setMerchant] = useState<any | null>(null);
+  const [merchant, setMerchant] = useState<Merchant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -44,13 +47,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const validateToken = async (authToken: string, authMerchantId: string) => {
     try {
       // Use /me endpoint for authenticated merchant data
-      const merchantData = await apiGet<any>('/api/merchants/me', authToken);
+      const merchantData = await apiGet<Merchant>('/api/merchants/me', authToken);
       setMerchant(merchantData);
       setIsLoading(false);
     } catch (error: any) {
       // Token is invalid or expired - silently handle it
       if (error?.status === 401) {
-        // Only logout if it's an auth error, don't log to console
+        // Only logout if it's an auth error, don't show toast for expired tokens on load
         logout();
       } else {
         // For other errors, still set loading to false

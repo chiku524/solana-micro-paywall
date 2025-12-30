@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import useSWR from 'swr';
+import Image from 'next/image';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ContentCard } from '@/components/content-card';
@@ -268,14 +269,17 @@ export default function LibraryPage() {
                             <div key={purchase.id} className="glass-strong rounded-xl overflow-hidden hover:border-emerald-500/30 transition-all group">
                               <Link href={`/marketplace/content?merchantId=${content.merchantId}&slug=${content.slug}`}>
                                 {content.thumbnailUrl && (
-                                  <div className="relative w-full aspect-video bg-neutral-800">
-                                    <img
+                                  <div className="relative w-full aspect-video bg-neutral-800 overflow-hidden">
+                                    <Image
                                       src={content.thumbnailUrl}
                                       alt={content.title}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                      fill
+                                      className="object-cover group-hover:scale-105 transition-transform"
+                                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                      loading="lazy"
                                     />
                                     {isExpired && (
-                                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
                                         <span className="text-red-400 font-semibold">Expired</span>
                                       </div>
                                     )}
@@ -346,11 +350,14 @@ export default function LibraryPage() {
                   <div key={content.id} className="glass-strong rounded-xl overflow-hidden hover:border-emerald-500/30 transition-all group">
                     <Link href={`/marketplace/content?merchantId=${content.merchantId}&slug=${content.slug}`}>
                       {content.thumbnailUrl && (
-                        <div className="relative w-full aspect-video bg-neutral-800">
-                          <img
+                        <div className="relative w-full aspect-video bg-neutral-800 overflow-hidden">
+                          <Image
                             src={content.thumbnailUrl}
                             alt={content.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                            loading="lazy"
                           />
                         </div>
                       )}

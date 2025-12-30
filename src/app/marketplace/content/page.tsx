@@ -3,6 +3,7 @@
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
+import Image from 'next/image';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { PaymentWidget } from '@/components/payment-widget-enhanced';
@@ -63,10 +64,13 @@ function ContentDetailContent() {
       <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {content.thumbnailUrl && (
           <div className="relative w-full aspect-video bg-neutral-900 rounded-lg overflow-hidden mb-8">
-            <img
+            <Image
               src={content.thumbnailUrl}
               alt={content.title}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 896px"
+              priority
             />
           </div>
         )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Image from 'next/image';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Transaction, SystemProgram, PublicKey, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
@@ -173,7 +174,13 @@ export function PaymentWidget({
             <>
               {qrCodeDataUrl && (
                 <div className="flex justify-center mb-4">
-                  <img src={qrCodeDataUrl} alt="Payment QR Code" className="w-64 h-64" />
+                  <Image
+                    src={qrCodeDataUrl}
+                    alt="Payment QR Code"
+                    width={256}
+                    height={256}
+                    className="w-64 h-64"
+                  />
                 </div>
               )}
               

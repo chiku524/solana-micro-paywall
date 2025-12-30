@@ -4,6 +4,8 @@ import './globals.css';
 import { SolanaWalletProvider } from '@/lib/wallet-provider';
 import { AuthProvider } from '@/lib/auth-context';
 import { AnimatedBackground } from '@/components/ui/animated-background';
+import { ToastProvider } from '@/components/toast-provider';
+import { ErrorBoundary } from '@/components/error-boundary';
 import { generateMetadata as generateSEOMetadata, generateStructuredData } from '@/lib/seo';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -61,12 +63,15 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <SolanaWalletProvider>
-          <AuthProvider>
-            <AnimatedBackground />
-            {children}
-          </AuthProvider>
-        </SolanaWalletProvider>
+        <ErrorBoundary>
+          <SolanaWalletProvider>
+            <AuthProvider>
+              <ToastProvider />
+              <AnimatedBackground />
+              {children}
+            </AuthProvider>
+          </SolanaWalletProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
