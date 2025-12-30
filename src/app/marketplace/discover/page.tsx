@@ -8,6 +8,9 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ContentCard } from '@/components/content-card';
 import { Button } from '@/components/ui/button';
+import { SearchInput } from '@/components/ui/search-input';
+import { EmptySearch } from '@/components/ui/empty-state';
+import { useDebounce } from '@/lib/use-debounce';
 import { apiGet } from '@/lib/api';
 import type { Content } from '@/types';
 
@@ -15,6 +18,7 @@ function DiscoverContent() {
   const searchParams = useSearchParams();
   const sort = searchParams.get('sort') || 'recent';
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   const { data, isLoading } = useSWR<{ content: Content[] }>(
@@ -29,11 +33,11 @@ function DiscoverContent() {
     )
   );
   
-  // Filter content
+  // Filter content (use debounced search)
   const filteredContent = (data?.content || []).filter(item => {
-    const matchesSearch = !searchQuery || 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = !debouncedSearchQuery || 
+      item.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+      item.description?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -55,23 +59,12 @@ function DiscoverContent() {
         
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search for content, creators, or topics..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-6 py-4 pl-12 bg-neutral-900 text-white rounded-xl border border-neutral-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
-            />
-            <svg
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onSearch={setSearchQuery}
+            placeholder="Search for content, creators, or topics..."
+            debounceMs={500}
+          />
           
           {categories.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -116,12 +109,7 @@ function DiscoverContent() {
             ))}
           </div>
         ) : (
-          <div className="glass-strong p-12 rounded-xl text-center">
-            <p className="text-neutral-400">No content found matching your filters.</p>
-            <Link href="/marketplace" className="mt-4 inline-block">
-              <Button variant="outline">Back to Marketplace</Button>
-            </Link>
-          </div>
+          <EmptySearch query={debouncedSearchQuery || undefined} />
         )}
       </main>
       <Footer />

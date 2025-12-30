@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ContentCard } from '@/components/content-card';
+import { EmptyPurchases, EmptyContent } from '@/components/ui/empty-state';
 import { apiGet } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { formatSol, formatDate } from '@/lib/utils';
@@ -388,20 +389,7 @@ export default function LibraryPage() {
             ) : (
               <div className="glass-strong p-12 rounded-xl text-center">
                 <div className="max-w-md mx-auto">
-                  <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </div>
-                  <h2 className="text-2xl font-bold text-white mb-2">No Creations Yet</h2>
-                  <p className="text-neutral-400 mb-6">
-                    Start creating content to monetize your work. Create your first content item now!
-                  </p>
-                  <Link href="/dashboard/contents">
-                    <button className="px-6 py-3 bg-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
-                      Create Content
-                    </button>
-                  </Link>
+                  <EmptyContent />
                 </div>
               </div>
             )}

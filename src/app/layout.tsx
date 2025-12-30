@@ -9,6 +9,7 @@ import { ToastProvider } from '@/components/toast-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { SkipLink } from '@/components/accessibility-skip-link';
 import { generateMetadata as generateSEOMetadata, generateStructuredData } from '@/lib/seo';
+import { WebVitalsScript } from '@/components/web-vitals-script';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -66,6 +67,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <SkipLink />
+        <WebVitalsScript />
         <ErrorBoundary>
           <SWRProvider>
             <SolanaWalletProvider>
