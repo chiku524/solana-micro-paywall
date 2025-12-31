@@ -9,13 +9,14 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ContentCard } from '@/components/content-card';
 import { EmptyPurchases, EmptyContent } from '@/components/ui/empty-state';
+import { bookmarks, recentlyViewed } from '@/lib/local-storage';
 import { apiGet } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { formatSol, formatDate } from '@/lib/utils';
 import type { Purchase, Content } from '@/types';
 import Link from 'next/link';
 
-type TabType = 'purchases' | 'creations';
+type TabType = 'purchases' | 'creations' | 'bookmarks' | 'recently-viewed';
 
 export default function LibraryPage() {
   const { publicKey, connected } = useWallet();
@@ -317,6 +318,123 @@ export default function LibraryPage() {
           </>
         )}
         
+        {/* Bookmarks Tab */}
+        {activeTab === 'bookmarks' && (
+          <>
+            {(() => {
+              const bookmarkedItems = bookmarks.getAll();
+              return bookmarkedItems.length > 0 ? (
+                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {bookmarkedItems.map((item) => (
+                    <div key={item.id} className="glass-strong rounded-xl overflow-hidden hover:border-emerald-500/30 transition-all group">
+                      <Link href={`/marketplace/content?merchantId=${item.merchantId}&slug=${item.slug}`}>
+                        {item.thumbnailUrl && (
+                          <div className="relative w-full aspect-video bg-neutral-800 overflow-hidden">
+                            <Image
+                              src={item.thumbnailUrl}
+                              alt={item.title || 'Bookmarked content'}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+                        <div className="p-4">
+                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                            {item.title || 'Untitled'}
+                          </h3>
+                          <p className="text-xs text-neutral-500">
+                            Bookmarked {formatDate(item.bookmarkedAt)}
+                          </p>
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="glass-strong p-12 rounded-xl text-center">
+                  <div className="max-w-md mx-auto">
+                    <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-2">No Bookmarks Yet</h2>
+                    <p className="text-neutral-400 mb-6">
+                      Content you bookmark will appear here. Start exploring to find interesting content!
+                    </p>
+                    <Link href="/marketplace">
+                      <button className="px-6 py-3 bg-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
+                        Browse Marketplace
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()}
+          </>
+        )}
+
+        {/* Recently Viewed Tab */}
+        {activeTab === 'recently-viewed' && (
+          <>
+            {(() => {
+              const recentlyViewedItems = recentlyViewed.getAll();
+              return recentlyViewedItems.length > 0 ? (
+                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {recentlyViewedItems.map((item) => (
+                    <div key={item.id} className="glass-strong rounded-xl overflow-hidden hover:border-emerald-500/30 transition-all group">
+                      <Link href={`/marketplace/content?merchantId=${item.merchantId}&slug=${item.slug}`}>
+                        {item.thumbnailUrl && (
+                          <div className="relative w-full aspect-video bg-neutral-800 overflow-hidden">
+                            <Image
+                              src={item.thumbnailUrl}
+                              alt={item.title || 'Recently viewed content'}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+                        <div className="p-4">
+                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                            {item.title || 'Untitled'}
+                          </h3>
+                          <p className="text-xs text-neutral-500">
+                            Viewed {formatDate(item.viewedAt)}
+                          </p>
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="glass-strong p-12 rounded-xl text-center">
+                  <div className="max-w-md mx-auto">
+                    <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-2">No Recent Views</h2>
+                    <p className="text-neutral-400 mb-6">
+                      Content you view will appear here. Start browsing to build your history!
+                    </p>
+                    <Link href="/marketplace">
+                      <button className="px-6 py-3 bg-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
+                        Browse Marketplace
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()}
+          </>
+        )}
+
         {/* Creations Tab */}
         {activeTab === 'creations' && (
           <>

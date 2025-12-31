@@ -4,9 +4,13 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import Image from 'next/image';
+import { useEffect } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { PaymentWidget } from '@/components/payment-widget-enhanced';
+import { ShareButtons } from '@/components/ui/share-buttons';
+import { BookmarkButton } from '@/components/ui/bookmark-button';
+import { recentlyViewed } from '@/lib/local-storage';
 import { apiGet } from '@/lib/api';
 import { formatSol } from '@/lib/utils';
 import type { Content } from '@/types';
@@ -75,7 +79,21 @@ function ContentDetailContent() {
           </div>
         )}
         
-        <h1 className="text-4xl font-bold text-white mb-4">{content.title}</h1>
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <h1 className="text-4xl font-bold text-white flex-1">{content.title}</h1>
+          <div className="flex items-center gap-2">
+            <BookmarkButton
+              contentId={content.id}
+              contentData={{
+                title: content.title,
+                thumbnailUrl: content.thumbnailUrl,
+                merchantId: content.merchantId,
+                slug: content.slug,
+              }}
+              variant="icon-only"
+            />
+          </div>
+        </div>
         
         <div className="flex items-center gap-4 mb-6">
           <span className="text-2xl font-bold text-emerald-400">
@@ -89,8 +107,17 @@ function ContentDetailContent() {
         </div>
         
         {content.description && (
-          <p className="text-lg text-neutral-300 mb-8">{content.description}</p>
+          <p className="text-lg text-neutral-300 mb-6">{content.description}</p>
         )}
+
+        {/* Share Buttons */}
+        <div className="mb-8">
+          <ShareButtons
+            url={typeof window !== 'undefined' ? window.location.href : ''}
+            title={content.title}
+            description={content.description}
+          />
+        </div>
         
         {content.previewText && (
           <div className="bg-neutral-900 p-6 rounded-lg mb-8">
