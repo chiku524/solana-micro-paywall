@@ -59,7 +59,7 @@ function DashboardLogin() {
   };
   
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
         <div className="glass-strong p-8 rounded-xl max-w-md w-full shadow-xl">
@@ -158,7 +158,7 @@ function DashboardContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-neutral-950 flex flex-col">
+      <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
@@ -297,7 +297,7 @@ export default function DashboardPage() {
   if (!isAuthenticated) {
     return (
       <Suspense fallback={
-        <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-white">Loading...</div>
         </div>
       }>
@@ -308,7 +308,7 @@ export default function DashboardPage() {
   
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     }>

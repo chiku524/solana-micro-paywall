@@ -43,7 +43,7 @@ function DiscoverContent() {
   });
   
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="mb-8">
@@ -120,7 +120,7 @@ function DiscoverContent() {
 export default function DiscoverPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     }>

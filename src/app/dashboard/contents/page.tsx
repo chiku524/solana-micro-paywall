@@ -46,7 +46,7 @@ export default function ContentsPage() {
   
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-neutral-950 flex flex-col">
+      <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex justify-between items-center mb-8">

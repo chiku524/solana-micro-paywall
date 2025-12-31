@@ -21,7 +21,7 @@ function PaymentsContent() {
   
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-neutral-950 flex flex-col">
+      <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
           <div className="flex items-center justify-between mb-8">
@@ -105,7 +105,7 @@ function PaymentsContent() {
 export default function PaymentsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-white">Loading...</div>
       </div>
     }>

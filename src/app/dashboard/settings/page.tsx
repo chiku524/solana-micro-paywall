@@ -43,12 +43,12 @@ export default function SettingsPage() {
   };
   
   if (!merchant) {
-    return <div className="min-h-screen bg-neutral-950 p-12">Loading...</div>;
+    return <div className="min-h-screen p-12">Loading...</div>;
   }
   
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-neutral-950 flex flex-col">
+      <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <h1 className="text-4xl font-bold text-white mb-8">Settings</h1>

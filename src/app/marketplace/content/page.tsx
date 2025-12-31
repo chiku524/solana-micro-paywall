@@ -63,7 +63,7 @@ function ContentDetailContent() {
   }
   
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {content.thumbnailUrl && (
