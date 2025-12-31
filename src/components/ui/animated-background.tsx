@@ -29,41 +29,20 @@ export function AnimatedBackground() {
         { r: 147, g: 51, b: 234 },   // Purple (Polygon-inspired)
         { r: 236, g: 72, b: 153 },   // Pink (Cosmos-inspired)
       ],
-      warm: [
-        { r: 251, g: 146, b: 60 },   // Orange
-        { r: 239, g: 68, b: 68 },    // Red
-        { r: 168, g: 85, b: 247 },   // Purple
-        { r: 236, g: 72, b: 153 },   // Pink
-      ],
-      cool: [
-        { r: 59, g: 130, b: 246 },   // Blue
-        { r: 34, g: 211, b: 238 },   // Cyan
-        { r: 16, g: 185, b: 129 },   // Emerald
-        { r: 139, g: 92, b: 246 },   // Violet
-      ],
     };
 
     const currentPalette = colorPalettes.default;
 
-    // Set canvas size with proper DPR handling
+    // Set canvas size - use CSS pixels for simplicity
     const setCanvasSize = () => {
       const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      
+      canvas.width = rect.width;
+      canvas.height = rect.height;
       return { width: rect.width, height: rect.height };
     };
     
     const dimensions = setCanvasSize();
-    window.addEventListener('resize', () => {
-      setCanvasSize();
-    });
+    window.addEventListener('resize', setCanvasSize);
 
     // Create gradient blobs
     const blobs: GradientBlob[] = [];
@@ -149,11 +128,17 @@ export function AnimatedBackground() {
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    animate();
+    // Start animation after a brief delay to ensure canvas is ready
+    const timeoutId = setTimeout(() => {
+      animate();
+    }, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('resize', setCanvasSize);
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
     };
   }, []);
 
