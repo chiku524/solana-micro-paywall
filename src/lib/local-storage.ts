@@ -49,7 +49,7 @@ export const recentlyViewed = {
   },
 
   getAll(): Array<{ id: string; title?: string; thumbnailUrl?: string; merchantId: string; slug: string; viewedAt: number }> {
-    return LocalStorage.get(this.key, []);
+    return LocalStorage.get<Array<{ id: string; title?: string; thumbnailUrl?: string; merchantId: string; slug: string; viewedAt: number }>>(this.key, []) || [];
   },
 
   clear() {
@@ -73,7 +73,7 @@ export const bookmarks = {
   },
 
   getAll(): Array<{ id: string; title?: string; thumbnailUrl?: string; merchantId: string; slug: string; bookmarkedAt: number }> {
-    return LocalStorage.get(this.key, []);
+    return LocalStorage.get<Array<{ id: string; title?: string; thumbnailUrl?: string; merchantId: string; slug: string; bookmarkedAt: number }>>(this.key, []) || [];
   },
 
   isBookmarked(contentId: string): boolean {
