@@ -5,10 +5,13 @@
 /* Ensure animated background is visible */
 html {
   background-color: rgb(10, 10, 10);
+  min-height: 100%;
 }
 
 body {
   background-color: transparent;
+  min-height: 100vh;
+  position: relative;
 }
 
 /* Accessibility: Focus styles */

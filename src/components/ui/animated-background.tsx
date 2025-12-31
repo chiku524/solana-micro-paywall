@@ -21,14 +21,6 @@ export function AnimatedBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size
-    const setCanvasSize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    setCanvasSize();
-    window.addEventListener('resize', setCanvasSize);
-
     // Multi-blockchain color palette - easily configurable
     const colorPalettes = {
       default: [
@@ -53,19 +45,39 @@ export function AnimatedBackground() {
 
     const currentPalette = colorPalettes.default;
 
+    // Set canvas size with proper DPR handling
+    const setCanvasSize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      
+      return { width: rect.width, height: rect.height };
+    };
+    
+    const dimensions = setCanvasSize();
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+    });
+
     // Create gradient blobs
     const blobs: GradientBlob[] = [];
-    const numBlobs = 4;
+    const numBlobs = 6; // Increased for more visibility
 
     for (let i = 0; i < numBlobs; i++) {
       const color = currentPalette[i % currentPalette.length];
       blobs.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
+        x: Math.random() * dimensions.width,
+        y: Math.random() * dimensions.height,
         vx: (Math.random() - 0.5) * 0.5,
         vy: (Math.random() - 0.5) * 0.5,
-        radius: Math.random() * 300 + 200,
-        color: `rgba(${color.r}, ${color.g}, ${color.b}, 0.15)`,
+        radius: Math.random() * 400 + 300, // Larger blobs
+        color: `rgba(${color.r}, ${color.g}, ${color.b}, 0.25)`, // More visible
       });
     }
 
@@ -76,9 +88,11 @@ export function AnimatedBackground() {
     const animate = () => {
       time += 0.01;
       
+      const rect = canvas.getBoundingClientRect();
+      
       // Clear with slight fade for smooth trail effect
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)'; // Less fade for more visibility
+      ctx.fillRect(0, 0, rect.width, rect.height);
 
       // Update blob positions with smooth movement
       blobs.forEach((blob, index) => {
@@ -90,18 +104,18 @@ export function AnimatedBackground() {
         blob.y += blob.vy + waveY;
 
         // Bounce off edges with slight damping
-        if (blob.x < -blob.radius || blob.x > canvas.width + blob.radius) {
+        if (blob.x < -blob.radius || blob.x > rect.width + blob.radius) {
           blob.vx *= -1;
         }
-        if (blob.y < -blob.radius || blob.y > canvas.height + blob.radius) {
+        if (blob.y < -blob.radius || blob.y > rect.height + blob.radius) {
           blob.vy *= -1;
         }
 
         // Wrap around edges smoothly
-        if (blob.x < -blob.radius) blob.x = canvas.width + blob.radius;
-        if (blob.x > canvas.width + blob.radius) blob.x = -blob.radius;
-        if (blob.y < -blob.radius) blob.y = canvas.height + blob.radius;
-        if (blob.y > canvas.height + blob.radius) blob.y = -blob.radius;
+        if (blob.x < -blob.radius) blob.x = rect.width + blob.radius;
+        if (blob.x > rect.width + blob.radius) blob.x = -blob.radius;
+        if (blob.y < -blob.radius) blob.y = rect.height + blob.radius;
+        if (blob.y > rect.height + blob.radius) blob.y = -blob.radius;
       });
 
       // Draw individual blobs with subtle glow and varying opacity
@@ -118,12 +132,12 @@ export function AnimatedBackground() {
           blob.radius
         );
         
-        // Subtle pulsing effect
-        const pulse = Math.sin(time * 2 + index) * 0.05 + 0.1;
+        // Subtle pulsing effect - increased visibility
+        const pulse = Math.sin(time * 2 + index) * 0.08 + 0.15;
         
-        radialGradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${0.15 + pulse})`);
-        radialGradient.addColorStop(0.3, `rgba(${color.r}, ${color.g}, ${color.b}, ${0.08 + pulse * 0.5})`);
-        radialGradient.addColorStop(0.6, `rgba(${color.r}, ${color.g}, ${color.b}, 0.03)`);
+        radialGradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${0.25 + pulse})`);
+        radialGradient.addColorStop(0.3, `rgba(${color.r}, ${color.g}, ${color.b}, ${0.15 + pulse * 0.6})`);
+        radialGradient.addColorStop(0.6, `rgba(${color.r}, ${color.g}, ${color.b}, 0.05)`);
         radialGradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
 
         ctx.fillStyle = radialGradient;
@@ -152,8 +166,8 @@ export function AnimatedBackground() {
           background: 'transparent',
         }}
       />
-      {/* Additional gradient overlay for depth - reduced opacity to show animation */}
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/80 via-neutral-950/70 to-neutral-950/80" />
+      {/* Additional gradient overlay for depth - much more transparent to show animation */}
+      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/40 via-neutral-950/30 to-neutral-950/40" />
     </div>
   );
 }
