@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure animated background is visible */
+html {
+  background-color: rgb(10, 10, 10);
+}
+
+body {
+  background-color: transparent;
+}
+
 /* Accessibility: Focus styles */
 @layer base {
   *:focus-visible {

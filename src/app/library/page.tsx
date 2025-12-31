@@ -103,7 +103,7 @@ export default function LibraryPage() {
   }, [filteredPurchases, groupBy, contentsData]);
   
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">

@@ -13,7 +13,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative">
       <Navbar />
       <main id="main-content" className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10" role="main">
         {/* Hero Section */}

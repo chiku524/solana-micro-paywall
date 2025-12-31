@@ -460,11 +460,14 @@ export default function DocsPage() {
                   <h3 className="text-xl font-semibold text-white mb-3">Features</h3>
                   <ul className="list-disc list-inside space-y-2 text-neutral-300">
                     <li><strong className="text-white">Browse Content:</strong> Discover premium content from creators</li>
-                    <li><strong className="text-white">Search:</strong> Real-time search across titles, descriptions, and creators</li>
+                    <li><strong className="text-white">Search:</strong> Real-time debounced search across titles, descriptions, and creators</li>
                     <li><strong className="text-white">Filtering:</strong> Filter by category, tags, price range, and sort options</li>
                     <li><strong className="text-white">Sorting:</strong> Sort by recent, trending, price (low-high, high-low), or purchase count</li>
                     <li><strong className="text-white">Content Details:</strong> View full content information, preview, and purchase</li>
                     <li><strong className="text-white">Merchant Profiles:</strong> Browse content by specific merchants</li>
+                    <li><strong className="text-white">Social Sharing:</strong> Share content on Twitter, LinkedIn, Facebook, or copy link</li>
+                    <li><strong className="text-white">Bookmarking:</strong> Save content for later with one click</li>
+                    <li><strong className="text-white">Recently Viewed:</strong> Automatically track viewed content</li>
                   </ul>
                 </div>
                 <div>
@@ -472,7 +475,7 @@ export default function DocsPage() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-emerald-400 font-semibold mb-2">Search</h4>
-                      <p className="text-sm text-neutral-400">Search by title, description, or merchant</p>
+                      <p className="text-sm text-neutral-400">Debounced search by title, description, or merchant</p>
                     </div>
                     <div className="bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-blue-400 font-semibold mb-2">Categories</h4>
@@ -487,6 +490,20 @@ export default function DocsPage() {
                       <p className="text-sm text-neutral-400">Set min/max price in SOL</p>
                     </div>
                   </div>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-3">Content Detail Page</h3>
+                  <p className="text-neutral-300 mb-4">
+                    Each content item has a dedicated detail page with:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-neutral-300">
+                    <li>Full content information and preview</li>
+                    <li>Payment widget for purchasing</li>
+                    <li>Social sharing buttons (Twitter, LinkedIn, Facebook, Copy Link)</li>
+                    <li>Native Web Share API support on mobile devices</li>
+                    <li>Bookmark button for saving content</li>
+                    <li>Automatic tracking in recently viewed</li>
+                  </ul>
                 </div>
               </div>
               </section>
@@ -523,6 +540,32 @@ export default function DocsPage() {
                     <li>See purchase counts and statistics</li>
                     <li>Quick access to content management</li>
                     <li>Link to marketplace listings</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-3">Bookmarks</h3>
+                  <p className="text-neutral-300 mb-4">
+                    Save content for later viewing. Features include:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-neutral-300">
+                    <li>Bookmark any content from the marketplace or content detail pages</li>
+                    <li>Bookmark button appears on hover for content cards</li>
+                    <li>View all bookmarked content in the Bookmarks tab</li>
+                    <li>Bookmarks persist across sessions using localStorage</li>
+                    <li>Quick access to bookmarked content with timestamps</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-3">Recently Viewed</h3>
+                  <p className="text-neutral-300 mb-4">
+                    Automatically track content you&apos;ve viewed. Features include:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-neutral-300">
+                    <li>Automatic tracking when viewing content detail pages</li>
+                    <li>Stores up to 10 most recently viewed items</li>
+                    <li>View all recently viewed content in the Recently Viewed tab</li>
+                    <li>See when you viewed each item</li>
+                    <li>Quick access to continue browsing where you left off</li>
                   </ul>
                 </div>
               </div>
@@ -570,6 +613,92 @@ export default function DocsPage() {
                     <li><Link href="/dashboard/contents" className="text-emerald-400 hover:underline">Contents</Link> - Content management</li>
                     <li><Link href="/dashboard/payments" className="text-emerald-400 hover:underline">Payments</Link> - Full payment history</li>
                     <li><Link href="/dashboard/settings" className="text-emerald-400 hover:underline">Settings</Link> - Profile and account settings</li>
+                  </ul>
+                </div>
+              </div>
+              </section>
+            )}
+
+            {/* User Features */}
+            {activeSection === 'features' && (
+              <section 
+                id="features" 
+                className="animate-in fade-in duration-300"
+                key="features"
+              >
+              <div className="glass-strong p-6 rounded-xl space-y-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-3">Social Sharing</h3>
+                  <p className="text-neutral-300 mb-4">
+                    Share content easily across multiple platforms:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-neutral-300">
+                    <li><strong className="text-white">Twitter:</strong> Share content with pre-filled tweet</li>
+                    <li><strong className="text-white">LinkedIn:</strong> Share professional content</li>
+                    <li><strong className="text-white">Facebook:</strong> Share with friends and followers</li>
+                    <li><strong className="text-white">Copy Link:</strong> Copy content URL to clipboard</li>
+                    <li><strong className="text-white">Native Share:</strong> Use device&apos;s native share menu on mobile</li>
+                  </ul>
+                  <p className="text-neutral-400 text-sm mt-3">
+                    Sharing buttons are available on all content detail pages. Links include the full content URL for easy sharing.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-3">Bookmarking System</h3>
+                  <p className="text-neutral-300 mb-4">
+                    Save content for later viewing:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-neutral-300">
+                    <li>Bookmark button appears on hover for content cards</li>
+                    <li>Bookmark button available on content detail pages</li>
+                    <li>All bookmarks stored in localStorage (persists across sessions)</li>
+                    <li>View all bookmarks in the Library → Bookmarks tab</li>
+                    <li>Quick access to bookmarked content with timestamps</li>
+                    <li>Toast notifications for bookmark actions</li>
+                  </ul>
+                  <p className="text-neutral-400 text-sm mt-3">
+                    Bookmarks are stored locally in your browser. To sync across devices, future updates may include cloud sync.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-3">Recently Viewed</h3>
+                  <p className="text-neutral-300 mb-4">
+                    Automatically track your browsing history:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-neutral-300">
+                    <li>Automatic tracking when viewing content detail pages</li>
+                    <li>Stores up to 10 most recently viewed items</li>
+                    <li>View all recently viewed content in Library → Recently Viewed tab</li>
+                    <li>See when you viewed each item</li>
+                    <li>Quick access to continue browsing where you left off</li>
+                  </ul>
+                  <p className="text-neutral-400 text-sm mt-3">
+                    Recently viewed items are stored locally in your browser and help you quickly return to content you&apos;ve explored.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-3">Search & Discovery</h3>
+                  <p className="text-neutral-300 mb-4">
+                    Enhanced search and filtering capabilities:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-neutral-300">
+                    <li><strong className="text-white">Debounced Search:</strong> Real-time search with automatic debouncing for performance</li>
+                    <li><strong className="text-white">Advanced Filtering:</strong> Filter by category, tags, price range</li>
+                    <li><strong className="text-white">Sorting Options:</strong> Sort by recent, trending, price, or popularity</li>
+                    <li><strong className="text-white">Empty States:</strong> Helpful messages when no results are found</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-3">Performance Features</h3>
+                  <p className="text-neutral-300 mb-4">
+                    Optimized for speed and user experience:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-neutral-300">
+                    <li><strong className="text-white">Image Optimization:</strong> Next.js Image component with lazy loading and blur placeholders</li>
+                    <li><strong className="text-white">Loading States:</strong> Skeleton components for better perceived performance</li>
+                    <li><strong className="text-white">Error Handling:</strong> Error boundaries and toast notifications</li>
+                    <li><strong className="text-white">Web Vitals:</strong> Performance monitoring for Core Web Vitals</li>
+                    <li><strong className="text-white">Analytics:</strong> Page view and event tracking</li>
                   </ul>
                 </div>
               </div>

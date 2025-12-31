@@ -27,7 +27,7 @@ function ContentDetailContent() {
   
   if (!merchantId || !slug) {
     return (
-      <div className="min-h-screen bg-neutral-950">
+      <div className="min-h-screen">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <p className="text-red-400">Invalid content URL</p>
@@ -38,7 +38,7 @@ function ContentDetailContent() {
   
   if (error) {
     return (
-      <div className="min-h-screen bg-neutral-950">
+      <div className="min-h-screen">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <p className="text-red-400">Content not found</p>
@@ -49,7 +49,7 @@ function ContentDetailContent() {
   
   if (!content) {
     return (
-      <div className="min-h-screen bg-neutral-950">
+      <div className="min-h-screen">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse">
@@ -149,7 +149,7 @@ function ContentDetailContent() {
 export default function ContentDetailPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-neutral-950">
+      <div className="min-h-screen">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse">

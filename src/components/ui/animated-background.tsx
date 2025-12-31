@@ -147,13 +147,13 @@ export function AnimatedBackground() {
     <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
       <canvas
         ref={canvasRef}
-        className="absolute inset-0"
+        className="absolute inset-0 w-full h-full"
         style={{
           background: 'transparent',
         }}
       />
-      {/* Additional gradient overlay for depth */}
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-neutral-950/95 to-neutral-950" />
+      {/* Additional gradient overlay for depth - reduced opacity to show animation */}
+      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/80 via-neutral-950/70 to-neutral-950/80" />
     </div>
   );
 }
