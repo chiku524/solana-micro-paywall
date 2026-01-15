@@ -115,7 +115,7 @@ export default function SignupPage() {
         );
         
         // Use auth context to login
-        login(loginResponse.token, response.id);
+        login(loginResponse.token, loginResponse.refreshToken || '', response.id);
         
         // Redirect to dashboard immediately
         setTimeout(() => {

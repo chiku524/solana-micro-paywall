@@ -34,9 +34,51 @@ export class ApiError extends Error {
   }
 }
 
+// Token refresh handler
+let refreshPromise: Promise<boolean> | null = null;
+
+async function refreshTokenIfNeeded(): Promise<boolean> {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = (async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        return false;
+      }
+
+      const response = await fetch(`${API_URL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      return true;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retryOn401 = true
 ): Promise<T> {
   const url = `${API_URL}${endpoint}`;
   
@@ -62,6 +104,20 @@ async function request<T>(
   } else {
     // Non-JSON response or empty body
     data = {};
+  }
+  
+  // Auto-refresh token on 401 if retry is enabled
+  if (!response.ok && response.status === 401 && retryOn401 && endpoint !== '/api/auth/refresh') {
+    const refreshed = await refreshTokenIfNeeded();
+    if (refreshed) {
+      // Retry the request with new token
+      const newToken = localStorage.getItem('token');
+      const newHeaders = {
+        ...options.headers,
+        Authorization: newToken ? `Bearer ${newToken}` : undefined,
+      };
+      return request<T>(endpoint, { ...options, headers: newHeaders }, false);
+    }
   }
   
   if (!response.ok) {

@@ -58,7 +58,7 @@ function DashboardLogin() {
         loginData
       );
       
-      login(response.token, response.merchant.id);
+      login(response.token, response.refreshToken || '', response.merchant.id);
     } catch (error: any) {
       setError(error.message || 'Login failed. Please check your credentials.');
     } finally {

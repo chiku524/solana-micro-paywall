@@ -162,6 +162,21 @@ app.post('/login', async (c) => {
     // Reset failed login attempts on successful login
     await updateFailedLoginAttempts(c.env.DB, merchant.id, 0, null);
     
+    // Log successful login
+    if (c.env.CACHE) {
+      const activityKey = `security_activity_${merchant.id}`;
+      const activity = {
+        type: 'login',
+        timestamp: Math.floor(Date.now() / 1000),
+        ip: c.req.header('CF-Connecting-IP') || 'unknown',
+      };
+      const existingActivities = await c.env.CACHE.get(activityKey);
+      const activities = existingActivities ? JSON.parse(existingActivities) : [];
+      activities.unshift(activity);
+      activities.splice(10); // Keep only last 10
+      await c.env.CACHE.put(activityKey, JSON.stringify(activities), { expirationTtl: 2592000 }); // 30 days
+    }
+    
     // Allow login for pending and active accounts (new signups are pending by default)
     if (merchant.status === 'suspended') {
       return c.json({ error: 'Forbidden', message: 'Merchant account is suspended' }, 403);

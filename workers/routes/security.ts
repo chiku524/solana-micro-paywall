@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import type { Env } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { getMerchantByEmail, getMerchantByPasswordResetToken, getMerchantByEmailVerificationToken, updateMerchantPassword, setPasswordResetToken, verifyEmail, setEmailVerificationToken, setTwoFactorSecret, getMerchantById } from '../lib/db';
-import { hashPassword, verifyPassword } from '../lib/password';
+import { hashPassword, verifyPassword, validatePasswordStrength } from '../lib/password';
 import { generateSecureToken, generate2FACode } from '../lib/security';
 import { sendEmail, generatePasswordResetEmail, generateEmailVerificationEmail } from '../lib/email';
 import { TOTP } from 'otpauth';
@@ -195,6 +195,21 @@ app.post('/email-verification/verify', async (c) => {
 
     await verifyEmail(c.env.DB, merchant.id);
 
+    // Log security activity
+    if (c.env.CACHE) {
+      const activityKey = `security_activity_${merchant.id}`;
+      const activity = {
+        type: 'email_verified',
+        timestamp: Math.floor(Date.now() / 1000),
+        ip: c.req.header('CF-Connecting-IP') || 'unknown',
+      };
+      const existingActivities = await c.env.CACHE.get(activityKey);
+      const activities = existingActivities ? JSON.parse(existingActivities) : [];
+      activities.unshift(activity);
+      activities.splice(10);
+      await c.env.CACHE.put(activityKey, JSON.stringify(activities), { expirationTtl: 2592000 });
+    }
+
     return c.json({ message: 'Email has been verified successfully' });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -308,6 +323,22 @@ app.post('/2fa/verify', authMiddleware, async (c) => {
       if (delta !== null) {
         // Valid code - enable 2FA
         await setTwoFactorSecret(c.env.DB, merchantId, merchant.twoFactorSecret, true);
+        
+        // Log security activity
+        if (c.env.CACHE) {
+          const activityKey = `security_activity_${merchantId}`;
+          const activity = {
+            type: '2fa_enabled',
+            timestamp: Math.floor(Date.now() / 1000),
+            ip: c.req.header('CF-Connecting-IP') || 'unknown',
+          };
+          const existingActivities = await c.env.CACHE.get(activityKey);
+          const activities = existingActivities ? JSON.parse(existingActivities) : [];
+          activities.unshift(activity);
+          activities.splice(10);
+          await c.env.CACHE.put(activityKey, JSON.stringify(activities), { expirationTtl: 2592000 });
+        }
+        
         return c.json({ message: '2FA has been enabled successfully' });
       }
     } catch (totpError) {
@@ -333,7 +364,104 @@ app.post('/2fa/disable', authMiddleware, async (c) => {
     const merchantId = c.get('merchantId');
     await setTwoFactorSecret(c.env.DB, merchantId, '', false);
 
+    // Log security activity
+    if (c.env.CACHE) {
+      const activityKey = `security_activity_${merchantId}`;
+      const activity = {
+        type: '2fa_disabled',
+        timestamp: Math.floor(Date.now() / 1000),
+        ip: c.req.header('CF-Connecting-IP') || 'unknown',
+      };
+      const existingActivities = await c.env.CACHE.get(activityKey);
+      const activities = existingActivities ? JSON.parse(existingActivities) : [];
+      activities.unshift(activity);
+      activities.splice(10);
+      await c.env.CACHE.put(activityKey, JSON.stringify(activities), { expirationTtl: 2592000 });
+    }
+
     return c.json({ message: '2FA has been disabled successfully' });
+  } catch (error) {
+    throw error;
+  }
+});
+
+// Change password (for logged-in users)
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+app.post('/password/change', authMiddleware, async (c) => {
+  try {
+    if (!c.env.DB) {
+      return c.json({ error: 'Configuration Error', message: 'Database binding not configured' }, 500);
+    }
+
+    const merchantId = c.get('merchantId');
+    const body = await c.req.json();
+    const { currentPassword, newPassword } = changePasswordSchema.parse(body);
+
+    // Get merchant
+    const merchant = await getMerchantById(c.env.DB, merchantId);
+    if (!merchant || !merchant.passwordHash) {
+      return c.json({ error: 'Not Found', message: 'Merchant not found' }, 404);
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await verifyPassword(currentPassword, merchant.passwordHash);
+    if (!isCurrentPasswordValid) {
+      return c.json({ error: 'Unauthorized', message: 'Current password is incorrect' }, 401);
+    }
+
+    // Validate new password strength
+    const passwordValidation = validatePasswordStrength(newPassword);
+    if (!passwordValidation.isValid) {
+      return c.json({ error: 'Bad Request', message: passwordValidation.error }, 400);
+    }
+
+    // Hash and update password
+    const newPasswordHash = await hashPassword(newPassword);
+    await updateMerchantPassword(c.env.DB, merchantId, newPasswordHash);
+
+    // Log security activity
+    if (c.env.CACHE) {
+      const activityKey = `security_activity_${merchantId}`;
+      const activity = {
+        type: 'password_changed',
+        timestamp: Math.floor(Date.now() / 1000),
+        ip: c.req.header('CF-Connecting-IP') || 'unknown',
+      };
+      // Store last 10 activities
+      const existingActivities = await c.env.CACHE.get(activityKey);
+      const activities = existingActivities ? JSON.parse(existingActivities) : [];
+      activities.unshift(activity);
+      activities.splice(10); // Keep only last 10
+      await c.env.CACHE.put(activityKey, JSON.stringify(activities), { expirationTtl: 2592000 }); // 30 days
+    }
+
+    return c.json({ message: 'Password has been changed successfully' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return c.json({ error: 'Bad Request', message: error.errors[0].message }, 400);
+    }
+    throw error;
+  }
+});
+
+// Get security activity log
+app.get('/activity', authMiddleware, async (c) => {
+  try {
+    if (!c.env.CACHE) {
+      return c.json({ error: 'Configuration Error', message: 'Cache binding not configured' }, 500);
+    }
+
+    const merchantId = c.get('merchantId');
+    const activityKey = `security_activity_${merchantId}`;
+    const activitiesData = await c.env.CACHE.get(activityKey);
+
+    const activities = activitiesData ? JSON.parse(activitiesData) : [];
+
+    return c.json({ activities });
   } catch (error) {
     throw error;
   }
