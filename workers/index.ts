@@ -6,6 +6,7 @@ import { corsMiddleware } from './middleware/cors';
 // Import route handlers
 import merchantsRoutes from './routes/merchants';
 import authRoutes from './routes/auth';
+import securityRoutes from './routes/security';
 import contentsRoutes from './routes/contents';
 import paymentsRoutes from './routes/payments';
 import purchasesRoutes from './routes/purchases';
@@ -37,6 +38,7 @@ app.get('/health', (c) => {
 // API routes
 app.route('/api/merchants', merchantsRoutes);
 app.route('/api/auth', authRoutes);
+app.route('/api/security', securityRoutes);
 app.route('/api/contents', contentsRoutes);
 app.route('/api/payments', paymentsRoutes);
 app.route('/api/purchases', purchasesRoutes);

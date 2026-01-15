@@ -17,6 +17,8 @@ export interface Merchant {
   discordUrl?: string;
   githubUrl?: string;
   status: MerchantStatus;
+  emailVerified?: boolean;
+  twoFactorEnabled?: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -83,6 +85,7 @@ export interface Bookmark {
 // API Request/Response types
 export interface CreateMerchantRequest {
   email: string;
+  password: string;
   payoutAddress?: string;
 }
 
@@ -127,7 +130,9 @@ export interface VerifyPaymentRequest {
 }
 
 export interface LoginRequest {
-  merchantId: string;
+  email?: string;
+  merchantId?: string;
+  password: string;
 }
 
 export interface LoginResponse {

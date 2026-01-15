@@ -1,14 +1,17 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
 import { authMiddleware } from '../middleware/auth';
-import { getMerchantById, createMerchant, updateMerchant, getMerchantByEmail } from '../lib/db';
+import { getMerchantById, createMerchant, updateMerchant, getMerchantByEmail, setEmailVerificationToken } from '../lib/db';
 import { z } from 'zod';
 import { checkRateLimit, getRateLimitKey } from '../lib/rate-limit';
+import { hashPassword, validatePasswordStrength } from '../lib/password';
+import { generateSecureToken } from '../lib/security';
 
 const app = new Hono<{ Bindings: Env }>();
 
 const createMerchantSchema = z.object({
   email: z.string().email(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   payoutAddress: z.string().optional(),
 });
 
@@ -49,7 +52,13 @@ app.post('/', async (c) => {
     }
     
     const body = await c.req.json();
-    const { email, payoutAddress } = createMerchantSchema.parse(body);
+    const { email, password, payoutAddress } = createMerchantSchema.parse(body);
+    
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      return c.json({ error: 'Bad Request', message: passwordValidation.error }, 400);
+    }
     
     // Check if email already exists
     const existing = await getMerchantByEmail(c.env.DB, email);
@@ -57,12 +66,37 @@ app.post('/', async (c) => {
       return c.json({ error: 'Conflict', message: 'Merchant with this email already exists' }, 409);
     }
     
+    // Hash password
+    const passwordHash = await hashPassword(password);
+    
     const merchantId = crypto.randomUUID();
     const merchant = await createMerchant(c.env.DB, {
       id: merchantId,
       email,
+      passwordHash,
       payoutAddress,
     });
+    
+    // Generate email verification token
+    const verificationToken = generateSecureToken(32);
+    await setEmailVerificationToken(c.env.DB, merchantId, verificationToken);
+    
+    // Send verification email
+    const verificationUrl = `${c.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+    const { sendEmail, generateEmailVerificationEmail } = await import('../lib/email');
+    const { subject, html, text } = generateEmailVerificationEmail(verificationUrl);
+    
+    try {
+      await sendEmail(c.env, {
+        to: email,
+        subject,
+        html,
+        text,
+      });
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      // Don't fail signup if email fails
+    }
     
     return c.json({
       id: merchant.id,
@@ -71,6 +105,8 @@ app.post('/', async (c) => {
       payoutAddress: merchant.payoutAddress,
       status: merchant.status,
       createdAt: merchant.createdAt,
+      emailVerified: false,
+      message: 'Account created. Please check your email to verify your account.',
     }, 201);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -90,21 +126,24 @@ app.get('/me', authMiddleware, async (c) => {
     return c.json({ error: 'Not Found', message: 'Merchant not found' }, 404);
   }
   
+  // Exclude passwordHash from response
+  const { passwordHash, ...merchantWithoutPassword } = merchant;
+  
   return c.json({
-    id: merchant.id,
-    email: merchant.email,
-    displayName: merchant.displayName,
-    bio: merchant.bio,
-    avatarUrl: merchant.avatarUrl,
-    payoutAddress: merchant.payoutAddress,
-    webhookSecret: merchant.webhookSecret,
-    twitterUrl: merchant.twitterUrl,
-    telegramUrl: merchant.telegramUrl,
-    discordUrl: merchant.discordUrl,
-    githubUrl: merchant.githubUrl,
-    status: merchant.status,
-    createdAt: merchant.createdAt,
-    updatedAt: merchant.updatedAt,
+    id: merchantWithoutPassword.id,
+    email: merchantWithoutPassword.email,
+    displayName: merchantWithoutPassword.displayName,
+    bio: merchantWithoutPassword.bio,
+    avatarUrl: merchantWithoutPassword.avatarUrl,
+    payoutAddress: merchantWithoutPassword.payoutAddress,
+    webhookSecret: merchantWithoutPassword.webhookSecret,
+    twitterUrl: merchantWithoutPassword.twitterUrl,
+    telegramUrl: merchantWithoutPassword.telegramUrl,
+    discordUrl: merchantWithoutPassword.discordUrl,
+    githubUrl: merchantWithoutPassword.githubUrl,
+    status: merchantWithoutPassword.status,
+    createdAt: merchantWithoutPassword.createdAt,
+    updatedAt: merchantWithoutPassword.updatedAt,
   });
 });
 
@@ -117,16 +156,19 @@ app.get('/:id', async (c) => {
     return c.json({ error: 'Not Found', message: 'Merchant not found' }, 404);
   }
   
+  // Exclude passwordHash and sensitive fields from public endpoint
+  const { passwordHash, email, webhookSecret, payoutAddress, ...publicMerchant } = merchant;
+  
   return c.json({
-    id: merchant.id,
-    displayName: merchant.displayName,
-    bio: merchant.bio,
-    avatarUrl: merchant.avatarUrl,
-    twitterUrl: merchant.twitterUrl,
-    telegramUrl: merchant.telegramUrl,
-    discordUrl: merchant.discordUrl,
-    githubUrl: merchant.githubUrl,
-    createdAt: merchant.createdAt,
+    id: publicMerchant.id,
+    displayName: publicMerchant.displayName,
+    bio: publicMerchant.bio,
+    avatarUrl: publicMerchant.avatarUrl,
+    twitterUrl: publicMerchant.twitterUrl,
+    telegramUrl: publicMerchant.telegramUrl,
+    discordUrl: publicMerchant.discordUrl,
+    githubUrl: publicMerchant.githubUrl,
+    createdAt: publicMerchant.createdAt,
   });
 });
 

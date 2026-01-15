@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
-    "db:migrate": "wrangler d1 migrations apply micropaywall-db --env production",
+    "db:migrate": "wrangler d1 migrations apply micropaywall-db --env production --config wrangler.toml",
     "db:generate": "wrangler d1 migrations create"
   },
   "dependencies": {
@@ -26,6 +26,7 @@
     "hono": "^4.0.0",
     "jose": "^5.2.3",
     "next": "^15.0.0",
+    "otpauth": "^9.4.1",
     "qrcode": "^1.5.3",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",

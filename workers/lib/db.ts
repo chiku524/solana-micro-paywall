@@ -2,7 +2,17 @@ import type { D1Database } from '@cloudflare/workers-types';
 import type { Merchant, Content, PaymentIntent, Purchase, Bookmark } from '../types';
 
 // Helper to convert SQLite row to typed object
-function rowToMerchant(row: any): Merchant {
+function rowToMerchant(row: any): Merchant & { 
+  passwordHash?: string;
+  emailVerified?: boolean;
+  emailVerificationToken?: string;
+  passwordResetToken?: string;
+  passwordResetExpiresAt?: number;
+  failedLoginAttempts?: number;
+  lockedUntil?: number;
+  twoFactorSecret?: string;
+  twoFactorEnabled?: boolean;
+} {
   return {
     id: row.id,
     email: row.email,
@@ -18,6 +28,15 @@ function rowToMerchant(row: any): Merchant {
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    passwordHash: row.password_hash || undefined,
+    emailVerified: row.email_verified === 1,
+    emailVerificationToken: row.email_verification_token || undefined,
+    passwordResetToken: row.password_reset_token || undefined,
+    passwordResetExpiresAt: row.password_reset_expires_at || undefined,
+    failedLoginAttempts: row.failed_login_attempts || 0,
+    lockedUntil: row.locked_until || undefined,
+    twoFactorSecret: row.two_factor_secret || undefined,
+    twoFactorEnabled: row.two_factor_enabled === 1,
   };
 }
 
@@ -89,12 +108,12 @@ function rowToBookmark(row: any): Bookmark {
 }
 
 // Merchant queries
-export async function getMerchantById(db: D1Database, id: string): Promise<Merchant | null> {
+export async function getMerchantById(db: D1Database, id: string): Promise<(Merchant & { passwordHash?: string }) | null> {
   const result = await db.prepare('SELECT * FROM merchants WHERE id = ?').bind(id).first();
   return result ? rowToMerchant(result) : null;
 }
 
-export async function getMerchantByEmail(db: D1Database, email: string): Promise<Merchant | null> {
+export async function getMerchantByEmail(db: D1Database, email: string): Promise<(Merchant & { passwordHash?: string }) | null> {
   const result = await db.prepare('SELECT * FROM merchants WHERE email = ?').bind(email).first();
   return result ? rowToMerchant(result) : null;
 }
@@ -102,18 +121,21 @@ export async function getMerchantByEmail(db: D1Database, email: string): Promise
 export async function createMerchant(db: D1Database, data: {
   id: string;
   email: string;
+  passwordHash: string;
   payoutAddress?: string;
 }): Promise<Merchant> {
   const now = Math.floor(Date.now() / 1000);
   await db.prepare(
-    'INSERT INTO merchants (id, email, payout_address, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+    'INSERT INTO merchants (id, email, password_hash, payout_address, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
   )
-    .bind(data.id, data.email, data.payoutAddress || null, 'active', now, now)
+    .bind(data.id, data.email, data.passwordHash, data.payoutAddress || null, 'active', now, now)
     .run();
   
   const merchant = await getMerchantById(db, data.id);
   if (!merchant) throw new Error('Failed to create merchant');
-  return merchant;
+  // Remove passwordHash from returned merchant object for security
+  const { passwordHash, ...merchantWithoutPassword } = merchant;
+  return merchantWithoutPassword;
 }
 
 export async function updateMerchant(db: D1Database, id: string, data: Partial<Merchant>): Promise<Merchant> {
@@ -141,6 +163,59 @@ export async function updateMerchant(db: D1Database, id: string, data: Partial<M
   
   await db.prepare(`UPDATE merchants SET ${updates.join(', ')} WHERE id = ?`).bind(...values).run();
   return await getMerchantById(db, id) as Merchant;
+}
+
+// Security-related merchant functions
+export async function updateMerchantPassword(db: D1Database, id: string, passwordHash: string): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  await db.prepare(
+    'UPDATE merchants SET password_hash = ?, password_reset_token = NULL, password_reset_expires_at = NULL, updated_at = ? WHERE id = ?'
+  ).bind(passwordHash, now, id).run();
+}
+
+export async function setPasswordResetToken(db: D1Database, email: string, token: string, expiresAt: number): Promise<void> {
+  await db.prepare(
+    'UPDATE merchants SET password_reset_token = ?, password_reset_expires_at = ? WHERE email = ?'
+  ).bind(token, expiresAt, email).run();
+}
+
+export async function getMerchantByPasswordResetToken(db: D1Database, token: string): Promise<(Merchant & { passwordHash?: string }) | null> {
+  const result = await db.prepare('SELECT * FROM merchants WHERE password_reset_token = ?').bind(token).first();
+  return result ? rowToMerchant(result) : null;
+}
+
+export async function getMerchantByEmailVerificationToken(db: D1Database, token: string): Promise<(Merchant & { passwordHash?: string }) | null> {
+  const result = await db.prepare('SELECT * FROM merchants WHERE email_verification_token = ?').bind(token).first();
+  return result ? rowToMerchant(result) : null;
+}
+
+export async function setEmailVerificationToken(db: D1Database, id: string, token: string): Promise<void> {
+  await db.prepare('UPDATE merchants SET email_verification_token = ? WHERE id = ?').bind(token, id).run();
+}
+
+export async function verifyEmail(db: D1Database, id: string): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  await db.prepare(
+    'UPDATE merchants SET email_verified = 1, email_verification_token = NULL, updated_at = ? WHERE id = ?'
+  ).bind(now, id).run();
+}
+
+export async function updateFailedLoginAttempts(
+  db: D1Database, 
+  id: string, 
+  failedAttempts: number, 
+  lockedUntil: number | null
+): Promise<void> {
+  await db.prepare(
+    'UPDATE merchants SET failed_login_attempts = ?, locked_until = ? WHERE id = ?'
+  ).bind(failedAttempts, lockedUntil, id).run();
+}
+
+export async function setTwoFactorSecret(db: D1Database, id: string, secret: string, enabled: boolean): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  await db.prepare(
+    'UPDATE merchants SET two_factor_secret = ?, two_factor_enabled = ?, updated_at = ? WHERE id = ?'
+  ).bind(secret, enabled ? 1 : 0, now, id).run();
 }
 
 // Content queries

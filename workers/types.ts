@@ -7,6 +7,9 @@ export interface Env {
   HELIUS_API_KEY?: string;
   NEXT_PUBLIC_WEB_URL?: string;
   NEXT_PUBLIC_API_URL?: string;
+  RESEND_API_KEY?: string;
+  SENDGRID_API_KEY?: string;
+  NODE_ENV?: string;
 }
 
 // Re-export types from shared types
