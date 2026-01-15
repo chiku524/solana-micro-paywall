@@ -10,6 +10,7 @@ import {
   deleteContent,
   incrementContentViewCount,
 } from '../lib/db';
+import { getCache, setCache, deleteCache, cacheKeys } from '../lib/cache';
 import { z } from 'zod';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -34,10 +35,22 @@ const updateContentSchema = createContentSchema.partial();
 // List merchant's content (protected)
 app.get('/', authMiddleware, async (c) => {
   const merchantId = c.get('merchantId');
-  const limit = parseInt(c.req.query('limit') || '100');
-  const offset = parseInt(c.req.query('offset') || '0');
+  const limit = Math.min(parseInt(c.req.query('limit') || '100'), 100); // Max 100
+  const offset = Math.max(0, parseInt(c.req.query('offset') || '0'));
+  const page = Math.floor(offset / limit) + 1;
+  
+  // Try cache first
+  const cacheKey = cacheKeys.contentList(merchantId, page, limit);
+  const cached = await getCache<{ contents: any[] }>(c.env.CACHE, cacheKey);
+  
+  if (cached) {
+    return c.json(cached);
+  }
   
   const contents = await listContentByMerchant(c.env.DB, merchantId, limit, offset);
+  
+  // Cache for 5 minutes
+  await setCache(c.env.CACHE, cacheKey, { contents }, { ttl: 300 });
   
   return c.json({ contents });
 });
@@ -45,14 +58,28 @@ app.get('/', authMiddleware, async (c) => {
 // Get content by ID (public, but increments view count)
 app.get('/:id', async (c) => {
   const id = c.req.param('id');
+  
+  // Try cache first
+  const cacheKey = cacheKeys.content(id);
+  const cached = await getCache(c.env.CACHE, cacheKey);
+  
+  if (cached) {
+    // Increment view count (fire and forget)
+    incrementContentViewCount(c.env.DB, id).catch(console.error);
+    return c.json(cached);
+  }
+  
   const content = await getContentById(c.env.DB, id);
   
   if (!content) {
     return c.json({ error: 'Not Found', message: 'Content not found' }, 404);
   }
   
-  // Increment view count
-  await incrementContentViewCount(c.env.DB, id);
+  // Cache for 10 minutes
+  await setCache(c.env.CACHE, cacheKey, content, { ttl: 600 });
+  
+  // Increment view count (fire and forget)
+  incrementContentViewCount(c.env.DB, id).catch(console.error);
   
   return c.json(content);
 });
@@ -94,6 +121,9 @@ app.post('/', authMiddleware, async (c) => {
       merchantId,
       ...data,
     });
+    
+    // Invalidate cache
+    await deleteCache(c.env.CACHE, cacheKeys.contentList(merchantId, 1, 100));
     
     return c.json(content, 201);
   } catch (error) {
@@ -157,6 +187,10 @@ app.delete('/:id', authMiddleware, async (c) => {
   }
   
   await deleteContent(c.env.DB, id);
+  
+  // Invalidate caches
+  await deleteCache(c.env.CACHE, cacheKeys.content(id));
+  await deleteCache(c.env.CACHE, cacheKeys.contentList(merchantId, 1, 100));
   
   return c.json({ message: 'Content deleted successfully' });
 });

@@ -5,6 +5,10 @@ export interface RateLimitConfig {
   windowSeconds: number;
 }
 
+/**
+ * Improved rate limiting with sliding window algorithm
+ * More accurate than fixed window, prevents burst traffic
+ */
 export async function checkRateLimit(
   kv: KVNamespace | undefined,
   key: string,
@@ -19,40 +23,45 @@ export async function checkRateLimit(
   const cacheKey = `ratelimit:${key}`;
   const now = Math.floor(Date.now() / 1000);
   
-  // Get current count
+  // Get current count with timestamps (sliding window)
   const cached = await kv.get(cacheKey, 'json');
   
-  if (!cached || typeof cached !== 'object' || !('count' in cached) || !('resetAt' in cached)) {
+  if (!cached || typeof cached !== 'object' || !('requests' in cached) || !('resetAt' in cached)) {
     // First request or expired
     const resetAt = now + config.windowSeconds;
-    await kv.put(cacheKey, JSON.stringify({ count: 1, resetAt }), {
+    await kv.put(cacheKey, JSON.stringify({ 
+      requests: [now],
+      resetAt 
+    }), {
       expirationTtl: config.windowSeconds,
     });
     return { allowed: true, remaining: config.limit - 1, resetAt };
   }
   
-  const count = (cached as any).count as number;
+  const requests = (cached as any).requests as number[];
   const resetAt = (cached as any).resetAt as number;
   
-  if (now >= resetAt) {
-    // Window expired, reset
-    const newResetAt = now + config.windowSeconds;
-    await kv.put(cacheKey, JSON.stringify({ count: 1, resetAt: newResetAt }), {
-      expirationTtl: config.windowSeconds,
-    });
-    return { allowed: true, remaining: config.limit - 1, resetAt: newResetAt };
-  }
+  // Remove requests outside the window (sliding window)
+  const windowStart = now - config.windowSeconds;
+  const validRequests = requests.filter(timestamp => timestamp > windowStart);
   
-  if (count >= config.limit) {
+  if (validRequests.length >= config.limit) {
     return { allowed: false, remaining: 0, resetAt };
   }
   
-  // Increment count
-  await kv.put(cacheKey, JSON.stringify({ count: count + 1, resetAt }), {
-    expirationTtl: resetAt - now,
+  // Add current request
+  validRequests.push(now);
+  const newResetAt = Math.max(resetAt, now + config.windowSeconds);
+  
+  // Update cache
+  await kv.put(cacheKey, JSON.stringify({ 
+    requests: validRequests,
+    resetAt: newResetAt 
+  }), {
+    expirationTtl: config.windowSeconds,
   });
   
-  return { allowed: true, remaining: config.limit - count - 1, resetAt };
+  return { allowed: true, remaining: config.limit - validRequests.length, resetAt: newResetAt };
 }
 
 export function getRateLimitKey(identifier: string, endpoint: string): string {

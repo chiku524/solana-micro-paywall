@@ -2,12 +2,20 @@ import { Hono } from 'hono';
 import type { Env } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { getPurchasesByMerchant, getContentById } from '../lib/db';
+import { getCache, setCache, cacheKeys } from '../lib/cache';
 
 const app = new Hono<{ Bindings: Env }>();
 
 // Get payment statistics (protected)
 app.get('/stats', authMiddleware, async (c) => {
   const merchantId = c.get('merchantId');
+  
+  // Try cache first (cache for 1 minute)
+  const cacheKey = cacheKeys.stats(merchantId);
+  const cached = await getCache(c.env.CACHE, cacheKey);
+  if (cached) {
+    return c.json(cached);
+  }
   
   // Get all purchases for merchant
   const allPurchases = await getPurchasesByMerchant(c.env.DB, merchantId, 10000, 0);
@@ -26,14 +34,19 @@ app.get('/stats', authMiddleware, async (c) => {
     ? Math.floor(totalRevenueLamports / allPurchases.length)
     : 0;
   
-  return c.json({
+  const stats = {
     totalPayments: allPurchases.length,
     todayPayments: todayPayments.length,
     weekPayments: weekPayments.length,
     monthPayments: monthPayments.length,
     totalRevenueLamports,
     averagePaymentLamports,
-  });
+  };
+  
+  // Cache for 1 minute
+  await setCache(c.env.CACHE, cacheKey, stats, { ttl: 60 });
+  
+  return c.json(stats);
 });
 
 // Get recent payments (protected)
@@ -43,10 +56,20 @@ app.get('/recent-payments', authMiddleware, async (c) => {
   
   const purchases = await getPurchasesByMerchant(c.env.DB, merchantId, limit, 0);
   
-  // Fetch content titles for each purchase
+  // Fetch content titles for each purchase (optimize with caching)
   const recentPayments = await Promise.all(
     purchases.map(async (purchase) => {
-      const content = await getContentById(c.env.DB, purchase.contentId);
+      // Try cache first
+      const contentCacheKey = cacheKeys.content(purchase.contentId);
+      let content = await getCache(c.env.CACHE, contentCacheKey);
+      
+      if (!content) {
+        content = await getContentById(c.env.DB, purchase.contentId);
+        if (content) {
+          await setCache(c.env.CACHE, contentCacheKey, content, { ttl: 600 });
+        }
+      }
+      
       return {
         id: purchase.id,
         transactionSignature: purchase.transactionSignature,

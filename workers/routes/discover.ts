@@ -56,14 +56,19 @@ app.get('/', async (c) => {
       break;
   }
   
-  // Get total count
-  const countQuery = query.replace('SELECT *', 'SELECT COUNT(*) as count');
-  const countResult = await c.env.DB.prepare(countQuery).bind(...params).first();
-  const total = (countResult as any)?.count || 0;
+  // Optimize: Only get count if we need it (not on first page or if we have results)
+  let total = 0;
+  if (page === 1 || c.req.query('includeTotal') === 'true') {
+    const countQuery = query.replace('SELECT *', 'SELECT COUNT(*) as count');
+    const countResult = await c.env.DB.prepare(countQuery).bind(...params).first();
+    total = (countResult as any)?.count || 0;
+  }
   
-  // Get paginated results
+  // Get paginated results (limit to reasonable max)
+  const safeLimit = Math.min(limit, 100); // Max 100 items per page
+  const safeOffset = Math.max(0, offset);
   query += ' LIMIT ? OFFSET ?';
-  params.push(limit, offset);
+  params.push(safeLimit, safeOffset);
   
   const results = await c.env.DB.prepare(query).bind(...params).all();
   
