@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { SolanaWalletProvider } from '@/lib/wallet-provider';
 import { AuthProvider } from '@/lib/auth-context';
+import { ThemeProvider } from '@/lib/theme-context';
 import { SWRProvider } from '@/lib/swr-config';
 import { AnimatedBackground } from '@/components/ui/animated-background';
 import { ToastProvider } from '@/components/toast-provider';
@@ -51,7 +52,7 @@ export default function RootLayout({
   });
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -69,15 +70,17 @@ export default function RootLayout({
         <SkipLink />
         <WebVitalsScript />
         <ErrorBoundary>
-          <SWRProvider>
-            <SolanaWalletProvider>
-              <AuthProvider>
-                <ToastProvider />
-                <AnimatedBackground />
-                {children}
-              </AuthProvider>
-            </SolanaWalletProvider>
-          </SWRProvider>
+          <ThemeProvider>
+            <SWRProvider>
+              <SolanaWalletProvider>
+                <AuthProvider>
+                  <ToastProvider />
+                  <AnimatedBackground />
+                  {children}
+                </AuthProvider>
+              </SolanaWalletProvider>
+            </SWRProvider>
+          </ThemeProvider>
         </ErrorBoundary>
       </body>
     </html>

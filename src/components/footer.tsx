@@ -2,13 +2,13 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="border-t border-neutral-800/50 glass mt-auto">
+    <footer className="border-t border-neutral-300/50 dark:border-neutral-800/50 glass-strong mt-auto backdrop-blur-xl bg-white/80 dark:bg-neutral-950/80 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <h3 className="text-xl font-bold gradient-text mb-4">Micro Paywall</h3>
-            <p className="text-neutral-400 text-sm mb-4">
+            <p className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 text-sm mb-4">
               Monetize your content with instant blockchain payments.
               Multi-chain support, near-zero fees, and seamless integration.
             </p>
@@ -17,7 +17,7 @@ export function Footer() {
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-400 hover:text-emerald-400 transition-colors"
+                className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors"
                 aria-label="Twitter"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@ export function Footer() {
                 href="https://github.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-400 hover:text-emerald-400 transition-colors"
+                className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors"
                 aria-label="GitHub"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -39,7 +39,7 @@ export function Footer() {
                 href="https://discord.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-400 hover:text-emerald-400 transition-colors"
+                className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors"
                 aria-label="Discord"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -51,22 +51,22 @@ export function Footer() {
 
           {/* Links */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white light:text-neutral-900 uppercase tracking-wider mb-4">
               Product
             </h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/marketplace" className="text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <Link href="/marketplace" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
                   Marketplace
                 </Link>
               </li>
               <li>
-                <Link href="/docs" className="text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <Link href="/docs" className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 hover:text-emerald-400 transition-colors text-sm">
                   Documentation
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <Link href="/dashboard" className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 hover:text-emerald-400 transition-colors text-sm">
                   Dashboard
                 </Link>
               </li>
@@ -75,17 +75,17 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white light:text-neutral-900 uppercase tracking-wider mb-4">
               Legal
             </h4>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <a href="#" className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 hover:text-emerald-400 transition-colors text-sm">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <a href="#" className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 hover:text-emerald-400 transition-colors text-sm">
                   Terms of Service
                 </a>
               </li>
@@ -93,8 +93,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-neutral-800">
-          <p className="text-neutral-400 text-sm text-center">
+          <div className="mt-8 pt-8 border-t border-neutral-300/50 dark:border-neutral-800/50">
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm text-center">
             © {new Date().getFullYear()} Micro Paywall. All rights reserved.
           </p>
         </div>
