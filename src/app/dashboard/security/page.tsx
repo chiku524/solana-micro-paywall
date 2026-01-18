@@ -9,6 +9,7 @@ import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { apiPost, apiGet } from '@/lib/api';
 import useSWR from 'swr';
+import type { Merchant } from '@/types';
 
 interface SecurityActivity {
   type: string;
@@ -317,9 +318,9 @@ function SecuritySettingsContent() {
   const [twoFactorData, setTwoFactorData] = useState<{ secret: string; otpauthUrl: string; backupCodes: string[] } | null>(null);
 
   // Fetch merchant data with security info
-  const { data: merchantData, mutate } = useSWR(
+  const { data: merchantData, mutate } = useSWR<Merchant>(
     token ? ['/api/merchants/me', token] : null,
-    ([url, t]: [string, string]) => apiGet(url, t)
+    ([url, t]: [string, string]) => apiGet<Merchant>(url, t)
   );
 
   const handleRequestEmailVerification = async () => {
