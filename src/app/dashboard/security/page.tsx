@@ -43,7 +43,7 @@ function ChangePasswordSection({ token }: { token: string | null }) {
       await apiPost('/api/security/password/change', {
         currentPassword,
         newPassword,
-      }, token);
+      }, token ?? undefined);
 
       setSuccess('Password changed successfully!');
       setCurrentPassword('');
@@ -328,7 +328,7 @@ function SecuritySettingsContent() {
     setSuccess('');
 
     try {
-      await apiPost('/api/security/email-verification/request', {}, token);
+      await apiPost('/api/security/email-verification/request', {}, token ?? undefined);
       setSuccess('Verification email sent! Please check your inbox.');
     } catch (err: any) {
       setError(err.message || 'Failed to send verification email');
@@ -369,7 +369,7 @@ function SecuritySettingsContent() {
     setSuccess('');
 
     try {
-      await apiPost('/api/security/2fa/verify', { code: twoFactorCode }, token);
+      await apiPost('/api/security/2fa/verify', { code: twoFactorCode }, token ?? undefined);
       setSuccess('2FA enabled successfully!');
       setShow2FASetup(false);
       setTwoFactorCode('');
@@ -392,7 +392,7 @@ function SecuritySettingsContent() {
     setSuccess('');
 
     try {
-      await apiPost('/api/security/2fa/disable', {}, token);
+      await apiPost('/api/security/2fa/disable', {}, token ?? undefined);
       setSuccess('2FA disabled successfully');
       mutate(); // Refresh merchant data
     } catch (err: any) {
