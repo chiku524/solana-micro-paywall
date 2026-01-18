@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useTheme } from '@/lib/theme-context';
+import { useEffect, useRef, useState } from 'react';
 
 interface GradientBlob {
   x: number;
@@ -20,9 +19,38 @@ interface GradientBlob {
 
 export function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+  // Get theme from DOM class (works during SSR and client)
+  useEffect(() => {
+    setMounted(true);
+    
+    // Check initial theme from DOM
+    const checkTheme = () => {
+      if (typeof window === 'undefined') return;
+      const root = document.documentElement;
+      const isDark = root.classList.contains('dark');
+      setTheme(isDark ? 'dark' : 'light');
+    };
+    
+    checkTheme();
+    
+    // Listen for theme changes
+    const observer = new MutationObserver(() => {
+      checkTheme();
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -223,7 +251,12 @@ export function AnimatedBackground() {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [theme]);
+  }, [mounted, theme]);
+
+  // Don't render anything during SSR
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 pointer-events-none -z-[1] overflow-hidden">
