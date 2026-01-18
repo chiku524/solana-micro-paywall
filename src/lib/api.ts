@@ -112,10 +112,12 @@ async function request<T>(
     if (refreshed) {
       // Retry the request with new token
       const newToken = localStorage.getItem('token');
-      const newHeaders = {
-        ...options.headers,
-        Authorization: newToken ? `Bearer ${newToken}` : undefined,
+      const newHeaders: Record<string, string> = {
+        ...(options.headers as Record<string, string>),
       };
+      if (newToken) {
+        newHeaders.Authorization = `Bearer ${newToken}`;
+      }
       return request<T>(endpoint, { ...options, headers: newHeaders }, false);
     }
   }
