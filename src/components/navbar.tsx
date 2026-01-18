@@ -31,7 +31,7 @@ export function Navbar() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-neutral-900 dark:focus:ring-offset-neutral-900 light:focus:ring-offset-white',
+                    'px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-900',
                     pathname === item.href
                       ? 'text-emerald-400 bg-neutral-200/50 dark:bg-neutral-800/50'
                       : 'text-neutral-700 dark:text-neutral-300 hover:text-emerald-400 hover:bg-neutral-200/30 dark:hover:bg-neutral-800/30'

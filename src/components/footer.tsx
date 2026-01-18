@@ -51,7 +51,7 @@ export function Footer() {
 
           {/* Links */}
           <div>
-            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white light:text-neutral-900 uppercase tracking-wider mb-4">
+            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wider mb-4">
               Product
             </h4>
             <ul className="space-y-3">
@@ -66,7 +66,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 hover:text-emerald-400 transition-colors text-sm">
+                <Link href="/dashboard" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
                   Dashboard
                 </Link>
               </li>
@@ -75,7 +75,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white light:text-neutral-900 uppercase tracking-wider mb-4">
+            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wider mb-4">
               Legal
             </h4>
             <ul className="space-y-3">
