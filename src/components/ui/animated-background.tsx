@@ -33,16 +33,20 @@ export function AnimatedBackground() {
 
     const currentPalette = colorPalettes.default;
 
-    // Set canvas size - use CSS pixels for simplicity
+    // Set canvas size - use window dimensions for better reliability
     const setCanvasSize = () => {
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      return { width: rect.width, height: rect.height };
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+      return { width, height };
     };
     
     const dimensions = setCanvasSize();
-    window.addEventListener('resize', setCanvasSize);
+    const handleResize = () => {
+      setCanvasSize();
+    };
+    window.addEventListener('resize', handleResize);
 
     // Create gradient blobs
     const blobs: GradientBlob[] = [];
@@ -128,14 +132,14 @@ export function AnimatedBackground() {
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    // Start animation after a brief delay to ensure canvas is ready
+    // Start animation immediately
     const timeoutId = setTimeout(() => {
       animate();
-    }, 100);
+    }, 50);
 
     return () => {
       clearTimeout(timeoutId);
-      window.removeEventListener('resize', setCanvasSize);
+      window.removeEventListener('resize', handleResize);
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
@@ -143,7 +147,7 @@ export function AnimatedBackground() {
   }, []);
 
   return (
-    <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none -z-[1] overflow-hidden">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
@@ -152,7 +156,7 @@ export function AnimatedBackground() {
         }}
       />
       {/* Additional gradient overlay for depth - much more transparent to show animation */}
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/40 via-neutral-950/30 to-neutral-950/40" />
+      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/30 via-neutral-950/20 to-neutral-950/30" />
     </div>
   );
 }

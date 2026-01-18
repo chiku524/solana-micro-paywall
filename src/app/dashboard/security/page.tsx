@@ -346,7 +346,7 @@ function SecuritySettingsContent() {
       const data = await apiPost<{ secret: string; otpauthUrl: string; backupCodes: string[] }>(
         '/api/security/2fa/enable',
         {},
-        token
+        token ?? undefined
       );
       setTwoFactorData(data);
       setShow2FASetup(true);
