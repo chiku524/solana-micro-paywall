@@ -8,7 +8,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <h3 className="text-xl font-bold gradient-text mb-4">Micro Paywall</h3>
-            <p className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 text-sm mb-4">
+            <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-4">
               Monetize your content with instant blockchain payments.
               Multi-chain support, near-zero fees, and seamless integration.
             </p>
@@ -61,7 +61,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/docs" className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 hover:text-emerald-400 transition-colors text-sm">
+                <Link href="/docs" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
                   Documentation
                 </Link>
               </li>
@@ -80,12 +80,12 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 hover:text-emerald-400 transition-colors text-sm">
+                <a href="#" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-neutral-600 dark:text-neutral-400 light:text-neutral-600 hover:text-emerald-400 transition-colors text-sm">
+                <a href="#" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
                   Terms of Service
                 </a>
               </li>

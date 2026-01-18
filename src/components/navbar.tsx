@@ -22,7 +22,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold gradient-text hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-neutral-900 dark:focus:ring-offset-neutral-900 light:focus:ring-offset-white rounded px-2 py-1" aria-label="Micro Paywall Home">
+            <Link href="/" className="text-xl font-bold gradient-text hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-900 rounded px-2 py-1" aria-label="Micro Paywall Home">
               Micro Paywall
             </Link>
             <div className="ml-10 flex space-x-4" role="menubar">
@@ -80,7 +80,7 @@ export function Navbar() {
                   variant="outline" 
                   size="sm" 
                   onClick={logout}
-                  className="hover:bg-red-900/20 dark:hover:bg-red-900/20 light:hover:bg-red-100/50 hover:border-red-500/50 hover:text-red-400"
+                  className="hover:bg-red-100/50 dark:hover:bg-red-900/20 hover:border-red-500/50 hover:text-red-400"
                 >
                   Logout
                 </Button>
