@@ -11,7 +11,7 @@ import { Footer } from '@/components/footer';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
 import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
-import type { PaymentStats } from '@/types';
+import type { PaymentStats, LoginResponse } from '@/types';
 
 function DashboardLogin() {
   const searchParams = useSearchParams();
@@ -53,12 +53,12 @@ function DashboardLogin() {
         return;
       }
       
-      const response = await apiPost<{ token: string; merchant: any }>(
+      const response = await apiPost<LoginResponse>(
         '/api/auth/login',
         loginData
       );
       
-      login(response.token, response.refreshToken || '', response.merchant.id);
+      login(response.token, response.refreshToken, response.merchant.id);
     } catch (error: any) {
       setError(error.message || 'Login failed. Please check your credentials.');
     } finally {

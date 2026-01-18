@@ -7,6 +7,7 @@ import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { apiPost } from '@/lib/api';
+import type { LoginResponse } from '@/types';
 
 // Note: Metadata for client components should be in a layout file
 // Creating layout.tsx for signup page
@@ -109,13 +110,13 @@ export default function SignupPage() {
       
       // Automatically log in the user after signup
       try {
-        const loginResponse = await apiPost<{ token: string; merchant: any }>(
+        const loginResponse = await apiPost<LoginResponse>(
           '/api/auth/login',
           { email: email, password: password }
         );
         
         // Use auth context to login
-        login(loginResponse.token, loginResponse.refreshToken || '', response.id);
+        login(loginResponse.token, loginResponse.refreshToken, response.id);
         
         // Redirect to dashboard immediately
         setTimeout(() => {

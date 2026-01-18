@@ -137,6 +137,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  refreshToken: string;
   merchant: Merchant;
 }
 
