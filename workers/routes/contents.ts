@@ -162,6 +162,10 @@ app.put('/:id', authMiddleware, async (c) => {
     
     const content = await updateContent(c.env.DB, id, updates);
     
+    // Invalidate caches
+    await deleteCache(c.env.CACHE, cacheKeys.content(id));
+    await deleteCache(c.env.CACHE, cacheKeys.contentList(merchantId, 1, 100));
+    
     return c.json(content);
   } catch (error) {
     if (error instanceof z.ZodError) {

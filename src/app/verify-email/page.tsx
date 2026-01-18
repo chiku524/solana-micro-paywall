@@ -15,14 +15,6 @@ export default function VerifyEmailPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (token) {
-      handleVerify();
-    } else {
-      setError('Invalid verification token');
-    }
-  }, [token]);
-
   const handleVerify = async () => {
     if (!token) return;
     
@@ -44,6 +36,15 @@ export default function VerifyEmailPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      handleVerify();
+    } else {
+      setError('Invalid verification token');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   return (
     <div className="min-h-screen flex flex-col">

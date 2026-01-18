@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Navbar } from '@/components/navbar';
@@ -491,11 +492,14 @@ function SecuritySettingsContent() {
                 <li>Save your backup codes in a safe place</li>
               </ol>
 
-              <div className="mb-4">
-                <img
+              <div className="mb-4 flex justify-center">
+                <Image
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(twoFactorData.otpauthUrl)}`}
                   alt="2FA QR Code"
+                  width={200}
+                  height={200}
                   className="mx-auto"
+                  unoptimized
                 />
               </div>
 

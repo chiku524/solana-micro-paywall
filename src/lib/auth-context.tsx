@@ -30,6 +30,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
 
+  const logout = useCallback(() => {
+    setToken(null);
+    setRefreshToken(null);
+    setMerchantId(null);
+    setMerchant(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('merchantId');
+    router.push('/');
+  }, [router]);
+
+  const refreshAccessToken = useCallback(async (): Promise<boolean> => {
+    if (!refreshToken || isRefreshing) return false;
+
+    setIsRefreshing(true);
+    try {
+      const { apiPost } = await import('./api');
+      const response = await apiPost<{ token: string; merchant: Merchant }>(
+        '/api/auth/refresh',
+        { refreshToken }
+      );
+
+      setToken(response.token);
+      localStorage.setItem('token', response.token);
+      setMerchant(response.merchant);
+      setIsRefreshing(false);
+      return true;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      setIsRefreshing(false);
+      logout();
+      return false;
+    }
+  }, [refreshToken, isRefreshing, logout]);
+
+  const validateToken = useCallback(async (authToken: string, authMerchantId: string) => {
+    try {
+      // Use /me endpoint for authenticated merchant data
+      const merchantData = await apiGet<Merchant>('/api/merchants/me', authToken);
+      setMerchant(merchantData);
+      setIsLoading(false);
+    } catch (error: any) {
+      // Token is invalid or expired - try to refresh
+      if (error?.status === 401 && refreshToken) {
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) {
+          logout();
+        }
+      } else if (error?.status === 401) {
+        // No refresh token, logout
+        logout();
+      } else {
+        // For other errors, still set loading to false
+        setIsLoading(false);
+      }
+    }
+  }, [refreshToken, refreshAccessToken, logout]);
+
   // Initialize auth state from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -48,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     }
-  }, []);
+  }, [validateToken]);
 
   // Auto-refresh token before expiration (refresh 5 minutes before expiry)
   useEffect(() => {
@@ -75,54 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error parsing token:', error);
     }
-  }, [token, refreshToken]);
-
-  const validateToken = async (authToken: string, authMerchantId: string) => {
-    try {
-      // Use /me endpoint for authenticated merchant data
-      const merchantData = await apiGet<Merchant>('/api/merchants/me', authToken);
-      setMerchant(merchantData);
-      setIsLoading(false);
-    } catch (error: any) {
-      // Token is invalid or expired - try to refresh
-      if (error?.status === 401 && refreshToken) {
-        const refreshed = await refreshAccessToken();
-        if (!refreshed) {
-          logout();
-        }
-      } else if (error?.status === 401) {
-        // No refresh token, logout
-        logout();
-      } else {
-        // For other errors, still set loading to false
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const refreshAccessToken = useCallback(async (): Promise<boolean> => {
-    if (!refreshToken || isRefreshing) return false;
-
-    setIsRefreshing(true);
-    try {
-      const { apiPost } = await import('./api');
-      const response = await apiPost<{ token: string; merchant: Merchant }>(
-        '/api/auth/refresh',
-        { refreshToken }
-      );
-
-      setToken(response.token);
-      localStorage.setItem('token', response.token);
-      setMerchant(response.merchant);
-      setIsRefreshing(false);
-      return true;
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      setIsRefreshing(false);
-      logout();
-      return false;
-    }
-  }, [refreshToken, isRefreshing]);
+  }, [token, refreshToken, refreshAccessToken]);
 
   const login = useCallback((authToken: string, authRefreshToken: string, authMerchantId: string) => {
     setToken(authToken);
@@ -136,18 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Fetch merchant data
     validateToken(authToken, authMerchantId);
-  }, []);
-
-  const logout = useCallback(() => {
-    setToken(null);
-    setRefreshToken(null);
-    setMerchantId(null);
-    setMerchant(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('merchantId');
-    router.push('/');
-  }, [router]);
+  }, [validateToken]);
 
   const value: AuthContextType = {
     isAuthenticated: !!token && !!merchantId,
