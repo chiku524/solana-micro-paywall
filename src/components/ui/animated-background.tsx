@@ -301,6 +301,7 @@ export function AnimatedBackground() {
     let time = 0;
 
     const animate = () => {
+      try {
       time += 0.01;
       const { width, height } = { width: canvas.width, height: canvas.height };
 
@@ -435,13 +436,15 @@ export function AnimatedBackground() {
         ctx.translate(lock.x, lock.y);
         ctx.strokeStyle = `rgba(${lock.color.r}, ${lock.color.g}, ${lock.color.b}, ${opacity})`;
         ctx.lineWidth = 1.5;
-        const s = lock.size;
+        const s = Math.max(1, lock.size);
+        const r1 = Math.max(0.01, s * 0.5);
+        const r2 = Math.max(0.01, s * 0.15);
         ctx.beginPath();
-        ctx.arc(0, -s * 0.2, s * 0.5, Math.PI * 0.2, Math.PI * 0.8);
+        ctx.arc(0, -s * 0.2, r1, Math.PI * 0.2, Math.PI * 0.8);
         ctx.stroke();
         ctx.strokeRect(-s * 0.4, -s * 0.15, s * 0.8, s * 0.9);
         ctx.beginPath();
-        ctx.arc(0, s * 0.25, s * 0.15, 0, Math.PI * 2);
+        ctx.arc(0, s * 0.25, r2, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
       });
@@ -512,7 +515,7 @@ export function AnimatedBackground() {
         }
       });
 
-      // Update and draw particles
+      // Update and draw particles (skip draw when lifeRatio <= 0 to avoid negative arc radius)
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       for (let i = particles.length - 1; i >= 0; i--) {
@@ -524,16 +527,19 @@ export function AnimatedBackground() {
         p.vy *= 0.98;
 
         const lifeRatio = p.life / p.maxLife;
+
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        const radius = Math.max(0.01, p.size * lifeRatio);
         const alpha = lifeRatio * 0.6;
 
         ctx.fillStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${alpha})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * lifeRatio, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
         ctx.fill();
-
-        if (p.life <= 0) {
-          particles.splice(i, 1);
-        }
       }
       ctx.restore();
 
@@ -606,13 +612,14 @@ export function AnimatedBackground() {
       });
       ctx.restore();
 
-      // Draw blobs with enhanced glow and blending
+      // Draw blobs with enhanced glow and blending (dimmed so other elements stand out)
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       blobs.forEach((blob, index) => {
-        // Dynamic opacity based on time and position
-        const baseOpacity = theme === 'dark' ? 0.18 : 0.12;
-        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * 0.1;
+        const safeRadius = Math.max(1, blob.radius);
+        // Dimmed base opacity so orbs are subtler and other elements show better
+        const baseOpacity = theme === 'dark' ? 0.09 : 0.06;
+        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * 0.05;
         const distanceFromCenter = Math.sqrt(
           Math.pow(blob.x - width / 2, 2) + Math.pow(blob.y - height / 2, 2)
         );
@@ -620,7 +627,7 @@ export function AnimatedBackground() {
         const centerFade = 1 - (distanceFromCenter / maxDistance) * 0.2;
         
         const opacity = baseOpacity + timeOpacity;
-        const finalOpacity = Math.max(0.08, Math.min(0.3, opacity * centerFade));
+        const finalOpacity = Math.max(0.04, Math.min(0.16, opacity * centerFade));
 
         // Create radial gradient with multiple color stops for enhanced glow
         const radialGradient = ctx.createRadialGradient(
@@ -629,7 +636,7 @@ export function AnimatedBackground() {
           0,
           blob.x,
           blob.y,
-          blob.radius
+          safeRadius
         );
 
         // Dynamic glow intensity with more variation
@@ -647,45 +654,50 @@ export function AnimatedBackground() {
 
         ctx.fillStyle = radialGradient;
         ctx.beginPath();
-        ctx.arc(blob.x, blob.y, blob.radius, 0, Math.PI * 2);
+        ctx.arc(blob.x, blob.y, safeRadius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Enhanced outer glow with multiple layers
+        // Enhanced outer glow with multiple layers (dimmed)
         const glowGradient1 = ctx.createRadialGradient(
           blob.x,
           blob.y,
-          blob.radius * 0.7,
+          safeRadius * 0.7,
           blob.x,
           blob.y,
-          blob.radius * 1.3
+          safeRadius * 1.3
         );
-        glowGradient1.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.4})`);
+        glowGradient1.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.25})`);
         glowGradient1.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, 0)`);
 
         ctx.fillStyle = glowGradient1;
         ctx.beginPath();
-        ctx.arc(blob.x, blob.y, blob.radius * 1.3, 0, Math.PI * 2);
+        ctx.arc(blob.x, blob.y, safeRadius * 1.3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Second glow layer for extra depth
+        // Second glow layer for extra depth (dimmed)
         const glowGradient2 = ctx.createRadialGradient(
           blob.x,
           blob.y,
-          blob.radius * 1.1,
+          safeRadius * 1.1,
           blob.x,
           blob.y,
-          blob.radius * 1.8
+          safeRadius * 1.8
         );
-        glowGradient2.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.2})`);
+        glowGradient2.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.12})`);
         glowGradient2.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, 0)`);
 
         ctx.fillStyle = glowGradient2;
         ctx.beginPath();
-        ctx.arc(blob.x, blob.y, blob.radius * 1.8, 0, Math.PI * 2);
+        ctx.arc(blob.x, blob.y, safeRadius * 1.8, 0, Math.PI * 2);
         ctx.fill();
       });
       ctx.restore();
 
+      } catch (err) {
+        if (typeof console !== 'undefined' && console.error) {
+          console.error('[AnimatedBackground]', err);
+        }
+      }
       animationFrameId = requestAnimationFrame(animate);
     };
 

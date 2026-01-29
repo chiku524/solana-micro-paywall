@@ -66,8 +66,8 @@ export function generateMetadata({
       },
     },
     icons: {
-      icon: '/favicon.ico',
-      apple: '/apple-touch-icon.png',
+      icon: '/favicon.svg',
+      apple: '/logo.svg',
     },
     manifest: '/site.webmanifest',
   };
