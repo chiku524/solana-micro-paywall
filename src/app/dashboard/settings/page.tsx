@@ -52,10 +52,10 @@ export default function SettingsPage() {
         <Navbar />
         <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold text-white">Settings</h1>
+          <h1 className="text-4xl font-bold text-neutral-900 dark:text-white">Settings</h1>
           <a
             href="/dashboard/security"
-            className="text-emerald-400 hover:text-emerald-300 transition-colors"
+            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
           >
             Security Settings →
           </a>
@@ -70,7 +70,7 @@ export default function SettingsPage() {
               type="text"
               name="displayName"
               defaultValue={merchant.displayName || ''}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
             />
           </div>
           
@@ -81,7 +81,7 @@ export default function SettingsPage() {
             <textarea
               name="bio"
               defaultValue={merchant.bio || ''}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
               rows={4}
             />
           </div>
@@ -94,7 +94,7 @@ export default function SettingsPage() {
               type="text"
               name="payoutAddress"
               defaultValue={merchant.payoutAddress || ''}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
             />
           </div>
           
@@ -106,7 +106,7 @@ export default function SettingsPage() {
               type="url"
               name="twitterUrl"
               defaultValue={merchant.twitterUrl || ''}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
             />
           </div>
           
@@ -118,7 +118,7 @@ export default function SettingsPage() {
               type="url"
               name="telegramUrl"
               defaultValue={merchant.telegramUrl || ''}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
             />
           </div>
           
@@ -130,7 +130,7 @@ export default function SettingsPage() {
               type="url"
               name="discordUrl"
               defaultValue={merchant.discordUrl || ''}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
             />
           </div>
           
@@ -142,7 +142,7 @@ export default function SettingsPage() {
               type="url"
               name="githubUrl"
               defaultValue={merchant.githubUrl || ''}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
             />
           </div>
           

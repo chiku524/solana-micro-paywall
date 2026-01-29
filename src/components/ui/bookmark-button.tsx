@@ -53,7 +53,7 @@ export function BookmarkButton({
         onClick={handleToggle}
         className={`p-2 rounded-lg transition-colors ${
           isBookmarked
-            ? 'bg-emerald-900/20 text-emerald-400 hover:bg-emerald-900/30'
+            ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/30'
             : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
         } ${className || ''}`}
         aria-label={isBookmarked ? 'Remove from bookmarks' : 'Add to bookmarks'}
@@ -78,7 +78,7 @@ export function BookmarkButton({
       onClick={handleToggle}
       className={`flex items-center gap-2 ${
         isBookmarked
-          ? 'border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/20'
+          ? 'border-emerald-500/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/20'
           : ''
       } ${className || ''}`}
     >

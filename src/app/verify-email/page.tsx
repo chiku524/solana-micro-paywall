@@ -51,24 +51,24 @@ function VerifyEmailContent() {
       <Navbar />
       <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-neutral-900 p-8 rounded-lg max-w-md w-full shadow-xl">
-          <h1 className="text-3xl font-bold text-white mb-2">Verify Email</h1>
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">Verify Email</h1>
           
           {isLoading ? (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
-              <p className="text-neutral-400">Verifying your email...</p>
+              <p className="text-neutral-600 dark:text-neutral-400">Verifying your email...</p>
             </div>
           ) : success ? (
             <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-4">
-              <p className="text-emerald-400 font-semibold">Email verified successfully!</p>
-              <p className="text-neutral-400 text-sm mt-2">Redirecting to dashboard...</p>
+              <p className="text-emerald-600 dark:text-emerald-400 font-semibold">Email verified successfully!</p>
+              <p className="text-neutral-600 dark:text-neutral-400 text-sm mt-2">Redirecting to dashboard...</p>
             </div>
           ) : error ? (
             <div className="bg-red-900/20 border border-red-700 rounded-lg p-4">
               <p className="text-red-400 text-sm">{error}</p>
               <button
                 onClick={() => router.push('/dashboard')}
-                className="mt-4 text-emerald-400 hover:text-emerald-300 text-sm"
+                className="mt-4 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm"
               >
                 Go to Dashboard
               </button>
@@ -85,7 +85,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-neutral-900 dark:text-white">Loading...</div>
       </div>
     }>
       <VerifyEmailContent />

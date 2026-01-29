@@ -26,8 +26,8 @@ function PaymentsContent() {
         <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Payment History</h1>
-              <p className="text-neutral-400">View all your payment transactions</p>
+              <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-2">Payment History</h1>
+              <p className="text-neutral-600 dark:text-neutral-400">View all your payment transactions</p>
             </div>
             <Link href="/dashboard">
               <Button variant="outline">Back to Dashboard</Button>
@@ -45,17 +45,17 @@ function PaymentsContent() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-neutral-800">
-                      <th className="text-left py-4 px-6 text-neutral-400 font-semibold">Content</th>
-                      <th className="text-left py-4 px-6 text-neutral-400 font-semibold">Amount</th>
-                      <th className="text-left py-4 px-6 text-neutral-400 font-semibold">Payer</th>
-                      <th className="text-left py-4 px-6 text-neutral-400 font-semibold">Date</th>
-                      <th className="text-left py-4 px-6 text-neutral-400 font-semibold">Transaction</th>
+                      <th className="text-left py-4 px-6 text-neutral-600 dark:text-neutral-400 font-semibold">Content</th>
+                      <th className="text-left py-4 px-6 text-neutral-600 dark:text-neutral-400 font-semibold">Amount</th>
+                      <th className="text-left py-4 px-6 text-neutral-600 dark:text-neutral-400 font-semibold">Payer</th>
+                      <th className="text-left py-4 px-6 text-neutral-600 dark:text-neutral-400 font-semibold">Date</th>
+                      <th className="text-left py-4 px-6 text-neutral-600 dark:text-neutral-400 font-semibold">Transaction</th>
                     </tr>
                   </thead>
                   <tbody>
                     {payments.payments.map((payment: any) => (
                       <tr key={payment.id} className="border-b border-neutral-800 hover:bg-neutral-800/30 transition-colors">
-                        <td className="py-4 px-6 text-white">{payment.contentTitle || 'N/A'}</td>
+                        <td className="py-4 px-6 text-neutral-900 dark:text-white">{payment.contentTitle || 'N/A'}</td>
                         <td className="py-4 px-6 text-emerald-400 font-semibold">
                           {formatSol(payment.amountLamports)} SOL
                         </td>
@@ -70,7 +70,7 @@ function PaymentsContent() {
                             href={`https://solscan.io/tx/${payment.transactionSignature}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-emerald-400 hover:text-emerald-300 hover:underline transition-colors"
+                            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline transition-colors"
                           >
                             View on Solscan
                           </a>
@@ -89,7 +89,7 @@ function PaymentsContent() {
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">No Payments Yet</h2>
-              <p className="text-neutral-400 mb-6">You haven&apos;t received any payments yet.</p>
+              <p className="text-neutral-600 dark:text-neutral-400 mb-6">You haven&apos;t received any payments yet.</p>
               <Link href="/dashboard/contents">
                 <Button variant="primary">Create Content</Button>
               </Link>
@@ -106,7 +106,7 @@ export default function PaymentsPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-neutral-900 dark:text-white">Loading...</div>
       </div>
     }>
       <PaymentsContent />

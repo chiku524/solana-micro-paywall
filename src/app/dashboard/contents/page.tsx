@@ -50,17 +50,17 @@ export default function ContentsPage() {
         <Navbar />
         <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-white">Content Management</h1>
+          <h1 className="text-4xl font-bold text-neutral-900 dark:text-white">Content Management</h1>
           <Button onClick={() => setIsCreateModalOpen(true)}>Create Content</Button>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data?.contents.map((content) => (
             <div key={content.id} className="bg-neutral-900 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-white mb-2">{content.title}</h3>
+              <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">{content.title}</h3>
               <p className="text-neutral-400 mb-4">{content.description}</p>
               <div className="flex justify-between items-center">
-                <span className="text-emerald-400 font-bold">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
                   {formatSol(content.priceLamports)} SOL
                 </span>
                 <span className="text-sm text-neutral-500">
@@ -78,39 +78,39 @@ export default function ContentsPage() {
         >
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
+              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                 Slug
               </label>
               <input
                 type="text"
                 name="slug"
                 required
-                className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+                className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
+              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                 Title
               </label>
               <input
                 type="text"
                 name="title"
                 required
-                className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+                className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
+              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                 Description
               </label>
               <textarea
                 name="description"
-                className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+                className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
                 rows={4}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
+              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                 Price (SOL)
               </label>
               <input
@@ -118,7 +118,7 @@ export default function ContentsPage() {
                 name="price"
                 step="0.0001"
                 required
-                className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg"
+                className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
               />
             </div>
             <Button type="submit" className="w-full">Create</Button>

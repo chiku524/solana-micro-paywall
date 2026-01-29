@@ -112,7 +112,7 @@ export function PaymentWidget({
                 href={paymentUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-emerald-400 hover:underline"
+                className="text-emerald-600 dark:text-emerald-400 hover:underline"
               >
                 Open in Wallet
               </a>

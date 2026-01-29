@@ -47,10 +47,10 @@ function DiscoverContent() {
       <Navbar />
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
+          <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-2">
             {sort === 'trending' ? 'Trending Content' : 'All Content'}
           </h1>
-          <p className="text-neutral-400">
+          <p className="text-neutral-600 dark:text-neutral-400">
             {sort === 'trending' 
               ? 'Discover the most popular content on the platform'
               : 'Browse all available content'}
@@ -73,7 +73,7 @@ function DiscoverContent() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   !selectedCategory
                     ? 'bg-gradient-primary text-white'
-                    : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                    : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-700'
                 }`}
               >
                 All Categories
@@ -85,7 +85,7 @@ function DiscoverContent() {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     selectedCategory === category
                       ? 'bg-gradient-primary text-white'
-                      : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                      : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-700'
                   }`}
                 >
                   {category}
@@ -121,7 +121,7 @@ export default function DiscoverPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-neutral-900 dark:text-white">Loading...</div>
       </div>
     }>
       <DiscoverContent />

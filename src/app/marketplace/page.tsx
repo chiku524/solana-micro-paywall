@@ -126,10 +126,10 @@ export default function MarketplacePage() {
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         {/* Hero Section */}
         <section className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
+          <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 dark:text-white mb-4">
             <span className="gradient-text">Discover Content</span>
           </h1>
-          <p className="text-xl text-neutral-400 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-600 dark:text-neutral-400 mb-8 max-w-2xl mx-auto">
             Browse premium content from creators across the blockchain. Purchase once, access forever.
           </p>
           
@@ -162,7 +162,7 @@ export default function MarketplacePage() {
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Sort Options */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Sort By</label>
+                  <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">Sort By</label>
                   <div className="flex flex-wrap gap-2">
                     {(['recent', 'trending', 'price-low', 'price-high', 'purchases'] as SortOption[]).map((option) => (
                       <button
@@ -195,7 +195,7 @@ export default function MarketplacePage() {
                       step="0.01"
                       value={priceRange.min}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, min: parseFloat(e.target.value) || 0 }))}
-                      className="flex-1 px-3 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 outline-none"
+                      className="flex-1 px-3 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 outline-none"
                       placeholder="Min"
                     />
                     <input
@@ -204,7 +204,7 @@ export default function MarketplacePage() {
                       step="0.01"
                       value={priceRange.max}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, max: parseFloat(e.target.value) || 1000 }))}
-                      className="flex-1 px-3 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 outline-none"
+                      className="flex-1 px-3 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 outline-none"
                       placeholder="Max"
                     />
                   </div>
@@ -214,7 +214,7 @@ export default function MarketplacePage() {
               {/* Category Filters */}
               {categories.length > 0 && (
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Categories</label>
+                  <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">Categories</label>
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => setSelectedCategory(null)}
@@ -265,7 +265,7 @@ export default function MarketplacePage() {
                   {selectedTags.length > 0 && (
                     <button
                       onClick={() => setSelectedTags([])}
-                      className="mt-2 text-xs text-emerald-400 hover:text-emerald-300"
+                      className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
                     >
                       Clear all tags
                     </button>
@@ -289,7 +289,7 @@ export default function MarketplacePage() {
                 setSelectedTags([]);
                 setPriceRange({ min: 0, max: 1000 });
               }}
-              className="text-sm text-emerald-400 hover:text-emerald-300"
+              className="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
             >
               Clear all filters
             </button>

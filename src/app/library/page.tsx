@@ -108,7 +108,7 @@ export default function LibraryPage() {
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">My Library</h1>
+            <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-2">My Library</h1>
             <p className="text-neutral-400">
               {activeTab === 'purchases' 
                 ? 'Access all your purchased content in one place'
@@ -132,7 +132,7 @@ export default function LibraryPage() {
               </Link>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-neutral-400">
+                <span className="text-sm text-neutral-600 dark:text-neutral-400">
                   {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
                 </span>
               </div>
@@ -147,7 +147,7 @@ export default function LibraryPage() {
             className={`px-6 py-3 font-medium transition-colors border-b-2 ${
               activeTab === 'purchases'
                 ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-neutral-400 hover:text-neutral-300'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
             }`}
           >
             My Purchases
@@ -157,7 +157,7 @@ export default function LibraryPage() {
             className={`px-6 py-3 font-medium transition-colors border-b-2 ${
               activeTab === 'creations'
                 ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-neutral-400 hover:text-neutral-300'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
             }`}
           >
             My Creations
@@ -175,7 +175,7 @@ export default function LibraryPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
+                  <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Connect Your Wallet</h2>
                   <p className="text-neutral-400 mb-6">
                     Connect your Solana wallet to view your purchased content library
                   </p>
@@ -225,7 +225,7 @@ export default function LibraryPage() {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                           filter === f
                             ? 'bg-gradient-primary text-white'
-                            : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                            : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-700'
                         }`}
                       >
                         {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -253,7 +253,7 @@ export default function LibraryPage() {
                 <div className="space-y-8">
                   {Object.entries(groupedPurchases).map(([groupKey, purchases]) => (
                     <div key={groupKey}>
-                      <h2 className="text-xl font-semibold text-white mb-4">{groupKey}</h2>
+                      <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-4">{groupKey}</h2>
                       <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {purchases.map((purchase) => {
                           const content = contentsData?.[purchase.contentId];
@@ -262,7 +262,7 @@ export default function LibraryPage() {
                           if (!content) {
                             return (
                               <div key={purchase.id} className="glass p-6 rounded-xl">
-                                <p className="text-neutral-400 text-sm">Loading content...</p>
+                                <p className="text-neutral-600 dark:text-neutral-400 text-sm">Loading content...</p>
                               </div>
                             );
                           }
@@ -288,7 +288,7 @@ export default function LibraryPage() {
                                   </div>
                                 )}
                                 <div className="p-4">
-                                  <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                                  <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                     {content.title}
                                   </h3>
                                   <div className="flex items-center justify-between text-sm">
@@ -341,7 +341,7 @@ export default function LibraryPage() {
                           </div>
                         )}
                         <div className="p-4">
-                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                             {item.title || 'Untitled'}
                           </h3>
                           <p className="text-xs text-neutral-500">
@@ -360,7 +360,7 @@ export default function LibraryPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                       </svg>
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">No Bookmarks Yet</h2>
+                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">No Bookmarks Yet</h2>
                     <p className="text-neutral-400 mb-6">
                       Content you bookmark will appear here. Start exploring to find interesting content!
                     </p>
@@ -399,7 +399,7 @@ export default function LibraryPage() {
                           </div>
                         )}
                         <div className="p-4">
-                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                             {item.title || 'Untitled'}
                           </h3>
                           <p className="text-xs text-neutral-500">
@@ -446,7 +446,7 @@ export default function LibraryPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Sign In Required</h2>
+                  <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Sign In Required</h2>
                   <p className="text-neutral-400 mb-6">
                     Sign in to your merchant account to view and manage your created content
                   </p>
@@ -481,11 +481,11 @@ export default function LibraryPage() {
                         </div>
                       )}
                       <div className="p-4">
-                        <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+                        <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                           {content.title}
                         </h3>
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-emerald-400 font-semibold">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
                             {formatSol(content.priceLamports)} SOL
                           </span>
                           <span className="text-neutral-400">
@@ -494,7 +494,7 @@ export default function LibraryPage() {
                         </div>
                         <div className="mt-2 flex gap-2">
                           <Link href={`/dashboard/contents`} onClick={(e) => e.stopPropagation()}>
-                            <button className="text-xs px-3 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded transition-colors">
+                            <button className="text-xs px-3 py-1 bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded transition-colors">
                               Manage
                             </button>
                           </Link>

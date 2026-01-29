@@ -193,7 +193,7 @@ export function PaymentWidget({
                     href={paymentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-emerald-400 hover:underline break-all"
+                    className="text-emerald-600 dark:text-emerald-400 hover:underline break-all"
                   >
                     {paymentUrl}
                   </a>

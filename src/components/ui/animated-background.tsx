@@ -138,14 +138,14 @@ export function AnimatedBackground() {
         { r: 168, g: 85, b: 247 },   // Violet
       ],
       light: [
-        { r: 5, g: 150, b: 105 },    // Deep Emerald
-        { r: 37, g: 99, b: 235 },    // Deep Blue
-        { r: 126, g: 34, b: 206 },   // Deep Purple
-        { r: 219, g: 39, b: 119 },   // Deep Pink
-        { r: 234, g: 88, b: 12 },    // Deep Orange
-        { r: 22, g: 163, b: 74 },    // Deep Green
-        { r: 67, g: 56, b: 202 },    // Deep Indigo
-        { r: 139, g: 92, b: 246 },   // Deep Violet
+        { r: 16, g: 165, b: 120 },   // Emerald (visible on white)
+        { r: 59, g: 120, b: 246 },   // Blue
+        { r: 124, g: 58, b: 217 },   // Purple
+        { r: 212, g: 55, b: 145 },   // Pink
+        { r: 234, g: 100, b: 30 },   // Orange
+        { r: 22, g: 163, b: 74 },    // Green
+        { r: 79, g: 70, b: 229 },    // Indigo
+        { r: 139, g: 92, b: 246 },   // Violet
       ],
     };
 
@@ -301,7 +301,7 @@ export function AnimatedBackground() {
       // Clear with sophisticated fade for trail effect
       ctx.save();
       ctx.globalCompositeOperation = 'source-over';
-      const fadeAlpha = theme === 'dark' ? 0.08 : 0.055;
+      const fadeAlpha = theme === 'dark' ? 0.08 : 0.04;
       ctx.fillStyle = theme === 'dark' ? `rgba(10, 10, 10, ${fadeAlpha})` : `rgba(250, 250, 250, ${fadeAlpha})`;
       ctx.fillRect(0, 0, width, height);
       ctx.restore();
@@ -314,7 +314,7 @@ export function AnimatedBackground() {
         if (ring.radius >= ring.maxRadius) ring.radius = 0;
         const r = Math.max(0.01, ring.radius);
         const fade = r < 8 ? r / 8 : Math.max(0, 1 - (r - ring.maxRadius * 0.7) / (ring.maxRadius * 0.3));
-        const opacity = (theme === 'dark' ? 0.045 : 0.04) * fade;
+        const opacity = (theme === 'dark' ? 0.045 : 0.07) * fade;
         ctx.strokeStyle = `rgba(${ring.color.r}, ${ring.color.g}, ${ring.color.b}, ${opacity})`;
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -336,8 +336,8 @@ export function AnimatedBackground() {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       blocks.forEach((block) => {
-        const base = theme === 'dark' ? 0.08 : 0.10;
-        const opacity = base + Math.sin(time + block.phase) * (theme === 'dark' ? 0.04 : 0.05);
+        const base = theme === 'dark' ? 0.08 : 0.14;
+        const opacity = base + Math.sin(time + block.phase) * (theme === 'dark' ? 0.04 : 0.06);
         ctx.save();
         ctx.translate(block.x, block.y);
         ctx.rotate(block.rotation);
@@ -365,8 +365,8 @@ export function AnimatedBackground() {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       hexagons.forEach((hex) => {
-        const base = theme === 'dark' ? 0.06 : 0.08;
-        const opacity = base + Math.sin(time * 0.8 + hex.phase) * (theme === 'dark' ? 0.04 : 0.05);
+        const base = theme === 'dark' ? 0.06 : 0.12;
+        const opacity = base + Math.sin(time * 0.8 + hex.phase) * (theme === 'dark' ? 0.04 : 0.06);
         ctx.save();
         ctx.translate(hex.x, hex.y);
         ctx.rotate(hex.rotation);
@@ -399,8 +399,8 @@ export function AnimatedBackground() {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       chainLinks.forEach((link) => {
-        const base = theme === 'dark' ? 0.07 : 0.09;
-        const opacity = base + Math.sin(time + link.phase) * (theme === 'dark' ? 0.03 : 0.04);
+        const base = theme === 'dark' ? 0.07 : 0.13;
+        const opacity = base + Math.sin(time + link.phase) * (theme === 'dark' ? 0.03 : 0.05);
         ctx.save();
         ctx.translate(link.x, link.y);
         ctx.rotate(link.rotation);
@@ -423,8 +423,8 @@ export function AnimatedBackground() {
       ctx.globalCompositeOperation = 'screen';
       lockShapes.forEach((lock) => {
         const pulse = 0.5 + 0.5 * Math.sin(time * lock.pulseSpeed + lock.phase);
-        const base = theme === 'dark' ? 0.06 : 0.08;
-        const opacity = base + pulse * (theme === 'dark' ? 0.05 : 0.06);
+        const base = theme === 'dark' ? 0.06 : 0.11;
+        const opacity = base + pulse * (theme === 'dark' ? 0.05 : 0.07);
         ctx.save();
         ctx.translate(lock.x, lock.y);
         ctx.strokeStyle = `rgba(${lock.color.r}, ${lock.color.g}, ${lock.color.b}, ${opacity})`;
@@ -547,7 +547,7 @@ export function AnimatedBackground() {
           const maxDistance = 400;
 
           if (distance < maxDistance) {
-            const lineOpacity = theme === 'dark' ? 0.08 : 0.10;
+            const lineOpacity = theme === 'dark' ? 0.08 : 0.14;
             const opacity = (1 - distance / maxDistance) * lineOpacity;
             const gradient = ctx.createLinearGradient(
               blobs[i].x,
@@ -593,7 +593,7 @@ export function AnimatedBackground() {
             next.y
           );
           
-          const trailOpacity = theme === 'dark' ? 0.22 : 0.28;
+          const trailOpacity = theme === 'dark' ? 0.22 : 0.38;
           gradient.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${current.opacity * trailOpacity})`);
           gradient.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${next.opacity * trailOpacity})`);
 
@@ -612,9 +612,9 @@ export function AnimatedBackground() {
       ctx.globalCompositeOperation = 'screen';
       blobs.forEach((blob, index) => {
         const safeRadius = Math.max(1, blob.radius);
-        // Theme-tuned: light mode slightly stronger so orbs read on white background
-        const baseOpacity = theme === 'dark' ? 0.05 : 0.055;
-        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * (theme === 'dark' ? 0.03 : 0.035);
+        // Theme-tuned: light mode much stronger so orbs clearly visible on white
+        const baseOpacity = theme === 'dark' ? 0.05 : 0.10;
+        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * (theme === 'dark' ? 0.03 : 0.045);
         const distanceFromCenter = Math.sqrt(
           Math.pow(blob.x - width / 2, 2) + Math.pow(blob.y - height / 2, 2)
         );
@@ -622,7 +622,7 @@ export function AnimatedBackground() {
         const centerFade = 1 - (distanceFromCenter / maxDistance) * 0.2;
         
         const opacity = baseOpacity + timeOpacity;
-        const maxCap = theme === 'dark' ? 0.09 : 0.10;
+        const maxCap = theme === 'dark' ? 0.09 : 0.18;
         const finalOpacity = Math.max(0.025, Math.min(maxCap, opacity * centerFade));
 
         // Create radial gradient with multiple color stops for enhanced glow
@@ -662,7 +662,8 @@ export function AnimatedBackground() {
           blob.y,
           safeRadius * 1.3
         );
-        glowGradient1.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.15})`);
+        const glow1Mult = theme === 'dark' ? 0.15 : 0.22;
+        glowGradient1.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * glow1Mult})`);
         glowGradient1.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, 0)`);
 
         ctx.fillStyle = glowGradient1;
@@ -670,7 +671,7 @@ export function AnimatedBackground() {
         ctx.arc(blob.x, blob.y, safeRadius * 1.3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Second glow layer for extra depth (dimmed)
+        // Second glow layer for extra depth
         const glowGradient2 = ctx.createRadialGradient(
           blob.x,
           blob.y,
@@ -679,7 +680,8 @@ export function AnimatedBackground() {
           blob.y,
           safeRadius * 1.8
         );
-        glowGradient2.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.08})`);
+        const glow2Mult = theme === 'dark' ? 0.08 : 0.12;
+        glowGradient2.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * glow2Mult})`);
         glowGradient2.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, 0)`);
 
         ctx.fillStyle = glowGradient2;
@@ -730,7 +732,7 @@ export function AnimatedBackground() {
         className={`absolute inset-0 pointer-events-none ${
           theme === 'dark'
             ? 'bg-gradient-to-br from-neutral-950/30 via-neutral-950/20 to-neutral-950/30'
-            : 'bg-gradient-to-br from-white/12 via-white/6 to-white/12'
+            : 'bg-gradient-to-br from-white/5 via-transparent to-white/5'
         }`}
       />
     </div>

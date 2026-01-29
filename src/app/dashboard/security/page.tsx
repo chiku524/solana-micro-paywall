@@ -59,7 +59,7 @@ function ChangePasswordSection({ token }: { token: string | null }) {
 
   return (
     <div className="glass-strong rounded-xl p-6 mb-6">
-      <h2 className="text-2xl font-semibold text-white mb-4">Change Password</h2>
+      <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white mb-4">Change Password</h2>
       
       {error && (
         <div className="bg-red-900/20 border border-red-700 rounded-lg p-3 mb-4">
@@ -69,7 +69,7 @@ function ChangePasswordSection({ token }: { token: string | null }) {
 
       {success && (
         <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-3 mb-4">
-          <p className="text-emerald-400 text-sm">{success}</p>
+          <p className="text-emerald-600 dark:text-emerald-600 dark:text-emerald-400 text-sm">{success}</p>
         </div>
       )}
 
@@ -84,12 +84,12 @@ function ChangePasswordSection({ token }: { token: string | null }) {
               required
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none pr-10"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none pr-10"
             />
             <button
               type="button"
               onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
             >
               {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
             </button>
@@ -106,12 +106,12 @@ function ChangePasswordSection({ token }: { token: string | null }) {
               required
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none pr-10"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none pr-10"
             />
             <button
               type="button"
               onClick={() => setShowNewPassword(!showNewPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
             >
               {showNewPassword ? '👁️' : '👁️‍🗨️'}
             </button>
@@ -131,12 +131,12 @@ function ChangePasswordSection({ token }: { token: string | null }) {
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none pr-10"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none pr-10"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
             >
               {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
             </button>
@@ -187,7 +187,7 @@ function SecurityAlerts({ merchant }: { merchant?: any }) {
     return (
       <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-4 mb-6">
         <div className="flex items-center gap-2">
-          <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-emerald-400 font-semibold">Your account security is up to date!</p>
@@ -217,7 +217,7 @@ function SecurityAlerts({ merchant }: { merchant?: any }) {
                 </svg>
               )}
               {alert.type === 'info' && (
-                <svg className="w-5 h-5 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               )}
@@ -226,7 +226,7 @@ function SecurityAlerts({ merchant }: { merchant?: any }) {
                   ? 'text-yellow-400'
                   : alert.type === 'error'
                   ? 'text-red-400'
-                  : 'text-blue-400'
+                  : 'text-blue-600 dark:text-blue-400'
               }`}>
                 {alert.message}
               </p>
@@ -239,7 +239,7 @@ function SecurityAlerts({ merchant }: { merchant?: any }) {
                     ? 'text-yellow-400 hover:bg-yellow-900/20'
                     : alert.type === 'error'
                     ? 'text-red-400 hover:bg-red-900/20'
-                    : 'text-blue-400 hover:bg-blue-900/20'
+                    : 'text-blue-600 dark:text-blue-400 hover:bg-blue-900/20'
                 }`}
               >
                 {alert.action.label}
@@ -277,7 +277,7 @@ function SecurityActivitySection({ token }: { token: string | null }) {
 
   return (
     <div className="glass-strong rounded-xl p-6">
-      <h2 className="text-2xl font-semibold text-white mb-4">Security Activity</h2>
+      <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white mb-4">Security Activity</h2>
       
       {data?.activities && data.activities.length > 0 ? (
         <div className="space-y-2">
@@ -285,7 +285,7 @@ function SecurityActivitySection({ token }: { token: string | null }) {
             <div key={index} className="flex items-center justify-between p-3 bg-neutral-800 rounded-lg">
               <div>
                 <p className="text-white font-medium">{getActivityLabel(activity.type)}</p>
-                <p className="text-neutral-400 text-sm">{formatDate(activity.timestamp)}</p>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">{formatDate(activity.timestamp)}</p>
                 {activity.ip && (
                   <p className="text-neutral-500 text-xs">IP: {activity.ip}</p>
                 )}
@@ -410,7 +410,7 @@ function SecuritySettingsContent() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-        <h1 className="text-4xl font-bold text-white mb-8">Security Settings</h1>
+        <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-8">Security Settings</h1>
 
         {error && (
           <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mb-6">
@@ -420,7 +420,7 @@ function SecuritySettingsContent() {
 
         {success && (
           <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-4 mb-6">
-            <p className="text-emerald-400 text-sm">{success}</p>
+            <p className="text-emerald-600 dark:text-emerald-600 dark:text-emerald-400 text-sm">{success}</p>
           </div>
         )}
 
@@ -431,10 +431,10 @@ function SecuritySettingsContent() {
         <div id="email-verification" className="glass-strong rounded-xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-semibold text-white mb-2">Email Verification</h2>
+              <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white mb-2">Email Verification</h2>
               <p className="text-neutral-400">
                 {emailVerified ? (
-                  <span className="text-emerald-400">✓ Your email is verified</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">✓ Your email is verified</span>
                 ) : (
                   <span className="text-yellow-400">⚠ Your email is not verified</span>
                 )}
@@ -456,7 +456,7 @@ function SecuritySettingsContent() {
         <div id="2fa-section" className="glass-strong rounded-xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-semibold text-white mb-2">Two-Factor Authentication</h2>
+              <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white mb-2">Two-Factor Authentication</h2>
               <p className="text-neutral-400">
                 {twoFactorEnabled ? (
                   <span className="text-emerald-400">✓ 2FA is enabled</span>
@@ -486,8 +486,8 @@ function SecuritySettingsContent() {
 
           {show2FASetup && twoFactorData && (
             <div className="mt-6 p-4 bg-neutral-800 rounded-lg border border-neutral-700">
-              <h3 className="text-lg font-semibold text-white mb-4">Setup Instructions</h3>
-              <ol className="list-decimal list-inside space-y-2 text-neutral-300 mb-4">
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Setup Instructions</h3>
+              <ol className="list-decimal list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-4">
                 <li>Scan the QR code below with your authenticator app (Google Authenticator, Authy, etc.)</li>
                 <li>Enter the 6-digit code from your app to verify and enable 2FA</li>
                 <li>Save your backup codes in a safe place</li>
@@ -532,7 +532,7 @@ function SecuritySettingsContent() {
                 <p className="text-yellow-400 text-sm font-semibold mb-2">Backup Codes (Save these!)</p>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   {twoFactorData.backupCodes.map((code, index) => (
-                    <code key={index} className="bg-neutral-900 px-2 py-1 rounded text-emerald-400 text-sm">
+                    <code key={index} className="bg-neutral-900 px-2 py-1 rounded text-emerald-600 dark:text-emerald-400 text-sm">
                       {code}
                     </code>
                   ))}
@@ -594,14 +594,14 @@ function SessionManagementSection() {
 
   return (
     <div className="glass-strong rounded-xl p-6">
-      <h2 className="text-2xl font-semibold text-white mb-4">Active Sessions</h2>
+      <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white mb-4">Active Sessions</h2>
       
       {tokenInfo ? (
         <div className="space-y-4">
           <div className="p-4 bg-neutral-800 rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-neutral-300">Access Token</span>
-              <span className="text-emerald-400 text-sm">
+              <span className="text-emerald-600 dark:text-emerald-400 text-sm">
                 Expires in {formatTimeRemaining(tokenInfo.expiresAt)}
               </span>
             </div>
@@ -612,8 +612,8 @@ function SessionManagementSection() {
           
           <div className="p-4 bg-neutral-800 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-neutral-300">Refresh Token</span>
-              <span className="text-emerald-400 text-sm">
+              <span className="text-neutral-600 dark:text-neutral-300">Refresh Token</span>
+              <span className="text-emerald-600 dark:text-emerald-400 text-sm">
                 Expires in {formatTimeRemaining(tokenInfo.refreshExpiresAt)}
               </span>
             </div>

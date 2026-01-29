@@ -39,7 +39,7 @@ export default function SignupPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
-          <p className="text-neutral-400">Loading...</p>
+          <p className="text-neutral-600 dark:text-neutral-400">Loading...</p>
         </div>
       </div>
     );
@@ -139,20 +139,20 @@ export default function SignupPage() {
       <Navbar />
       <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-neutral-900 p-8 rounded-lg max-w-md w-full shadow-xl">
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-neutral-400 mb-6">
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">Create Account</h1>
+          <p className="text-neutral-600 dark:text-neutral-400 mb-6">
             Sign up to start monetizing your content with Solana payments
           </p>
 
           {success ? (
             <div className="space-y-4">
               <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-4">
-                <p className="text-emerald-400 font-semibold mb-4">Account Created Successfully!</p>
+                <p className="text-emerald-600 dark:text-emerald-400 font-semibold mb-4">Account Created Successfully!</p>
                 
                 <div className="bg-neutral-800 rounded-lg p-3 mb-4">
-                  <p className="text-xs text-neutral-400 mb-1">Your Merchant ID (save this for reference):</p>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-1">Your Merchant ID (save this for reference):</p>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-neutral-900 px-3 py-2 rounded text-emerald-400 text-sm break-all">
+                    <code className="flex-1 bg-neutral-900 px-3 py-2 rounded text-emerald-600 dark:text-emerald-400 text-sm break-all">
                       {merchantId}
                     </code>
                     <button
@@ -167,7 +167,7 @@ export default function SignupPage() {
                   </div>
                 </div>
                 
-                <p className="text-neutral-400 text-sm">
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">
                   Logging you in and redirecting to dashboard...
                 </p>
                 <p className="text-xs text-neutral-500 mt-2">
@@ -178,7 +178,7 @@ export default function SignupPage() {
           ) : (
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                   Email Address *
                 </label>
                 <input
@@ -187,13 +187,13 @@ export default function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
+                  className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
                   placeholder="your@email.com"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                   Password *
                 </label>
                 <div className="relative">
@@ -206,13 +206,13 @@ export default function SignupPage() {
                       setPassword(e.target.value);
                       setPasswordError('');
                     }}
-                    className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors pr-10"
+                    className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors pr-10"
                     placeholder="Create a strong password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
                   >
                     {showPassword ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,7 +232,7 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                   Confirm Password *
                 </label>
                 <div className="relative">
@@ -245,13 +245,13 @@ export default function SignupPage() {
                       setConfirmPassword(e.target.value);
                       setPasswordError('');
                     }}
-                    className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors pr-10"
+                    className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors pr-10"
                     placeholder="Confirm your password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
                   >
                     {showConfirmPassword ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,7 +268,7 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="payoutAddress" className="block text-sm font-medium text-neutral-300 mb-2">
+                <label htmlFor="payoutAddress" className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                   Solana Payout Address (Optional)
                 </label>
                 <input
@@ -276,7 +276,7 @@ export default function SignupPage() {
                   type="text"
                   value={payoutAddress}
                   onChange={(e) => setPayoutAddress(e.target.value)}
-                  className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
+                  className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
                   placeholder="Your Solana wallet address"
                 />
                 <p className="text-xs text-neutral-500 mt-1">
@@ -305,9 +305,9 @@ export default function SignupPage() {
                 {isLoading ? 'Creating Account...' : 'Create Account'}
               </Button>
 
-              <p className="text-center text-sm text-neutral-400">
+              <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
                 Already have an account?{' '}
-                <a href="/dashboard" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+                <a href="/dashboard" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
                   Sign in
                 </a>
               </p>

@@ -114,7 +114,7 @@ export function ShareButtons({ url, title, description, className }: ShareButton
         variant="outline"
         size="sm"
         onClick={handleTwitterShare}
-        className="flex items-center gap-2 hover:bg-blue-500/10 hover:border-blue-500/50 hover:text-blue-400"
+        className="flex items-center gap-2 hover:bg-blue-500/10 hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-400"
         aria-label="Share on Twitter"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

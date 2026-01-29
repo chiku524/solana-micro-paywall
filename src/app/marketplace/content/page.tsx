@@ -80,7 +80,7 @@ function ContentDetailContent() {
         )}
         
         <div className="flex items-start justify-between gap-4 mb-4">
-          <h1 className="text-4xl font-bold text-white flex-1">{content.title}</h1>
+          <h1 className="text-4xl font-bold text-neutral-900 dark:text-white flex-1">{content.title}</h1>
           <div className="flex items-center gap-2">
             <BookmarkButton
               contentId={content.id}
@@ -96,11 +96,11 @@ function ContentDetailContent() {
         </div>
         
         <div className="flex items-center gap-4 mb-6">
-          <span className="text-2xl font-bold text-emerald-400">
+          <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
             {formatSol(content.priceLamports)} SOL
           </span>
           {content.purchaseCount > 0 && (
-            <span className="text-neutral-400">
+            <span className="text-neutral-600 dark:text-neutral-400">
               {content.purchaseCount} purchases
             </span>
           )}
@@ -121,8 +121,8 @@ function ContentDetailContent() {
         
         {content.previewText && (
           <div className="bg-neutral-900 p-6 rounded-lg mb-8">
-            <h2 className="text-xl font-semibold text-white mb-3">Preview</h2>
-            <p className="text-neutral-300 whitespace-pre-wrap">{content.previewText}</p>
+            <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Preview</h2>
+            <p className="text-neutral-600 dark:text-neutral-300 whitespace-pre-wrap">{content.previewText}</p>
           </div>
         )}
         

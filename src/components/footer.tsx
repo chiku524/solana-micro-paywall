@@ -17,7 +17,7 @@ export function Footer() {
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors"
+                className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                 aria-label="Twitter"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@ export function Footer() {
                 href="https://github.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors"
+                className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                 aria-label="GitHub"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -39,7 +39,7 @@ export function Footer() {
                 href="https://discord.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors"
+                className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                 aria-label="Discord"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -56,17 +56,17 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/marketplace" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <Link href="/marketplace" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm">
                   Marketplace
                 </Link>
               </li>
               <li>
-                <Link href="/docs" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <Link href="/docs" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm">
                   Documentation
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <Link href="/dashboard" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm">
                   Dashboard
                 </Link>
               </li>
@@ -80,12 +80,12 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <a href="#" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-400 transition-colors text-sm">
+                <a href="#" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm">
                   Terms of Service
                 </a>
               </li>

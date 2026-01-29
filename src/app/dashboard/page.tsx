@@ -71,8 +71,8 @@ function DashboardLogin() {
       <Navbar />
       <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
         <div className="glass-strong p-8 rounded-xl max-w-md w-full shadow-xl">
-          <h1 className="text-3xl font-bold text-white mb-2">Merchant Login</h1>
-          <p className="text-neutral-400 mb-6">
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">Merchant Login</h1>
+          <p className="text-neutral-600 dark:text-neutral-400 mb-6">
             Sign in with your email or Merchant ID
           </p>
           
@@ -90,7 +90,7 @@ function DashboardLogin() {
               className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 useEmail
                   ? 'bg-gradient-primary text-white'
-                  : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+                  : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-400 hover:bg-neutral-300 dark:hover:bg-neutral-700'
               }`}
             >
               Email
@@ -101,7 +101,7 @@ function DashboardLogin() {
               className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 !useEmail
                   ? 'bg-gradient-primary text-white'
-                  : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+                  : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-400 hover:bg-neutral-300 dark:hover:bg-neutral-700'
               }`}
             >
               Merchant ID
@@ -112,7 +112,7 @@ function DashboardLogin() {
             <input
               type="email"
               placeholder="your@email.com"
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg mb-4 border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg mb-4 border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleLogin()}
@@ -122,7 +122,7 @@ function DashboardLogin() {
             <input
               type="text"
               placeholder="Merchant ID"
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg mb-4 border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg mb-4 border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
               value={merchantId}
               onChange={(e) => setMerchantId(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleLogin()}
@@ -134,7 +134,7 @@ function DashboardLogin() {
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
-              className="w-full px-4 py-2 bg-neutral-800 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors pr-10"
+              className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors pr-10"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleLogin()}
@@ -143,7 +143,7 @@ function DashboardLogin() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
             >
               {showPassword ? (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,11 +167,11 @@ function DashboardLogin() {
             {isLoading ? 'Logging in...' : 'Login'}
           </Button>
           <p className="text-center text-sm text-neutral-400">
-            <Link href="/forgot-password" className="text-emerald-400 hover:text-emerald-300 transition-colors block mb-2">
+            <Link href="/forgot-password" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors block mb-2">
               Forgot password?
             </Link>
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+            <Link href="/signup" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
               Sign up
             </Link>
           </p>
@@ -202,8 +202,8 @@ function DashboardContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
-              <p className="text-neutral-400">Manage your content and track your earnings</p>
+              <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-2">Dashboard</h1>
+              <p className="text-neutral-600 dark:text-neutral-400">Manage your content and track your earnings</p>
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
               <Link href="/dashboard/contents">
@@ -220,7 +220,7 @@ function DashboardContent() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             <div className="glass-strong p-6 rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-neutral-400 text-sm">Total Payments</p>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">Total Payments</p>
                 <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -232,7 +232,7 @@ function DashboardContent() {
             </div>
             <div className="glass-strong p-6 rounded-xl border border-blue-500/20 hover:border-blue-500/40 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-neutral-400 text-sm">Today</p>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">Today</p>
                 <div className="w-10 h-10 rounded-lg bg-gradient-secondary flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -244,7 +244,7 @@ function DashboardContent() {
             </div>
             <div className="glass-strong p-6 rounded-xl border border-purple-500/20 hover:border-purple-500/40 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-neutral-400 text-sm">This Week</p>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">This Week</p>
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -256,14 +256,14 @@ function DashboardContent() {
             </div>
             <div className="glass-strong p-6 rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-neutral-400 text-sm">Total Revenue</p>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">Total Revenue</p>
                 <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-emerald-400">
+              <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                 {formatSol(stats.totalRevenueLamports)} SOL
               </p>
               <p className="text-xs text-neutral-500 mt-1">All time earnings</p>
@@ -284,24 +284,24 @@ function DashboardContent() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-neutral-800">
-                    <th className="text-left py-3 px-4 text-neutral-400">Content</th>
-                    <th className="text-left py-3 px-4 text-neutral-400">Amount</th>
-                    <th className="text-left py-3 px-4 text-neutral-400">Payer</th>
-                    <th className="text-left py-3 px-4 text-neutral-400">Date</th>
-                    <th className="text-left py-3 px-4 text-neutral-400">Transaction</th>
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Content</th>
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Amount</th>
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Payer</th>
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Date</th>
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Transaction</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentPayments.payments.map((payment: any) => (
                     <tr key={payment.id} className="border-b border-neutral-800">
                       <td className="py-3 px-4 text-white">{payment.contentTitle}</td>
-                      <td className="py-3 px-4 text-emerald-400">
+                      <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400">
                         {formatSol(payment.amountLamports)} SOL
                       </td>
-                      <td className="py-3 px-4 text-neutral-300">
+                      <td className="py-3 px-4 text-neutral-600 dark:text-neutral-300">
                         {truncateAddress(payment.payerAddress)}
                       </td>
-                      <td className="py-3 px-4 text-neutral-300">
+                      <td className="py-3 px-4 text-neutral-600 dark:text-neutral-300">
                         {formatDate(payment.confirmedAt)}
                       </td>
                       <td className="py-3 px-4">
@@ -309,7 +309,7 @@ function DashboardContent() {
                           href={`https://solscan.io/tx/${payment.transactionSignature}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-emerald-400 hover:underline"
+                          className="text-emerald-600 dark:text-emerald-400 hover:underline"
                         >
                           View
                         </a>
@@ -337,7 +337,7 @@ export default function DashboardPage() {
     return (
       <Suspense fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-white">Loading...</div>
+          <div className="text-neutral-900 dark:text-white">Loading...</div>
         </div>
       }>
         <DashboardLogin />
@@ -348,7 +348,7 @@ export default function DashboardPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-neutral-900 dark:text-white">Loading...</div>
       </div>
     }>
       <DashboardContent />

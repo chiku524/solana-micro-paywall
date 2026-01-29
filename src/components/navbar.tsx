@@ -33,8 +33,8 @@ export function Navbar() {
                   className={cn(
                     'px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-900',
                     pathname === item.href
-                      ? 'text-emerald-400 bg-neutral-200/50 dark:bg-neutral-800/50'
-                      : 'text-neutral-700 dark:text-neutral-300 hover:text-emerald-400 hover:bg-neutral-200/30 dark:hover:bg-neutral-800/30'
+                      ? 'text-emerald-600 dark:text-emerald-400 bg-neutral-200/50 dark:bg-neutral-800/50'
+                      : 'text-neutral-700 dark:text-neutral-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-neutral-200/30 dark:hover:bg-neutral-800/30'
                   )}
                   role="menuitem"
                 >

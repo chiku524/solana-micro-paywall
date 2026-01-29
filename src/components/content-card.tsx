@@ -44,7 +44,7 @@ export function ContentCard({ content, merchantName }: ContentCardProps) {
               {merchantName && (
                 <p className="text-xs text-neutral-500">{merchantName}</p>
               )}
-              <p className="text-lg font-bold text-emerald-400">
+              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
                 {formatSol(content.priceLamports)} SOL
               </p>
             </div>
