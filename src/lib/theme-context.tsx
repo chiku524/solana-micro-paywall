@@ -49,13 +49,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(newTheme);
   };
 
-  // Prevent flash of wrong theme
-  if (!mounted) {
-    return <>{children}</>;
-  }
+  // Always provide context so useTheme() works during SSR/prerender (e.g. /docs).
+  // When !mounted we use a safe default; after mount we sync with localStorage/preference.
+  const value = mounted
+    ? { theme, toggleTheme, setTheme }
+    : { theme: 'dark' as Theme, toggleTheme: () => {}, setTheme: () => {} };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
