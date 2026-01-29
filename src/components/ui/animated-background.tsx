@@ -65,10 +65,14 @@ interface ChainLinkElement {
   color: { r: number; g: number; b: number };
 }
 
-interface FlowLine {
-  path: Array<{ x: number; y: number }>;
-  dashOffset: number;
-  speed: number;
+/** Soft expanding rings (replaces fast dashed flow lines) – calm “pulse” feel */
+interface PulseRing {
+  x: number;
+  y: number;
+  radius: number;
+  maxRadius: number;
+  expandSpeed: number;
+  phase: number;
   color: { r: number; g: number; b: number };
 }
 
@@ -165,7 +169,7 @@ export function AnimatedBackground() {
     // Create diverse gradient blobs with trails
     const blobs: GradientBlob[] = [];
     const numBlobs = 10;
-    const maxTrailLength = 15;
+    const maxTrailLength = 10;
 
     const movementPatterns: Array<'circular' | 'linear' | 'figure8' | 'spiral' | 'wave' | 'lissajous'> = [
       'circular',
@@ -181,15 +185,15 @@ export function AnimatedBackground() {
       blobs.push({
         x: Math.random() * dimensions.width,
         y: Math.random() * dimensions.height,
-        vx: (Math.random() - 0.5) * (0.2 + Math.random() * 0.3),
-        vy: (Math.random() - 0.5) * (0.2 + Math.random() * 0.3),
+        vx: (Math.random() - 0.5) * (0.1 + Math.random() * 0.15),
+        vy: (Math.random() - 0.5) * (0.1 + Math.random() * 0.15),
         baseRadius: 150 + Math.random() * 300,
         radius: 150 + Math.random() * 300,
         color,
         movementPattern: movementPatterns[i % movementPatterns.length],
         phase: Math.random() * Math.PI * 2,
-        speed: 0.4 + Math.random() * 0.5,
-        pulseSpeed: 0.6 + Math.random() * 0.6,
+        speed: 0.25 + Math.random() * 0.3,
+        pulseSpeed: 0.4 + Math.random() * 0.4,
         glowIntensity: 0.15 + Math.random() * 0.2,
         trail: [],
       });
@@ -197,7 +201,7 @@ export function AnimatedBackground() {
 
     // Create particle system
     const particles: Particle[] = [];
-    const maxParticles = 80;
+    const maxParticles = 50;
 
     const createParticle = (x: number, y: number, color: { r: number; g: number; b: number }) => {
       if (particles.length < maxParticles) {
@@ -222,10 +226,10 @@ export function AnimatedBackground() {
         y: Math.random() * dimensions.height,
         w: 24 + Math.random() * 32,
         h: 16 + Math.random() * 20,
-        vx: (Math.random() - 0.5) * 0.15,
-        vy: (Math.random() - 0.5) * 0.15,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: (Math.random() - 0.5) * 0.08,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.02,
+        rotSpeed: (Math.random() - 0.5) * 0.012,
         phase: Math.random() * Math.PI * 2,
         color: currentPalette[i % currentPalette.length],
       });
@@ -237,10 +241,10 @@ export function AnimatedBackground() {
         x: Math.random() * dimensions.width,
         y: Math.random() * dimensions.height,
         radius: 18 + Math.random() * 28,
-        vx: (Math.random() - 0.5) * 0.12,
-        vy: (Math.random() - 0.5) * 0.12,
+        vx: (Math.random() - 0.5) * 0.07,
+        vy: (Math.random() - 0.5) * 0.07,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.015,
+        rotSpeed: (Math.random() - 0.5) * 0.01,
         phase: Math.random() * Math.PI * 2,
         color: currentPalette[(i + 2) % currentPalette.length],
       });
@@ -251,36 +255,25 @@ export function AnimatedBackground() {
       chainLinks.push({
         x: Math.random() * dimensions.width,
         y: Math.random() * dimensions.height,
-        vx: (Math.random() - 0.5) * 0.1,
-        vy: (Math.random() - 0.5) * 0.1,
+        vx: (Math.random() - 0.5) * 0.06,
+        vy: (Math.random() - 0.5) * 0.06,
         rotation: Math.random() * Math.PI * 2,
         phase: Math.random() * Math.PI * 2,
         color: currentPalette[(i + 1) % currentPalette.length],
       });
     }
 
-    const flowLines: FlowLine[] = [];
-    const numFlowLines = 3;
-    for (let fl = 0; fl < numFlowLines; fl++) {
-      const steps = 12 + Math.floor(Math.random() * 8);
-      const path: Array<{ x: number; y: number }> = [];
-      const startX = Math.random() * dimensions.width * 0.3;
-      const startY = Math.random() * dimensions.height;
-      const ctrlX = dimensions.width * (0.3 + Math.random() * 0.4);
-      const ctrlY = dimensions.height * (0.2 + Math.random() * 0.6);
-      const endX = dimensions.width * (0.7 + Math.random() * 0.25);
-      const endY = Math.random() * dimensions.height;
-      for (let s = 0; s <= steps; s++) {
-        const t = s / steps;
-        const x = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * ctrlX + t * t * endX;
-        const y = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * ctrlY + t * t * endY;
-        path.push({ x, y });
-      }
-      flowLines.push({
-        path,
-        dashOffset: Math.random() * 100,
-        speed: 0.5 + Math.random() * 0.8,
-        color: currentPalette[fl % currentPalette.length],
+    const pulseRings: PulseRing[] = [];
+    const numRings = 5;
+    for (let i = 0; i < numRings; i++) {
+      pulseRings.push({
+        x: dimensions.width * (0.15 + Math.random() * 0.7),
+        y: dimensions.height * (0.15 + Math.random() * 0.7),
+        radius: 0,
+        maxRadius: 60 + Math.random() * 90,
+        expandSpeed: 0.08 + Math.random() * 0.06,
+        phase: Math.random() * Math.PI * 2,
+        color: currentPalette[i % currentPalette.length],
       });
     }
 
@@ -302,7 +295,7 @@ export function AnimatedBackground() {
 
     const animate = () => {
       try {
-      time += 0.01;
+      time += 0.006;
       const { width, height } = { width: canvas.width, height: canvas.height };
 
       // Clear with sophisticated fade for trail effect
@@ -313,25 +306,21 @@ export function AnimatedBackground() {
       ctx.fillRect(0, 0, width, height);
       ctx.restore();
 
-      // --- Transaction flow lines (paywall: payment flow) ---
+      // --- Soft pulse rings (calm replacement for fast flow lines) ---
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
-      flowLines.forEach((line) => {
-        line.dashOffset += line.speed;
-        const opacity = theme === 'dark' ? 0.12 : 0.08;
-        ctx.strokeStyle = `rgba(${line.color.r}, ${line.color.g}, ${line.color.b}, ${opacity})`;
-        ctx.lineWidth = 2;
-        ctx.setLineDash([12, 16]);
-        ctx.lineDashOffset = -line.dashOffset;
-        ctx.lineCap = 'round';
+      pulseRings.forEach((ring) => {
+        ring.radius += ring.expandSpeed;
+        if (ring.radius >= ring.maxRadius) ring.radius = 0;
+        const r = Math.max(0.01, ring.radius);
+        const fade = r < 8 ? r / 8 : Math.max(0, 1 - (r - ring.maxRadius * 0.7) / (ring.maxRadius * 0.3));
+        const opacity = (theme === 'dark' ? 0.045 : 0.03) * fade;
+        ctx.strokeStyle = `rgba(${ring.color.r}, ${ring.color.g}, ${ring.color.b}, ${opacity})`;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.moveTo(line.path[0].x, line.path[0].y);
-        for (let i = 1; i < line.path.length; i++) {
-          ctx.lineTo(line.path[i].x, line.path[i].y);
-        }
+        ctx.arc(ring.x, ring.y, r, 0, Math.PI * 2);
         ctx.stroke();
       });
-      ctx.setLineDash([]);
       ctx.restore();
 
       // --- Blockchain blocks ---
@@ -399,7 +388,7 @@ export function AnimatedBackground() {
       chainLinks.forEach((link) => {
         link.x += link.vx;
         link.y += link.vy;
-        link.rotation += 0.008;
+        link.rotation += 0.005;
         if (link.x < -60) link.x = width + 60;
         if (link.x > width + 60) link.x = -60;
         if (link.y < -40) link.y = height + 40;
@@ -509,8 +498,8 @@ export function AnimatedBackground() {
           point.opacity = i / blob.trail.length;
         });
 
-        // Spawn particles occasionally
-        if (Math.random() < 0.15) {
+        // Spawn particles occasionally (lower rate for calmer feel)
+        if (Math.random() < 0.06) {
           createParticle(blob.x, blob.y, blob.color);
         }
       });
@@ -522,7 +511,7 @@ export function AnimatedBackground() {
         const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.life -= 0.01;
+        p.life -= 0.008;
         p.vx *= 0.98;
         p.vy *= 0.98;
 
@@ -554,7 +543,7 @@ export function AnimatedBackground() {
           const maxDistance = 400;
 
           if (distance < maxDistance) {
-            const opacity = (1 - distance / maxDistance) * 0.15;
+            const opacity = (1 - distance / maxDistance) * 0.08;
             const gradient = ctx.createLinearGradient(
               blobs[i].x,
               blobs[i].y,
@@ -599,8 +588,8 @@ export function AnimatedBackground() {
             next.y
           );
           
-          gradient.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${current.opacity * 0.4})`);
-          gradient.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${next.opacity * 0.4})`);
+          gradient.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${current.opacity * 0.22})`);
+          gradient.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${next.opacity * 0.22})`);
 
           ctx.strokeStyle = gradient;
           if (i === 0) {
@@ -617,9 +606,9 @@ export function AnimatedBackground() {
       ctx.globalCompositeOperation = 'screen';
       blobs.forEach((blob, index) => {
         const safeRadius = Math.max(1, blob.radius);
-        // Dimmed base opacity so orbs are subtler and other elements show better
-        const baseOpacity = theme === 'dark' ? 0.09 : 0.06;
-        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * 0.05;
+        // Lower peak brightness: more transparent orbs so other elements stand out
+        const baseOpacity = theme === 'dark' ? 0.05 : 0.035;
+        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * 0.03;
         const distanceFromCenter = Math.sqrt(
           Math.pow(blob.x - width / 2, 2) + Math.pow(blob.y - height / 2, 2)
         );
@@ -627,7 +616,7 @@ export function AnimatedBackground() {
         const centerFade = 1 - (distanceFromCenter / maxDistance) * 0.2;
         
         const opacity = baseOpacity + timeOpacity;
-        const finalOpacity = Math.max(0.04, Math.min(0.16, opacity * centerFade));
+        const finalOpacity = Math.max(0.025, Math.min(0.09, opacity * centerFade));
 
         // Create radial gradient with multiple color stops for enhanced glow
         const radialGradient = ctx.createRadialGradient(
@@ -666,7 +655,7 @@ export function AnimatedBackground() {
           blob.y,
           safeRadius * 1.3
         );
-        glowGradient1.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.25})`);
+        glowGradient1.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.15})`);
         glowGradient1.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, 0)`);
 
         ctx.fillStyle = glowGradient1;
@@ -683,7 +672,7 @@ export function AnimatedBackground() {
           blob.y,
           safeRadius * 1.8
         );
-        glowGradient2.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.12})`);
+        glowGradient2.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${finalOpacity * 0.08})`);
         glowGradient2.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, 0)`);
 
         ctx.fillStyle = glowGradient2;
