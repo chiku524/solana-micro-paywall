@@ -18,7 +18,7 @@ export function Navbar() {
   ];
   
   return (
-    <nav className="border-b border-neutral-300/40 dark:border-neutral-700/40 sticky top-0 z-50 backdrop-blur-xl bg-white/40 dark:bg-neutral-950/40 shadow-sm" role="navigation" aria-label="Main navigation">
+    <nav className="glass-bar border-b border-neutral-200/80 dark:border-neutral-700/50 sticky top-0 z-50" role="navigation" aria-label="Main navigation">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">

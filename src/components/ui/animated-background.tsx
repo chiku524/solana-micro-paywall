@@ -301,7 +301,7 @@ export function AnimatedBackground() {
       // Clear with sophisticated fade for trail effect
       ctx.save();
       ctx.globalCompositeOperation = 'source-over';
-      const fadeAlpha = theme === 'dark' ? 0.08 : 0.06;
+      const fadeAlpha = theme === 'dark' ? 0.08 : 0.055;
       ctx.fillStyle = theme === 'dark' ? `rgba(10, 10, 10, ${fadeAlpha})` : `rgba(250, 250, 250, ${fadeAlpha})`;
       ctx.fillRect(0, 0, width, height);
       ctx.restore();
@@ -314,7 +314,7 @@ export function AnimatedBackground() {
         if (ring.radius >= ring.maxRadius) ring.radius = 0;
         const r = Math.max(0.01, ring.radius);
         const fade = r < 8 ? r / 8 : Math.max(0, 1 - (r - ring.maxRadius * 0.7) / (ring.maxRadius * 0.3));
-        const opacity = (theme === 'dark' ? 0.045 : 0.03) * fade;
+        const opacity = (theme === 'dark' ? 0.045 : 0.04) * fade;
         ctx.strokeStyle = `rgba(${ring.color.r}, ${ring.color.g}, ${ring.color.b}, ${opacity})`;
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -336,7 +336,8 @@ export function AnimatedBackground() {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       blocks.forEach((block) => {
-        const opacity = 0.08 + Math.sin(time + block.phase) * 0.04;
+        const base = theme === 'dark' ? 0.08 : 0.10;
+        const opacity = base + Math.sin(time + block.phase) * (theme === 'dark' ? 0.04 : 0.05);
         ctx.save();
         ctx.translate(block.x, block.y);
         ctx.rotate(block.rotation);
@@ -364,7 +365,8 @@ export function AnimatedBackground() {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       hexagons.forEach((hex) => {
-        const opacity = 0.06 + Math.sin(time * 0.8 + hex.phase) * 0.04;
+        const base = theme === 'dark' ? 0.06 : 0.08;
+        const opacity = base + Math.sin(time * 0.8 + hex.phase) * (theme === 'dark' ? 0.04 : 0.05);
         ctx.save();
         ctx.translate(hex.x, hex.y);
         ctx.rotate(hex.rotation);
@@ -397,7 +399,8 @@ export function AnimatedBackground() {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       chainLinks.forEach((link) => {
-        const opacity = 0.07 + Math.sin(time + link.phase) * 0.03;
+        const base = theme === 'dark' ? 0.07 : 0.09;
+        const opacity = base + Math.sin(time + link.phase) * (theme === 'dark' ? 0.03 : 0.04);
         ctx.save();
         ctx.translate(link.x, link.y);
         ctx.rotate(link.rotation);
@@ -420,7 +423,8 @@ export function AnimatedBackground() {
       ctx.globalCompositeOperation = 'screen';
       lockShapes.forEach((lock) => {
         const pulse = 0.5 + 0.5 * Math.sin(time * lock.pulseSpeed + lock.phase);
-        const opacity = 0.06 + pulse * 0.05;
+        const base = theme === 'dark' ? 0.06 : 0.08;
+        const opacity = base + pulse * (theme === 'dark' ? 0.05 : 0.06);
         ctx.save();
         ctx.translate(lock.x, lock.y);
         ctx.strokeStyle = `rgba(${lock.color.r}, ${lock.color.g}, ${lock.color.b}, ${opacity})`;
@@ -543,7 +547,8 @@ export function AnimatedBackground() {
           const maxDistance = 400;
 
           if (distance < maxDistance) {
-            const opacity = (1 - distance / maxDistance) * 0.08;
+            const lineOpacity = theme === 'dark' ? 0.08 : 0.10;
+            const opacity = (1 - distance / maxDistance) * lineOpacity;
             const gradient = ctx.createLinearGradient(
               blobs[i].x,
               blobs[i].y,
@@ -588,8 +593,9 @@ export function AnimatedBackground() {
             next.y
           );
           
-          gradient.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${current.opacity * 0.22})`);
-          gradient.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${next.opacity * 0.22})`);
+          const trailOpacity = theme === 'dark' ? 0.22 : 0.28;
+          gradient.addColorStop(0, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${current.opacity * trailOpacity})`);
+          gradient.addColorStop(1, `rgba(${blob.color.r}, ${blob.color.g}, ${blob.color.b}, ${next.opacity * trailOpacity})`);
 
           ctx.strokeStyle = gradient;
           if (i === 0) {
@@ -606,9 +612,9 @@ export function AnimatedBackground() {
       ctx.globalCompositeOperation = 'screen';
       blobs.forEach((blob, index) => {
         const safeRadius = Math.max(1, blob.radius);
-        // Lower peak brightness: more transparent orbs so other elements stand out
-        const baseOpacity = theme === 'dark' ? 0.05 : 0.035;
-        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * 0.03;
+        // Theme-tuned: light mode slightly stronger so orbs read on white background
+        const baseOpacity = theme === 'dark' ? 0.05 : 0.055;
+        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * (theme === 'dark' ? 0.03 : 0.035);
         const distanceFromCenter = Math.sqrt(
           Math.pow(blob.x - width / 2, 2) + Math.pow(blob.y - height / 2, 2)
         );
@@ -616,7 +622,8 @@ export function AnimatedBackground() {
         const centerFade = 1 - (distanceFromCenter / maxDistance) * 0.2;
         
         const opacity = baseOpacity + timeOpacity;
-        const finalOpacity = Math.max(0.025, Math.min(0.09, opacity * centerFade));
+        const maxCap = theme === 'dark' ? 0.09 : 0.10;
+        const finalOpacity = Math.max(0.025, Math.min(maxCap, opacity * centerFade));
 
         // Create radial gradient with multiple color stops for enhanced glow
         const radialGradient = ctx.createRadialGradient(
@@ -718,12 +725,12 @@ export function AnimatedBackground() {
           background: 'transparent',
         }}
       />
-      {/* Enhanced theme-aware gradient overlay with more depth */}
+      {/* Theme-aware overlay: dark = depth; light = subtle so canvas stays visible */}
       <div
-        className={`absolute inset-0 ${
+        className={`absolute inset-0 pointer-events-none ${
           theme === 'dark'
             ? 'bg-gradient-to-br from-neutral-950/30 via-neutral-950/20 to-neutral-950/30'
-            : 'bg-gradient-to-br from-white/25 via-white/15 to-white/25'
+            : 'bg-gradient-to-br from-white/12 via-white/6 to-white/12'
         }`}
       />
     </div>
