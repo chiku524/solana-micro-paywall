@@ -26,8 +26,8 @@ export default function ForgotPasswordPage() {
       });
 
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to request password reset. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to request password reset. Please try again.');
     } finally {
       setIsLoading(false);
     }

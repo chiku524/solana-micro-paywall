@@ -176,6 +176,46 @@
   - `src/app/marketplace/content/page.tsx`
   - `src/app/library/page.tsx`
 
+### 16. **Code Splitting & Lazy Loading** ✅
+**Status**: COMPLETED
+- ✅ Lazy load `AnimatedBackground` via client wrapper and `next/dynamic` with `ssr: false`
+- ✅ Reduces initial bundle by loading decorative background only on client
+- **Files Created**:
+  - `src/components/ui/lazy-animated-background.tsx`
+- **Files Updated**:
+  - `src/app/layout.tsx`
+
+### 17. **Modal Accessibility & UX** ✅
+**Status**: COMPLETED
+- ✅ Focus trap (Tab cycles within modal; first focusable focused on open)
+- ✅ Escape key closes modal
+- ✅ ARIA: `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, close button `aria-label`
+- **Files Updated**:
+  - `src/components/ui/modal.tsx`
+
+### 18. **Type Safety & Error Handling** ✅
+**Status**: COMPLETED
+- ✅ Replaced `any` with proper types: `RecentPayment[]`, `Merchant`, `PaymentIntent`, `Record<string, unknown>` (SEO)
+- ✅ Central `getErrorMessage(error: unknown)` utility for safe error messages in catch blocks
+- ✅ API client: typed response data (`unknown` + cast to `T`), typed error payload
+- ✅ Auth context: `ApiError` check for 401 instead of `error?.status`
+- ✅ Dashboard, auth, security, payment, share, and form pages: `catch (err: unknown)` with `getErrorMessage` or `instanceof Error`
+- **Files Created**:
+  - `src/lib/get-error-message.ts`
+- **Files Updated**:
+  - `src/lib/api.ts`, `src/lib/api-optimized.ts`, `src/lib/seo.ts`, `src/lib/auth-context.tsx`
+  - `src/components/content-card.tsx` (React.memo), `src/components/ui/modal.tsx`
+  - `src/app/dashboard/page.tsx`, `src/app/dashboard/payments/page.tsx`, `src/app/dashboard/contents/page.tsx`, `src/app/dashboard/settings/page.tsx`, `src/app/dashboard/security/page.tsx`
+  - `src/app/forgot-password/page.tsx`, `src/app/reset-password/page.tsx`, `src/app/verify-email/page.tsx`, `src/app/signup/page.tsx`
+  - `src/components/payment-widget.tsx`, `src/components/payment-widget-enhanced.tsx`, `src/components/ui/share-buttons.tsx`
+
+### 19. **List Performance & Touch Targets** ✅
+**Status**: COMPLETED
+- ✅ `ContentCard` wrapped with `React.memo` to avoid unnecessary re-renders in marketplace/library grids
+- ✅ `.touch-target` utility (min 44×44px) in `globals.css` for mobile accessibility
+- **Files Updated**:
+  - `src/components/content-card.tsx`, `src/app/globals.css`
+
 ---
 
 ## 🚀 High Priority (Performance & UX)

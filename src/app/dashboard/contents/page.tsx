@@ -39,8 +39,8 @@ export default function ContentsPage() {
       );
       mutate();
       setIsCreateModalOpen(false);
-    } catch (error: any) {
-      alert(error.message || 'Failed to create content');
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Failed to create content');
     }
   };
   

@@ -5,7 +5,7 @@ import { SolanaWalletProvider } from '@/lib/wallet-provider';
 import { AuthProvider } from '@/lib/auth-context';
 import { ThemeProvider } from '@/lib/theme-context';
 import { SWRProvider } from '@/lib/swr-config';
-import { AnimatedBackground } from '@/components/ui/animated-background';
+import { LazyAnimatedBackground } from '@/components/ui/lazy-animated-background';
 import { ToastProvider } from '@/components/toast-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { SkipLink } from '@/components/accessibility-skip-link';
@@ -74,7 +74,7 @@ export default function RootLayout({
               <SolanaWalletProvider>
                 <AuthProvider>
                   <ToastProvider />
-                  <AnimatedBackground />
+                  <LazyAnimatedBackground />
                   {children}
                 </AuthProvider>
               </SolanaWalletProvider>

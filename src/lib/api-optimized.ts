@@ -59,18 +59,17 @@ export async function apiGetWithRetry<T>(
 
       // Handle empty responses
       const contentType = response.headers.get('content-type');
-      let data: any;
-
+      let data: unknown = {};
       if (contentType && contentType.includes('application/json')) {
         try {
           const text = await response.text();
-          data = text ? JSON.parse(text) : {};
-        } catch (e) {
+          data = text ? (JSON.parse(text) as unknown) : {};
+        } catch {
           data = {};
         }
-      } else {
-        data = {};
       }
+
+      const errData = data as { error?: string; message?: string };
 
       if (!response.ok) {
         // Check if we should retry
@@ -85,14 +84,14 @@ export async function apiGetWithRetry<T>(
 
         throw new ApiError(
           response.status,
-          data.error || `HTTP ${response.status}`,
-          data.message || response.statusText || 'An error occurred'
+          errData.error ?? `HTTP ${response.status}`,
+          errData.message ?? response.statusText ?? 'An error occurred'
         );
       }
 
       // Clear cache on success
       requestCache.delete(cacheKey);
-      return data;
+      return data as T;
     } catch (error) {
       // Clear cache on error
       requestCache.delete(cacheKey);

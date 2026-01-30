@@ -73,7 +73,7 @@ export function generateMetadata({
   };
 }
 
-export function generateStructuredData(type: 'Organization' | 'WebSite' | 'WebPage', data?: Record<string, any>) {
+export function generateStructuredData(type: 'Organization' | 'WebSite' | 'WebPage', data?: Record<string, unknown>) {
   const baseData = {
     '@context': 'https://schema.org',
     '@type': type,

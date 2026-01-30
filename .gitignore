@@ -18,6 +18,7 @@ next-env.d.ts
 # Misc
 .DS_Store
 *.pem
+bash.exe.stackdump
 
 # Debug
 npm-debug.log*

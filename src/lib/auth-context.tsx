@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiGet } from './api';
+import { apiGet, ApiError } from './api';
 import { showToast } from './toast';
 
 import type { Merchant } from '@/types';
@@ -71,14 +71,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const merchantData = await apiGet<Merchant>('/api/merchants/me', authToken);
       setMerchant(merchantData);
       setIsLoading(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Token is invalid or expired - try to refresh
-      if (error?.status === 401 && refreshToken) {
+      const is401 = error instanceof ApiError && error.status === 401;
+      if (is401 && refreshToken) {
         const refreshed = await refreshAccessToken();
         if (!refreshed) {
           logout();
         }
-      } else if (error?.status === 401) {
+      } else if (is401) {
         // No refresh token, logout
         logout();
       } else {

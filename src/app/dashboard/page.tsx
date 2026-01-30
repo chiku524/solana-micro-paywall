@@ -11,7 +11,8 @@ import { Footer } from '@/components/footer';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
 import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
-import type { PaymentStats, LoginResponse } from '@/types';
+import { getErrorMessage } from '@/lib/get-error-message';
+import type { PaymentStats, LoginResponse, RecentPayment } from '@/types';
 
 function DashboardLogin() {
   const searchParams = useSearchParams();
@@ -59,8 +60,8 @@ function DashboardLogin() {
       );
       
       login(response.token, response.refreshToken, response.merchant.id);
-    } catch (error: any) {
-      setError(error.message || 'Login failed. Please check your credentials.');
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, 'Login failed. Please check your credentials.'));
     } finally {
       setIsLoading(false);
     }
@@ -190,7 +191,7 @@ function DashboardContent() {
     ([url, t]: [string, string]) => apiGet(url, t)
   );
   
-  const { data: recentPayments } = useSWR<{ payments: any[] }>(
+  const { data: recentPayments } = useSWR<{ payments: RecentPayment[] }>(
     token ? ['/api/analytics/recent-payments', token] : null,
     ([url, t]: [string, string]) => apiGet(url, t)
   );
@@ -292,7 +293,7 @@ function DashboardContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentPayments.payments.map((payment: any) => (
+                  {recentPayments.payments.map((payment) => (
                     <tr key={payment.id} className="border-b border-neutral-800">
                       <td className="py-3 px-4 text-white">{payment.contentTitle}</td>
                       <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400">

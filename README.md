@@ -89,6 +89,15 @@ npm run worker:deploy
 
 3. Deploy the frontend to Cloudflare Pages (or use the converged deployment)
 
+## Recent Enhancements
+
+- **Performance**: Lazy-loaded animated background (code splitting), `React.memo` on content cards for list performance
+- **Accessibility**: Modal focus trap, Escape key, ARIA attributes; `.touch-target` utility (44×44px) for mobile
+- **Type safety**: Typed API responses, `RecentPayment`/`Merchant`/`PaymentIntent` usage, `getErrorMessage(unknown)` for catch blocks
+- **Error handling**: Consistent `catch (err: unknown)` and user-facing messages across auth, dashboard, payments, and forms
+
+See `ENHANCEMENTS_RECOMMENDATIONS.md` for the full list of completed and suggested improvements.
+
 ## Project Structure
 
 ```

@@ -10,11 +10,12 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
 import { apiGet } from '@/lib/api';
 import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
+import type { RecentPayment } from '@/types';
 
 function PaymentsContent() {
   const { token } = useAuth();
   
-  const { data: payments, isLoading } = useSWR<{ payments: any[] }>(
+  const { data: payments, isLoading } = useSWR<{ payments: RecentPayment[] }>(
     token ? ['/api/analytics/recent-payments', token] : null,
     ([url, t]: [string, string]) => apiGet(url, t)
   );
@@ -53,7 +54,7 @@ function PaymentsContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {payments.payments.map((payment: any) => (
+                    {payments.payments.map((payment) => (
                       <tr key={payment.id} className="border-b border-neutral-800 hover:bg-neutral-800/30 transition-colors">
                         <td className="py-4 px-6 text-neutral-900 dark:text-white">{payment.contentTitle || 'N/A'}</td>
                         <td className="py-4 px-6 text-emerald-400 font-semibold">

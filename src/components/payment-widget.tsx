@@ -45,9 +45,10 @@ export function PaymentWidget({
       
       // Start polling for payment verification
       pollForPayment(response.paymentIntent.id);
-    } catch (err: any) {
-      setError(err.message || 'Failed to create payment request');
-      onPaymentError?.(err);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to create payment request';
+      setError(msg);
+      onPaymentError?.(err instanceof Error ? err : new Error(msg));
       setIsProcessing(false);
     }
   };
@@ -77,8 +78,8 @@ export function PaymentWidget({
         
         // This would be replaced with actual wallet integration
         console.log('Waiting for transaction...');
-      } catch (err: any) {
-        setError(err.message || 'Payment verification failed');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Payment verification failed');
         setIsProcessing(false);
       }
     };

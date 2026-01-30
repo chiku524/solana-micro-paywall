@@ -54,9 +54,9 @@ export function ShareButtons({ url, title, description, className }: ShareButton
       try {
         await navigator.share(shareData);
         showToast.success('Shared successfully!');
-      } catch (error: any) {
+      } catch (error: unknown) {
         // User cancelled or error occurred
-        if (error.name !== 'AbortError') {
+        if (!(error instanceof Error && error.name === 'AbortError')) {
           showToast.error('Failed to share');
         }
       }

@@ -10,7 +10,7 @@ import { Modal } from './ui/modal';
 import { apiPost } from '@/lib/api';
 import { formatSol } from '@/lib/utils';
 import QRCode from 'qrcode';
-import type { PaymentRequestResponse, VerifyPaymentResponse } from '@/types';
+import type { PaymentRequestResponse, VerifyPaymentResponse, PaymentIntent } from '@/types';
 
 interface PaymentWidgetProps {
   merchantId: string;
@@ -103,7 +103,7 @@ export function PaymentWidget({
       await connection.confirmTransaction(signature, 'confirmed');
 
       // Verify payment
-      const verifyResponse = await apiPost<{ success: boolean; paymentIntent: any }>(
+      const verifyResponse = await apiPost<{ success: boolean; paymentIntent?: PaymentIntent }>(
         '/api/payments/verify-payment',
         {
           paymentIntentId: response.paymentIntent.id,
@@ -128,11 +128,12 @@ export function PaymentWidget({
       setIsProcessing(false);
       setIsOpen(false);
       onPaymentSuccess?.(purchaseResponse.accessToken);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Payment error:', err);
-      setError(err.message || 'Payment failed. Please try again.');
+      const message = err instanceof Error ? err.message : 'Payment failed. Please try again.';
+      setError(message);
       setIsProcessing(false);
-      onPaymentError?.(err);
+      onPaymentError?.(err instanceof Error ? err : new Error(message));
     }
   }, [connected, publicKey, sendTransaction, connection, contentId, priceLamports, onPaymentSuccess, onPaymentError]);
 

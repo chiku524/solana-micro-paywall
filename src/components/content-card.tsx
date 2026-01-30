@@ -1,3 +1,4 @@
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookmarkButton } from './ui/bookmark-button';
@@ -9,7 +10,7 @@ interface ContentCardProps {
   merchantName?: string;
 }
 
-export function ContentCard({ content, merchantName }: ContentCardProps) {
+export const ContentCard = React.memo(function ContentCard({ content, merchantName }: ContentCardProps) {
   return (
     <div className="relative bg-neutral-900 rounded-lg overflow-hidden hover:bg-neutral-800 transition-colors group">
       <Link
@@ -71,4 +72,4 @@ export function ContentCard({ content, merchantName }: ContentCardProps) {
       </div>
     </div>
   );
-}
+});

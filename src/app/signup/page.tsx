@@ -122,13 +122,13 @@ export default function SignupPage() {
         setTimeout(() => {
           router.push('/dashboard');
         }, 1500);
-      } catch (loginError: any) {
+      } catch (loginError: unknown) {
         // If auto-login fails, show error but still show success
         console.error('Auto-login failed:', loginError);
         setError('Account created but auto-login failed. Please login manually.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to create account. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }

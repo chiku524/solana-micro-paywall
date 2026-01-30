@@ -8,6 +8,7 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { apiPost, apiGet } from '@/lib/api';
+import { getErrorMessage } from '@/lib/get-error-message';
 import useSWR from 'swr';
 import type { Merchant } from '@/types';
 
@@ -50,8 +51,8 @@ function ChangePasswordSection({ token }: { token: string | null }) {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (err: any) {
-      setError(err.message || 'Failed to change password');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to change password');
     } finally {
       setIsLoading(false);
     }
@@ -151,7 +152,7 @@ function ChangePasswordSection({ token }: { token: string | null }) {
   );
 }
 
-function SecurityAlerts({ merchant }: { merchant?: any }) {
+function SecurityAlerts({ merchant }: { merchant?: Merchant }) {
   if (!merchant) return null;
 
   const alerts: Array<{ type: 'warning' | 'info' | 'error'; message: string; action?: { label: string; onClick: () => void } }> = [];
@@ -331,8 +332,8 @@ function SecuritySettingsContent() {
     try {
       await apiPost('/api/security/email-verification/request', {}, token ?? undefined);
       setSuccess('Verification email sent! Please check your inbox.');
-    } catch (err: any) {
-      setError(err.message || 'Failed to send verification email');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to send verification email'));
     } finally {
       setIsLoading(false);
     }
@@ -352,8 +353,8 @@ function SecuritySettingsContent() {
       setTwoFactorData(data);
       setShow2FASetup(true);
       setSuccess('Scan the QR code with your authenticator app');
-    } catch (err: any) {
-      setError(err.message || 'Failed to enable 2FA');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to enable 2FA'));
     } finally {
       setIsLoading(false);
     }
@@ -376,8 +377,8 @@ function SecuritySettingsContent() {
       setTwoFactorCode('');
       setTwoFactorData(null);
       mutate(); // Refresh merchant data
-    } catch (err: any) {
-      setError(err.message || 'Invalid 2FA code');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Invalid 2FA code'));
     } finally {
       setIsLoading(false);
     }
@@ -396,8 +397,8 @@ function SecuritySettingsContent() {
       await apiPost('/api/security/2fa/disable', {}, token ?? undefined);
       setSuccess('2FA disabled successfully');
       mutate(); // Refresh merchant data
-    } catch (err: any) {
-      setError(err.message || 'Failed to disable 2FA');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to disable 2FA'));
     } finally {
       setIsLoading(false);
     }

@@ -30,8 +30,8 @@ function VerifyEmailContent() {
       setTimeout(() => {
         router.push('/dashboard');
       }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to verify email. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to verify email. Please try again.');
     } finally {
       setIsLoading(false);
     }

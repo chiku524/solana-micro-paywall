@@ -37,8 +37,8 @@ export default function SettingsPage() {
       );
       mutate();
       alert('Settings updated successfully');
-    } catch (error: any) {
-      alert(error.message || 'Failed to update settings');
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Failed to update settings');
     }
   };
   

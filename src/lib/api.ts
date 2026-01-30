@@ -92,20 +92,18 @@ async function request<T>(
   
   // Handle empty responses (like 405 Method Not Allowed with no body)
   const contentType = response.headers.get('content-type');
-  let data: any;
-  
+  let data: unknown = {};
   if (contentType && contentType.includes('application/json')) {
     try {
       const text = await response.text();
-      data = text ? JSON.parse(text) : {};
-    } catch (e) {
+      data = text ? (JSON.parse(text) as unknown) : {};
+    } catch {
       data = {};
     }
-  } else {
-    // Non-JSON response or empty body
-    data = {};
   }
-  
+
+  const errData = data as { error?: string; message?: string };
+
   // Auto-refresh token on 401 if retry is enabled
   if (!response.ok && response.status === 401 && retryOn401 && endpoint !== '/api/auth/refresh') {
     const refreshed = await refreshTokenIfNeeded();
@@ -125,12 +123,12 @@ async function request<T>(
   if (!response.ok) {
     throw new ApiError(
       response.status,
-      data.error || `HTTP ${response.status}`,
-      data.message || response.statusText || 'An error occurred'
+      errData.error ?? `HTTP ${response.status}`,
+      errData.message ?? response.statusText ?? 'An error occurred'
     );
   }
-  
-  return data;
+
+  return data as T;
 }
 
 export async function apiGet<T>(endpoint: string, token?: string): Promise<T> {

@@ -56,6 +56,12 @@ body {
     clip: auto;
     white-space: normal;
   }
+
+  /* Touch targets: minimum 44x44px for mobile accessibility */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 :root {
