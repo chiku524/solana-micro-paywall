@@ -50,7 +50,7 @@ function VerifyEmailContent() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-neutral-900 p-8 rounded-lg max-w-md w-full shadow-xl">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 p-8 rounded-xl max-w-md w-full shadow-xl">
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">Verify Email</h1>
           
           {isLoading ? (

@@ -56,9 +56,9 @@ export default function ContentsPage() {
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data?.contents.map((content) => (
-            <div key={content.id} className="bg-neutral-900 p-6 rounded-lg">
+            <div key={content.id} className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 p-6 rounded-xl shadow-sm">
               <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">{content.title}</h3>
-              <p className="text-neutral-400 mb-4">{content.description}</p>
+              <p className="text-neutral-600 dark:text-neutral-400 mb-4">{content.description}</p>
               <div className="flex justify-between items-center">
                 <span className="text-emerald-600 dark:text-emerald-400 font-bold">
                   {formatSol(content.priceLamports)} SOL

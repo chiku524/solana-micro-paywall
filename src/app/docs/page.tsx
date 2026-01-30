@@ -44,7 +44,7 @@ export default function DocsPage() {
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                       activeSection === section.id
                         ? 'bg-gradient-primary text-white'
-                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-100 dark:bg-neutral-800/50'
                     }`}
                   >
                     <span className="mr-2">{section.icon}</span>
@@ -82,15 +82,15 @@ export default function DocsPage() {
                   Micro Paywall is a blockchain-native platform that enables creators, publishers, and API providers to monetize their content using instant blockchain payments. Built with multi-chain support in mind, starting with Solana and expanding to Ethereum, Polygon, and more.
                 </p>
                 <div className="grid md:grid-cols-3 gap-4 mt-6">
-                  <div className="bg-neutral-800/50 p-4 rounded-lg">
+                  <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <h3 className="text-emerald-600 dark:text-emerald-400 font-semibold mb-2">⚡ Instant Payments</h3>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400">Sub-second confirmations with near-zero fees</p>
                   </div>
-                  <div className="bg-neutral-800/50 p-4 rounded-lg">
+                  <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <h3 className="text-blue-600 dark:text-blue-400 font-semibold mb-2">🔗 Multi-Chain</h3>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400">Support for multiple blockchains</p>
                   </div>
-                  <div className="bg-neutral-800/50 p-4 rounded-lg">
+                  <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <h3 className="text-purple-600 dark:text-purple-400 font-semibold mb-2">🔌 Easy Integration</h3>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400">Drop-in widgets and comprehensive API</p>
                   </div>
@@ -161,10 +161,10 @@ export default function DocsPage() {
                   <p className="text-neutral-600 dark:text-neutral-300 mb-3">
                     Create your merchant account by providing your email address. Optionally, you can set your Solana payout address during signup or add it later in settings.
                   </p>
-                  <div className="bg-neutral-800/50 p-4 rounded-lg">
+                  <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Signup Endpoint:</p>
                     <code className="text-emerald-600 dark:text-emerald-400 text-sm">POST /api/merchants</code>
-                    <pre className="mt-2 text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-900 p-3 rounded overflow-x-auto">
+                    <pre className="mt-2 text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-900 p-3 rounded overflow-x-auto">
 {`{
   "email": "your@email.com",
   "payoutAddress": "optional-solana-address"
@@ -177,10 +177,10 @@ export default function DocsPage() {
                   <p className="text-neutral-600 dark:text-neutral-300 mb-3">
                     Login using your email address or Merchant ID. You&apos;ll receive a JWT token valid for 24 hours.
                   </p>
-                  <div className="bg-neutral-800/50 p-4 rounded-lg">
+                  <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Login Endpoint:</p>
                     <code className="text-emerald-600 dark:text-emerald-400 text-sm">POST /api/auth/login</code>
-                    <pre className="mt-2 text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-900 p-3 rounded overflow-x-auto">
+                    <pre className="mt-2 text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-900 p-3 rounded overflow-x-auto">
 {`{
   "email": "your@email.com"
   // OR
@@ -222,7 +222,7 @@ export default function DocsPage() {
                     <li><strong className="text-neutral-900 dark:text-white">Visibility:</strong> Public (marketplace) or Private</li>
                     <li><strong className="text-neutral-900 dark:text-white">Preview Text:</strong> Free preview content</li>
                   </ul>
-                  <div className="bg-neutral-800/50 p-4 rounded-lg">
+                  <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Create Content Endpoint:</p>
                     <code className="text-emerald-600 dark:text-emerald-400 text-sm">POST /api/contents</code>
                     <p className="text-xs text-neutral-500 mt-2">Requires: Bearer token (Authorization header)</p>
@@ -265,19 +265,19 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Payment States</h3>
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <span className="text-yellow-400 font-semibold">Pending</span>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Payment request created, waiting for transaction</p>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Confirmed</span>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Transaction verified, access token issued</p>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <span className="text-red-400 font-semibold">Failed</span>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Transaction failed or expired</p>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <span className="text-blue-600 dark:text-blue-400 font-semibold">Refunded</span>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">Payment refunded by merchant</p>
                     </div>
@@ -286,11 +286,11 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">API Endpoints</h3>
                   <div className="space-y-3">
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <code className="text-emerald-600 dark:text-emerald-400 text-sm">POST /api/payments/create-payment-request</code>
                       <p className="text-xs text-neutral-400 mt-1">Create a new payment intent</p>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <code className="text-emerald-600 dark:text-emerald-400 text-sm">POST /api/payments/verify-payment</code>
                       <p className="text-xs text-neutral-400 mt-1">Verify transaction and issue access token</p>
                     </div>
@@ -311,15 +311,15 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Integration Methods</h3>
                   <div className="grid md:grid-cols-3 gap-4 mb-4">
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-emerald-600 dark:text-emerald-400 font-semibold mb-2">HTML/JavaScript</h4>
                       <p className="text-xs text-neutral-400">Vanilla JS integration</p>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-blue-600 dark:text-blue-400 font-semibold mb-2">React Component</h4>
                       <p className="text-xs text-neutral-400">React wrapper component</p>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-purple-600 dark:text-purple-400 font-semibold mb-2">TypeScript SDK</h4>
                       <p className="text-xs text-neutral-400">Full TypeScript support</p>
                     </div>
@@ -370,7 +370,7 @@ export default function DocsPage() {
               <div className="glass-strong p-6 rounded-xl space-y-6">
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-4">Base URL</h3>
-                  <code className="text-emerald-600 dark:text-emerald-400 bg-neutral-900 px-3 py-2 rounded">
+                  <code className="text-emerald-600 dark:text-emerald-400 bg-neutral-200 dark:bg-neutral-900 px-3 py-2 rounded">
                     {process.env.NEXT_PUBLIC_API_URL || 'https://api.micropaywall.app'}
                   </code>
                 </div>
@@ -473,19 +473,19 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Filtering Options</h3>
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-emerald-600 dark:text-emerald-400 font-semibold mb-2">Search</h4>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400">Debounced search by title, description, or merchant</p>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-blue-600 dark:text-blue-400 font-semibold mb-2">Categories</h4>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400">Filter by content category</p>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-purple-600 dark:text-purple-400 font-semibold mb-2">Tags</h4>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400">Filter by multiple tags</p>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-pink-400 font-semibold mb-2">Price Range</h4>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400">Set min/max price in SOL</p>
                     </div>
@@ -586,7 +586,7 @@ export default function DocsPage() {
                     Access your merchant dashboard at <Link href="/dashboard" className="text-emerald-600 dark:text-emerald-400 hover:underline">/dashboard</Link>
                   </p>
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-emerald-600 dark:text-emerald-400 font-semibold mb-2">Statistics</h4>
                       <ul className="text-sm text-neutral-600 dark:text-neutral-300 space-y-1">
                         <li>• Total payments (all time)</li>
@@ -595,7 +595,7 @@ export default function DocsPage() {
                         <li>• Total revenue (SOL)</li>
                       </ul>
                     </div>
-                    <div className="bg-neutral-800/50 p-4 rounded-lg">
+                    <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-blue-600 dark:text-blue-400 font-semibold mb-2">Recent Activity</h4>
                       <ul className="text-sm text-neutral-600 dark:text-neutral-300 space-y-1">
                         <li>• Recent payment transactions</li>
@@ -718,9 +718,9 @@ export default function DocsPage() {
                   <p className="text-neutral-600 dark:text-neutral-300 mb-3">
                     Authentication uses JWT (JSON Web Tokens) with 24-hour expiration. Tokens are stored in localStorage and automatically validated on page load.
                   </p>
-                  <div className="bg-neutral-800/50 p-4 rounded-lg">
+                  <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Token Structure:</p>
-                    <pre className="text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-900 p-3 rounded overflow-x-auto">
+                    <pre className="text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-900 p-3 rounded overflow-x-auto">
 {`{
   "merchantId": "uuid",
   "type": "merchant",

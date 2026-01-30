@@ -282,9 +282,9 @@ function SecurityActivitySection({ token }: { token: string | null }) {
       {data?.activities && data.activities.length > 0 ? (
         <div className="space-y-2">
           {data.activities.map((activity, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-neutral-800 rounded-lg">
+            <div key={index} className="flex items-center justify-between p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-transparent">
               <div>
-                <p className="text-white font-medium">{getActivityLabel(activity.type)}</p>
+                <p className="text-neutral-900 dark:text-white font-medium">{getActivityLabel(activity.type)}</p>
                 <p className="text-neutral-600 dark:text-neutral-400 text-sm">{formatDate(activity.timestamp)}</p>
                 {activity.ip && (
                   <p className="text-neutral-500 text-xs">IP: {activity.ip}</p>
@@ -485,7 +485,7 @@ function SecuritySettingsContent() {
           </div>
 
           {show2FASetup && twoFactorData && (
-            <div className="mt-6 p-4 bg-neutral-800 rounded-lg border border-neutral-700">
+            <div className="mt-6 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
               <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Setup Instructions</h3>
               <ol className="list-decimal list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-4">
                 <li>Scan the QR code below with your authenticator app (Google Authenticator, Authy, etc.)</li>
@@ -505,7 +505,7 @@ function SecuritySettingsContent() {
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                   Enter 6-digit code from your app
                 </label>
                 <input
@@ -513,7 +513,7 @@ function SecuritySettingsContent() {
                   maxLength={6}
                   value={twoFactorCode}
                   onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-2 bg-neutral-900 text-white rounded-lg border border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                  className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
                   placeholder="000000"
                 />
               </div>
@@ -532,7 +532,7 @@ function SecuritySettingsContent() {
                 <p className="text-yellow-400 text-sm font-semibold mb-2">Backup Codes (Save these!)</p>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   {twoFactorData.backupCodes.map((code, index) => (
-                    <code key={index} className="bg-neutral-900 px-2 py-1 rounded text-emerald-600 dark:text-emerald-400 text-sm">
+                    <code key={index} className="bg-neutral-200 dark:bg-neutral-900 px-2 py-1 rounded text-emerald-600 dark:text-emerald-400 text-sm">
                       {code}
                     </code>
                   ))}
@@ -598,9 +598,9 @@ function SessionManagementSection() {
       
       {tokenInfo ? (
         <div className="space-y-4">
-          <div className="p-4 bg-neutral-800 rounded-lg">
+          <div className="p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-transparent">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-neutral-300">Access Token</span>
+              <span className="text-neutral-600 dark:text-neutral-300">Access Token</span>
               <span className="text-emerald-600 dark:text-emerald-400 text-sm">
                 Expires in {formatTimeRemaining(tokenInfo.expiresAt)}
               </span>
@@ -610,7 +610,7 @@ function SessionManagementSection() {
             </p>
           </div>
           
-          <div className="p-4 bg-neutral-800 rounded-lg">
+          <div className="p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-transparent">
             <div className="flex items-center justify-between mb-2">
               <span className="text-neutral-600 dark:text-neutral-300">Refresh Token</span>
               <span className="text-emerald-600 dark:text-emerald-400 text-sm">

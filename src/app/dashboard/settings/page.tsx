@@ -61,7 +61,7 @@ export default function SettingsPage() {
           </a>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6 bg-neutral-900 p-6 rounded-lg">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 p-6 rounded-xl shadow-lg">
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
               Display Name

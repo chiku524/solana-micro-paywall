@@ -125,7 +125,7 @@ export default function MarketplacePage() {
       <Navbar />
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         {/* Hero Section */}
-        <section className="text-center mb-12">
+        <section className="text-center mb-12 opacity-0 animate-fade-in-up">
           <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 dark:text-white mb-4">
             <span className="gradient-text">Discover Content</span>
           </h1>
@@ -147,7 +147,7 @@ export default function MarketplacePage() {
           <div className="flex justify-center mb-6">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="px-6 py-2 bg-neutral-800 text-neutral-300 rounded-lg hover:bg-neutral-700 transition-colors flex items-center gap-2"
+              className="px-6 py-2 bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-700 transition-colors flex items-center gap-2 border border-neutral-300 dark:border-transparent"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -171,7 +171,7 @@ export default function MarketplacePage() {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                           sortBy === option
                             ? 'bg-gradient-primary text-white'
-                            : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                            : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-700'
                         }`}
                       >
                         {option === 'price-low' ? 'Price: Low to High' :
@@ -221,7 +221,7 @@ export default function MarketplacePage() {
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         !selectedCategory
                           ? 'bg-gradient-primary text-white'
-                          : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                          : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-700'
                       }`}
                     >
                       All Categories
@@ -233,7 +233,7 @@ export default function MarketplacePage() {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                           selectedCategory === category
                             ? 'bg-gradient-primary text-white'
-                            : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                            : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-700'
                         }`}
                       >
                         {category}
@@ -255,7 +255,7 @@ export default function MarketplacePage() {
                         className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                           selectedTags.includes(tag)
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                            : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-700'
                         }`}
                       >
                         {tag} {selectedTags.includes(tag) && '✓'}
@@ -305,7 +305,7 @@ export default function MarketplacePage() {
           </div>
         ) : (
           <div className="glass-strong p-12 rounded-xl text-center">
-            <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>

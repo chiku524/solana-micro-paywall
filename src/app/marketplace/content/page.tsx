@@ -53,9 +53,9 @@ function ContentDetailContent() {
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse">
-            <div className="bg-neutral-900 h-96 rounded-lg mb-6" />
-            <div className="bg-neutral-900 h-8 w-1/2 rounded-lg mb-4" />
-            <div className="bg-neutral-900 h-4 w-full rounded-lg" />
+            <div className="bg-neutral-200 dark:bg-neutral-900 h-96 rounded-lg mb-6" />
+            <div className="bg-neutral-200 dark:bg-neutral-900 h-8 w-1/2 rounded-lg mb-4" />
+            <div className="bg-neutral-200 dark:bg-neutral-900 h-4 w-full rounded-lg" />
           </div>
         </div>
       </div>
@@ -67,7 +67,7 @@ function ContentDetailContent() {
       <Navbar />
       <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {content.thumbnailUrl && (
-          <div className="relative w-full aspect-video bg-neutral-900 rounded-lg overflow-hidden mb-8">
+          <div className="relative w-full aspect-video bg-neutral-200 dark:bg-neutral-900 rounded-lg overflow-hidden mb-8">
             <Image
               src={content.thumbnailUrl}
               alt={content.title}
@@ -120,13 +120,13 @@ function ContentDetailContent() {
         </div>
         
         {content.previewText && (
-          <div className="bg-neutral-900 p-6 rounded-lg mb-8">
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 p-6 rounded-xl mb-8 shadow-sm">
             <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Preview</h2>
             <p className="text-neutral-600 dark:text-neutral-300 whitespace-pre-wrap">{content.previewText}</p>
           </div>
         )}
         
-        <div className="border-t border-neutral-800 pt-8">
+        <div className="border-t border-neutral-200 dark:border-neutral-800 pt-8">
           <PaymentWidget
             merchantId={content.merchantId}
             contentId={content.id}
@@ -153,9 +153,9 @@ export default function ContentDetailPage() {
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse">
-            <div className="bg-neutral-900 h-96 rounded-lg mb-6" />
-            <div className="bg-neutral-900 h-8 w-1/2 rounded-lg mb-4" />
-            <div className="bg-neutral-900 h-4 w-full rounded-lg" />
+            <div className="bg-neutral-200 dark:bg-neutral-900 h-96 rounded-lg mb-6" />
+            <div className="bg-neutral-200 dark:bg-neutral-900 h-8 w-1/2 rounded-lg mb-4" />
+            <div className="bg-neutral-200 dark:bg-neutral-900 h-4 w-full rounded-lg" />
           </div>
         </div>
       </div>

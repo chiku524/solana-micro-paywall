@@ -138,7 +138,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-neutral-900 p-8 rounded-lg max-w-md w-full shadow-xl">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 p-8 rounded-xl max-w-md w-full shadow-xl">
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">Create Account</h1>
           <p className="text-neutral-600 dark:text-neutral-400 mb-6">
             Sign up to start monetizing your content with Solana payments
@@ -149,10 +149,10 @@ export default function SignupPage() {
               <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-4">
                 <p className="text-emerald-600 dark:text-emerald-400 font-semibold mb-4">Account Created Successfully!</p>
                 
-                <div className="bg-neutral-800 rounded-lg p-3 mb-4">
+                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-3 mb-4">
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-1">Your Merchant ID (save this for reference):</p>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-neutral-900 px-3 py-2 rounded text-emerald-600 dark:text-emerald-400 text-sm break-all">
+                    <code className="flex-1 bg-neutral-200 dark:bg-neutral-900 px-3 py-2 rounded text-emerald-600 dark:text-emerald-400 text-sm break-all">
                       {merchantId}
                     </code>
                     <button
@@ -285,14 +285,14 @@ export default function SignupPage() {
               </div>
 
               {passwordError && (
-                <div className="bg-red-900/20 border border-red-700 rounded-lg p-3">
-                  <p className="text-red-400 text-sm">{passwordError}</p>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-3">
+                  <p className="text-red-600 dark:text-red-400 text-sm">{passwordError}</p>
                 </div>
               )}
 
               {error && (
-                <div className="bg-red-900/20 border border-red-700 rounded-lg p-3">
-                  <p className="text-red-400 text-sm">{error}</p>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-3">
+                  <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                 </div>
               )}
 
