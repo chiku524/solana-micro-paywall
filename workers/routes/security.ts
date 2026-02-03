@@ -5,6 +5,7 @@ import { getMerchantByEmail, getMerchantByPasswordResetToken, getMerchantByEmail
 import { hashPassword, verifyPassword, validatePasswordStrength } from '../lib/password';
 import { generateSecureToken, generate2FACode } from '../lib/security';
 import { sendEmail, generatePasswordResetEmail, generateEmailVerificationEmail } from '../lib/email';
+import { getWebBaseUrl } from '../lib/web-url';
 import { TOTP } from 'otpauth';
 import { z } from 'zod';
 import { checkRateLimit, getRateLimitKey } from '../lib/rate-limit';
@@ -55,8 +56,8 @@ app.post('/password-reset/request', async (c) => {
 
     await setPasswordResetToken(c.env.DB, email, resetToken, expiresAt);
 
-    // Send email with reset link (production must point to live site, not localhost)
-    const webBaseUrl = c.env.NEXT_PUBLIC_WEB_URL || (c.env.NODE_ENV === 'production' ? 'https://micropaywall.app' : 'http://localhost:3000');
+    // Send email with reset link (use request host so api.micropaywall.app → micropaywall.app)
+    const webBaseUrl = getWebBaseUrl(c.env, c.req.url);
     const resetUrl = `${webBaseUrl}/reset-password?token=${resetToken}`;
     const { subject, html, text } = generatePasswordResetEmail(resetUrl);
     
@@ -170,8 +171,8 @@ app.post('/email-verification/request', authMiddleware, async (c) => {
     const verificationToken = generateSecureToken(32);
     await setEmailVerificationToken(c.env.DB, merchantId, verificationToken);
 
-    // Send email with verification link (production must point to live site)
-    const webBaseUrl = c.env.NEXT_PUBLIC_WEB_URL || (c.env.NODE_ENV === 'production' ? 'https://micropaywall.app' : 'http://localhost:3000');
+    // Send email with verification link (use request host so api.micropaywall.app → micropaywall.app)
+    const webBaseUrl = getWebBaseUrl(c.env, c.req.url);
     const verificationUrl = `${webBaseUrl}/verify-email?token=${verificationToken}`;
     const { subject, html, text } = generateEmailVerificationEmail(verificationUrl);
     

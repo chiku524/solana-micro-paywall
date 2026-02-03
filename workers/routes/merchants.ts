@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { checkRateLimit, getRateLimitKey } from '../lib/rate-limit';
 import { hashPassword, validatePasswordStrength } from '../lib/password';
 import { generateSecureToken } from '../lib/security';
+import { getWebBaseUrl } from '../lib/web-url';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -81,8 +82,8 @@ app.post('/', async (c) => {
     const verificationToken = generateSecureToken(32);
     await setEmailVerificationToken(c.env.DB, merchantId, verificationToken);
     
-    // Send verification email (production must point to live site)
-    const webBaseUrl = c.env.NEXT_PUBLIC_WEB_URL || (c.env.NODE_ENV === 'production' ? 'https://micropaywall.app' : 'http://localhost:3000');
+    // Send verification email (use request host so api.micropaywall.app → micropaywall.app)
+    const webBaseUrl = getWebBaseUrl(c.env, c.req.url);
     const verificationUrl = `${webBaseUrl}/verify-email?token=${verificationToken}`;
     const { sendEmail, generateEmailVerificationEmail } = await import('../lib/email');
     const { subject, html, text } = generateEmailVerificationEmail(verificationUrl);
