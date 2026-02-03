@@ -87,14 +87,14 @@ app.post('/password-reset/request', async (c) => {
     }
 
     // In development without email config: return reset link in response so you can test without setting up email
-    const body: { message: string; resetLink?: string } = {
+    const responseBody: { message: string; resetLink?: string } = {
       message: 'If an account with that email exists, a password reset link has been sent.',
     };
     if (!emailSent && c.env.NODE_ENV !== 'production') {
-      body.resetLink = resetUrl;
+      responseBody.resetLink = resetUrl;
     }
 
-    return c.json(body);
+    return c.json(responseBody);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return c.json({ error: 'Bad Request', message: error.errors[0].message }, 400);
