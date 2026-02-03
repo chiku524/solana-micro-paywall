@@ -11,20 +11,23 @@ interface EmailOptions {
 }
 
 /**
- * Send email using configured provider
- * Falls back to console.log in development
+ * Send email using configured provider.
+ * Falls back to console.log when no provider is configured.
+ * @returns true if email was sent, false if no provider (so caller can return 503 in production)
  */
-export async function sendEmail(env: any, options: EmailOptions): Promise<void> {
+export async function sendEmail(env: any, options: EmailOptions): Promise<boolean> {
   const { to, subject, html, text } = options;
   
   // Use Resend if API key is configured
   if (env.RESEND_API_KEY) {
-    return sendViaResend(env.RESEND_API_KEY, { to, subject, html, text });
+    await sendViaResend(env.RESEND_API_KEY, { to, subject, html, text });
+    return true;
   }
   
   // Use SendGrid if API key is configured
   if (env.SENDGRID_API_KEY) {
-    return sendViaSendGrid(env.SENDGRID_API_KEY, { to, subject, html, text });
+    await sendViaSendGrid(env.SENDGRID_API_KEY, { to, subject, html, text });
+    return true;
   }
   
   // Fallback: Log to console (for development)
@@ -33,10 +36,10 @@ export async function sendEmail(env: any, options: EmailOptions): Promise<void> 
   console.log(`Subject: ${subject}`);
   console.log(`Body: ${html}`);
   
-  // In production, you should configure at least one email service
-  if (env.NODE_ENV === 'production' && !env.RESEND_API_KEY && !env.SENDGRID_API_KEY) {
-    console.warn('⚠️ WARNING: No email service configured in production!');
+  if (env.NODE_ENV === 'production') {
+    console.warn('⚠️ WARNING: No email service configured in production! Set RESEND_API_KEY or SENDGRID_API_KEY.');
   }
+  return false;
 }
 
 /**

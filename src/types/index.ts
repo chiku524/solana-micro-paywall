@@ -1,5 +1,8 @@
 // Shared types between frontend and backend
 
+/** Supported blockchain networks; add new chains here and implement verifier + wallet adapter */
+export type SupportedChain = 'solana' | 'ethereum' | 'polygon';
+
 export type MerchantStatus = 'pending' | 'active' | 'suspended';
 export type ContentVisibility = 'public' | 'private';
 export type PaymentIntentStatus = 'pending' | 'confirmed' | 'failed' | 'expired' | 'refunded';
@@ -21,6 +24,8 @@ export interface Merchant {
   twoFactorEnabled?: boolean;
   createdAt: number;
   updatedAt: number;
+  /** Primary chain for payouts; defaults to 'solana'. Future: payoutAddresses per chain */
+  chain?: SupportedChain;
 }
 
 export interface Content {
@@ -42,6 +47,8 @@ export interface Content {
   purchaseCount: number;
   createdAt: number;
   updatedAt: number;
+  /** Chain for pricing/payment; defaults to 'solana' if omitted (multi-chain support) */
+  chain?: SupportedChain;
 }
 
 export interface PaymentIntent {
@@ -58,6 +65,8 @@ export interface PaymentIntent {
   expiresAt: number;
   confirmedAt?: number;
   createdAt: number;
+  /** Chain for this payment; defaults to 'solana' if omitted (multi-chain support) */
+  chain?: SupportedChain;
 }
 
 export interface Purchase {
@@ -73,6 +82,8 @@ export interface Purchase {
   expiresAt?: number;
   confirmedAt: number;
   createdAt: number;
+  /** Chain for this purchase; defaults to 'solana' if omitted */
+  chain?: SupportedChain;
 }
 
 export interface Bookmark {
@@ -176,6 +187,8 @@ export interface RecentPayment {
   amountLamports: number;
   payerAddress: string;
   confirmedAt: number;
+  /** Chain for explorer link; defaults to 'solana' if omitted */
+  chain?: SupportedChain;
 }
 
 // Discovery types

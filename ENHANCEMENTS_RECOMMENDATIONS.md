@@ -216,6 +216,18 @@
 - **Files Updated**:
   - `src/components/content-card.tsx`, `src/app/globals.css`
 
+### 20. **Multi-Chain Architecture** ✅
+**Status**: COMPLETED
+- ✅ **`SupportedChain`** type (`solana` | `ethereum` | `polygon`) and optional **`chain`** on Content, Merchant, PaymentIntent, Purchase, RecentPayment
+- ✅ **Frontend**: `src/lib/chains.ts` — `CHAIN_CONFIGS`, `getExplorerTxUrl(chain, tx)`, `formatAmount(chain, amount)`, `DEFAULT_CHAIN`
+- ✅ **Backend**: `workers/lib/verifiers/` — `TransactionVerifier` interface, `solana-verifier.ts`, `getVerifier(chain)`; payments route uses `getVerifier` instead of direct Solana calls
+- ✅ Dashboard payment links use **`getExplorerTxUrl(chain, signature)`** (chain-aware)
+- ✅ **`ARCHITECTURE.md`** — step-by-step guide for adding a new blockchain (types, verifier, wallet, DB)
+- **Files Created**:
+  - `src/lib/chains.ts`, `workers/lib/verifiers/types.ts`, `workers/lib/verifiers/solana-verifier.ts`, `workers/lib/verifiers/index.ts`, `ARCHITECTURE.md`
+- **Files Updated**:
+  - `src/types/index.ts`, `workers/routes/payments.ts`, `src/app/dashboard/page.tsx`, `src/app/dashboard/payments/page.tsx`, `README.md`
+
 ---
 
 ## 🚀 High Priority (Performance & UX)

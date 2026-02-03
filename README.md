@@ -98,6 +98,8 @@ npm run worker:deploy
 
 See `ENHANCEMENTS_RECOMMENDATIONS.md` for the full list of completed and suggested improvements.
 
+For **multi-chain integration** (adding Ethereum, Polygon, etc.), see **`ARCHITECTURE.md`**. The app uses chain-agnostic types, a backend verifier abstraction, and frontend chain utilities so new networks can be added without rewriting payment flows.
+
 ## Project Structure
 
 ```

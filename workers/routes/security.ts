@@ -59,8 +59,9 @@ app.post('/password-reset/request', async (c) => {
     const resetUrl = `${c.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
     const { subject, html, text } = generatePasswordResetEmail(resetUrl);
     
+    let emailSent = false;
     try {
-      await sendEmail(c.env, {
+      emailSent = await sendEmail(c.env, {
         to: email,
         subject,
         html,
@@ -68,12 +69,30 @@ app.post('/password-reset/request', async (c) => {
       });
     } catch (emailError) {
       console.error('Failed to send password reset email:', emailError);
-      // Don't fail the request if email fails - security best practice
+      // Don't reveal whether account exists; return 503 so user knows to try again / contact support
+      return c.json(
+        { error: 'Service Unavailable', message: 'Unable to send password reset email. Please try again later or contact support.' },
+        503
+      );
     }
 
-    return c.json({ 
-      message: 'If an account with that email exists, a password reset link has been sent.' 
-    });
+    // In production, if no email provider is configured, don't pretend the email was sent
+    if (!emailSent && c.env.NODE_ENV === 'production') {
+      return c.json(
+        { error: 'Service Unavailable', message: 'Password reset is temporarily unavailable. Please try again later or contact support.' },
+        503
+      );
+    }
+
+    // In development without email config: return reset link in response so you can test without setting up email
+    const body: { message: string; resetLink?: string } = {
+      message: 'If an account with that email exists, a password reset link has been sent.',
+    };
+    if (!emailSent && c.env.NODE_ENV !== 'production') {
+      body.resetLink = resetUrl;
+    }
+
+    return c.json(body);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return c.json({ error: 'Bad Request', message: error.errors[0].message }, 400);

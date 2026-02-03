@@ -13,19 +13,24 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [resetLink, setResetLink] = useState<string | null>(null);
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     setSuccess(false);
+    setResetLink(null);
 
     try {
-      await apiPost('/api/security/password-reset/request', {
+      const data = await apiPost<{ message?: string; resetLink?: string }>('/api/security/password-reset/request', {
         email,
       });
 
       setSuccess(true);
+      if (data?.resetLink) {
+        setResetLink(data.resetLink);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to request password reset. Please try again.');
     } finally {
@@ -47,9 +52,18 @@ export default function ForgotPasswordPage() {
             <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-4">
               <p className="text-emerald-600 dark:text-emerald-400 font-semibold">Password reset link sent!</p>
               <p className="text-neutral-600 dark:text-neutral-400 text-sm mt-2">
-                If an account with that email exists, a password reset link has been sent.
-                Please check your email.
+                {resetLink
+                  ? 'Development mode: use the link below to reset your password (no email was sent).'
+                  : 'If an account with that email exists, a password reset link has been sent. Please check your email.'}
               </p>
+              {resetLink && (
+                <a
+                  href={resetLink}
+                  className="mt-3 block break-all text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                >
+                  {resetLink}
+                </a>
+              )}
               <Button
                 onClick={() => router.push('/dashboard')}
                 className="w-full mt-4"

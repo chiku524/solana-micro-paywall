@@ -10,6 +10,7 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
 import { apiGet } from '@/lib/api';
 import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
+import { getExplorerTxUrl, DEFAULT_CHAIN } from '@/lib/chains';
 import type { RecentPayment } from '@/types';
 
 function PaymentsContent() {
@@ -68,12 +69,12 @@ function PaymentsContent() {
                         </td>
                         <td className="py-4 px-6">
                           <a
-                            href={`https://solscan.io/tx/${payment.transactionSignature}`}
+                            href={getExplorerTxUrl(payment.chain ?? DEFAULT_CHAIN, payment.transactionSignature)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline transition-colors"
                           >
-                            View on Solscan
+                            View transaction
                           </a>
                         </td>
                       </tr>

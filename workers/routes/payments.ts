@@ -10,7 +10,7 @@ import {
 } from '../lib/db';
 import { generateNonce } from '../lib/solana';
 import { checkRateLimit, getRateLimitKey } from '../lib/rate-limit';
-import { verifyPaymentTransaction } from '../lib/transaction-verification';
+import { getVerifier } from '../lib/verifiers';
 import { z } from 'zod';
 import { encodeURL } from '@solana/pay';
 
@@ -135,25 +135,17 @@ app.post('/verify-payment', async (c) => {
       return c.json({ error: 'Bad Request', message: 'Payment intent expired' }, 400);
     }
     
-    // Verify transaction on-chain
-    const { Connection, PublicKey } = await import('@solana/web3.js');
-    const connection = new Connection(
-      c.env.HELIUS_API_KEY 
-        ? `${c.env.SOLANA_RPC_URL}?api-key=${c.env.HELIUS_API_KEY}`
-        : c.env.SOLANA_RPC_URL,
-      'confirmed'
-    );
-    
+    // Verify transaction on-chain (chain-agnostic; add new chains in workers/lib/verifiers)
     try {
-      // Get merchant to verify recipient address
       const merchant = await getMerchantById(c.env.DB, paymentIntent.merchantId);
       if (!merchant || !merchant.payoutAddress) {
         return c.json({ error: 'Bad Request', message: 'Merchant payout address not configured' }, 400);
       }
-      
-      // Verify transaction with proper parsing
-      const verification = await verifyPaymentTransaction(
-        connection,
+
+      const chain = (paymentIntent as { chain?: 'solana' | 'ethereum' | 'polygon' }).chain ?? 'solana';
+      const verifier = getVerifier(chain);
+      const verification = await verifier.verify(
+        c.env,
         transactionSignature,
         merchant.payoutAddress,
         paymentIntent.amountLamports,

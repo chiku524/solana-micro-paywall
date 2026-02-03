@@ -40,6 +40,21 @@ wrangler secret put SOLANA_RPC_URL --env production
 wrangler secret list --env production
 ```
 
+## Email (Required for password recovery and verification)
+
+**Password reset and email verification will not send real emails until an email provider is configured.** Set one of:
+
+### RESEND_API_KEY (recommended)
+- **Purpose**: Sends password reset and email verification emails via [Resend](https://resend.com)
+- **Set via**: `wrangler secret put RESEND_API_KEY --env production`
+- **Get key**: Sign up at resend.com, add and verify your domain, then create an API key. Use a verified "From" address (e.g. `noreply@yourdomain.com`); the default in code is `noreply@micropaywall.app` (update in `workers/lib/email.ts` if needed).
+
+### SENDGRID_API_KEY (alternative)
+- **Purpose**: Same as above, via [SendGrid](https://sendgrid.com)
+- **Set via**: `wrangler secret put SENDGRID_API_KEY --env production`
+
+Without either secret, forgot-password and email verification requests in **production** will return "Password reset is temporarily unavailable" (503) instead of falsely claiming the email was sent.
+
 ## Optional Secrets
 
 You can also set these if needed:

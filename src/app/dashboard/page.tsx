@@ -12,6 +12,7 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
 import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/get-error-message';
+import { getExplorerTxUrl, DEFAULT_CHAIN } from '@/lib/chains';
 import type { PaymentStats, LoginResponse, RecentPayment } from '@/types';
 
 function DashboardLogin() {
@@ -307,7 +308,7 @@ function DashboardContent() {
                       </td>
                       <td className="py-3 px-4">
                         <a
-                          href={`https://solscan.io/tx/${payment.transactionSignature}`}
+                          href={getExplorerTxUrl(payment.chain ?? DEFAULT_CHAIN, payment.transactionSignature)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-emerald-600 dark:text-emerald-400 hover:underline"

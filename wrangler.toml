@@ -11,6 +11,7 @@ name = "micropaywall-api"
 
 [env.production.vars]
 NODE_ENV = "production"
+NEXT_PUBLIC_WEB_URL = "https://micropaywall.app"
 
 [[env.production.d1_databases]]
 binding = "DB"
