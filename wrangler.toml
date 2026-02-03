@@ -5,6 +5,9 @@ main = "workers/index.ts"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
 
+# Used by `wrangler pages deploy` so Pages picks up this config (build output dir)
+pages_build_output_dir = "out"
+
 # Production environment (this is what gets deployed)
 [env.production]
 name = "micropaywall-api"

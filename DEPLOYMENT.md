@@ -74,6 +74,23 @@ wrangler pages deploy out --project-name=solana-micro-paywall
 
 Push to your repository and GitHub Actions will automatically deploy (if configured).
 
+**GitHub Secrets required:** In the repo go to **Settings → Secrets and variables → Actions** and add:
+
+- `CLOUDFLARE_API_TOKEN` – Custom API token from Cloudflare (see below)
+- `CLOUDFLARE_ACCOUNT_ID` – From Cloudflare dashboard (Overview → Account ID)
+
+**Fixing "Authentication error [code: 10000]":** The API token must have the right permissions.
+
+1. In Cloudflare go to **My Profile → API Tokens** (or [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens)).
+2. **Create Token** → use **Edit Cloudflare Workers** template, then add:
+   - **Account** → **D1** → Edit  
+   - **Account** → **Workers KV Storage** → Edit  
+   - **Account** → **Cloudflare Pages** → Edit  
+   - **User** → **User Details** → Read (needed for Wrangler “Getting User settings”)
+3. Set **Account Resources** to “Include” → your account.
+4. Create the token and paste it into GitHub secret `CLOUDFLARE_API_TOKEN`.  
+5. Re-run the failed Actions workflow.
+
 ### 8. Configure Custom Domains
 
 In Cloudflare dashboard:
