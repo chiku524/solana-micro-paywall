@@ -1,12 +1,10 @@
 # Main Worker configuration
 # Note: We use production environment by default, secrets and bindings are environment-specific
+# (Pages deploy uses: npx wrangler pages deploy out --project-name=micropaywall — do NOT add pages_build_output_dir here or wrangler treats this as Pages-only and breaks worker deploy)
 name = "micropaywall-api"
 main = "workers/index.ts"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
-
-# Used by `wrangler pages deploy` so Pages picks up this config (build output dir)
-pages_build_output_dir = "out"
 
 # Production environment (this is what gets deployed)
 [env.production]
