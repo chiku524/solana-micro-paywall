@@ -112,6 +112,26 @@ In Cloudflare dashboard:
 
 ## Troubleshooting
 
+### Authentication error [code: 10000] (Workers or Pages deploy)
+
+This means the **Cloudflare API token** used in GitHub Actions is missing, wrong, or doesn’t have the right permissions.
+
+1. **Check GitHub secrets**  
+   Repo → **Settings** → **Secrets and variables** → **Actions**. You must have:
+   - `CLOUDFLARE_API_TOKEN` (the token value)
+   - `CLOUDFLARE_ACCOUNT_ID` (e.g. from Cloudflare dashboard → Overview → Account ID)
+
+2. **Create a token with the right permissions**  
+   Go to [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens) → **Create Token**.
+   - Start from **Edit Cloudflare Workers**, then add:
+     - **Account** → **D1** → Edit  
+     - **Account** → **Workers KV Storage** → Edit  
+     - **Account** → **Cloudflare Pages** → Edit  
+     - **User** → **User Details** → Read  
+   - **Account Resources**: Include → your account.
+   - Create, copy the token, then in GitHub set **CLOUDFLARE_API_TOKEN** to this value (overwrite the old one if it exists).
+3. **Re-run** the failed workflow (or push an empty commit to trigger it).
+
 ### Database Connection Issues
 
 - Verify database ID in `wrangler.toml`
