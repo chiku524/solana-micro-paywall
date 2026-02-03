@@ -55,8 +55,9 @@ app.post('/password-reset/request', async (c) => {
 
     await setPasswordResetToken(c.env.DB, email, resetToken, expiresAt);
 
-    // Send email with reset link
-    const resetUrl = `${c.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    // Send email with reset link (production must point to live site, not localhost)
+    const webBaseUrl = c.env.NEXT_PUBLIC_WEB_URL || (c.env.NODE_ENV === 'production' ? 'https://micropaywall.app' : 'http://localhost:3000');
+    const resetUrl = `${webBaseUrl}/reset-password?token=${resetToken}`;
     const { subject, html, text } = generatePasswordResetEmail(resetUrl);
     
     let emailSent = false;
@@ -169,8 +170,9 @@ app.post('/email-verification/request', authMiddleware, async (c) => {
     const verificationToken = generateSecureToken(32);
     await setEmailVerificationToken(c.env.DB, merchantId, verificationToken);
 
-    // Send email with verification link
-    const verificationUrl = `${c.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+    // Send email with verification link (production must point to live site)
+    const webBaseUrl = c.env.NEXT_PUBLIC_WEB_URL || (c.env.NODE_ENV === 'production' ? 'https://micropaywall.app' : 'http://localhost:3000');
+    const verificationUrl = `${webBaseUrl}/verify-email?token=${verificationToken}`;
     const { subject, html, text } = generateEmailVerificationEmail(verificationUrl);
     
     try {
