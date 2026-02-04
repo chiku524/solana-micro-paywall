@@ -51,6 +51,8 @@ app.post('/create-payment-request', async (c) => {
       return c.json({ error: 'Bad Request', message: 'Merchant payout address not configured' }, 400);
     }
     
+    const chain = content.chain ?? 'solana';
+    
     // Generate payment intent
     const paymentIntentId = crypto.randomUUID();
     const nonce = generateNonce();
@@ -65,26 +67,47 @@ app.post('/create-payment-request', async (c) => {
       nonce,
       memo: `Payment for ${content.title}`,
       expiresAt,
+      chain,
     });
     
-    // Generate Solana Pay URL
-    const { PublicKey } = await import('@solana/web3.js');
     const recipient = merchant.payoutAddress;
-    const amount = content.priceLamports / 1_000_000_000; // Convert to SOL
-    const reference = new TextEncoder().encode(nonce);
     
-    const paymentUrl = encodeURL({
-      recipient: new PublicKey(recipient),
-      amount,
-      reference,
-      label: content.title,
-      message: `Payment for ${content.title}`,
-    });
+    if (chain === 'solana') {
+      // Generate Solana Pay URL
+      const { PublicKey } = await import('@solana/web3.js');
+      const amount = content.priceLamports / 1_000_000_000; // Convert to SOL
+      const reference = new TextEncoder().encode(nonce);
+      
+      const paymentUrl = encodeURL({
+        recipient: new PublicKey(recipient),
+        amount,
+        reference,
+        label: content.title,
+        message: `Payment for ${content.title}`,
+      });
+      
+      return c.json({
+        paymentIntent,
+        paymentUrl: paymentUrl.toString(),
+        recipientAddress: recipient,
+        chain: 'solana',
+      });
+    }
+    
+    // EVM chains: return structured payment data for wallet to build tx
+    const EVM_CHAIN_IDS: Record<string, number> = {
+      ethereum: 1, polygon: 137, base: 8453, arbitrum: 42161,
+      optimism: 10, bnb: 56, avalanche: 43114,
+    };
+    const chainId = EVM_CHAIN_IDS[chain] ?? 1;
     
     return c.json({
       paymentIntent,
-      paymentUrl: paymentUrl.toString(),
-      recipientAddress: merchant.payoutAddress,
+      paymentUrl: `ethereum:${recipient}@${chainId}/transfer?value=${content.priceLamports}`,
+      recipientAddress: recipient,
+      chain,
+      chainId,
+      amountWei: content.priceLamports,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -142,7 +165,7 @@ app.post('/verify-payment', async (c) => {
         return c.json({ error: 'Bad Request', message: 'Merchant payout address not configured' }, 400);
       }
 
-      const chain = (paymentIntent as { chain?: 'solana' | 'ethereum' | 'polygon' }).chain ?? 'solana';
+      const chain = (paymentIntent as { chain?: string }).chain ?? 'solana';
       const verifier = getVerifier(chain);
       const verification = await verifier.verify(
         c.env,

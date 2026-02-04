@@ -82,6 +82,7 @@ app.post('/', async (c) => {
       content.durationSeconds
     );
     
+    const chain = (paymentIntent as { chain?: string }).chain ?? 'solana';
     const purchase = await createPurchase(c.env.DB, {
       id: purchaseId,
       paymentIntentId: paymentIntent.id,
@@ -93,6 +94,7 @@ app.post('/', async (c) => {
       transactionSignature,
       accessToken,
       expiresAt,
+      chain,
     });
     
     // Increment content purchase count

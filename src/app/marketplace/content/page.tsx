@@ -12,7 +12,7 @@ import { ShareButtons } from '@/components/ui/share-buttons';
 import { BookmarkButton } from '@/components/ui/bookmark-button';
 import { recentlyViewed } from '@/lib/local-storage';
 import { apiGet } from '@/lib/api';
-import { formatSol } from '@/lib/utils';
+import { formatAmount } from '@/lib/chains';
 import { showToast } from '@/lib/toast';
 import type { Content } from '@/types';
 import { getErrorMessage } from '@/lib/get-error-message';
@@ -26,6 +26,18 @@ function ContentDetailContent() {
     merchantId && slug ? `/api/contents/merchant/${merchantId}/${slug}` : null,
     (url: string) => apiGet<Content>(url)
   );
+
+  // Track recently viewed (client-only) - must be before any conditional returns
+  useEffect(() => {
+    if (content) {
+      recentlyViewed.add(content.id, {
+        title: content.title,
+        thumbnailUrl: content.thumbnailUrl ?? undefined,
+        merchantId: content.merchantId,
+        slug: content.slug,
+      });
+    }
+  }, [content]);
   
   if (!merchantId || !slug) {
     return (
@@ -63,16 +75,6 @@ function ContentDetailContent() {
       </div>
     );
   }
-
-  // Track recently viewed (client-only)
-  useEffect(() => {
-    recentlyViewed.add(content.id, {
-      title: content.title,
-      thumbnailUrl: content.thumbnailUrl ?? undefined,
-      merchantId: content.merchantId,
-      slug: content.slug,
-    });
-  }, [content.id, content.title, content.thumbnailUrl, content.merchantId, content.slug]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -125,7 +127,7 @@ function ContentDetailContent() {
             View creator profile →
           </Link>
           <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-            {formatSol(content.priceLamports)} SOL
+            {formatAmount(content.chain ?? 'solana', content.priceLamports)}
           </span>
           {content.purchaseCount > 0 && (
             <span className="text-neutral-600 dark:text-neutral-400">
@@ -159,6 +161,7 @@ function ContentDetailContent() {
             merchantId={content.merchantId}
             contentId={content.id}
             priceLamports={content.priceLamports}
+            chain={content.chain ?? 'solana'}
             onPaymentSuccess={(token) => {
               showToast.success('Payment successful! You now have access.');
               void token;

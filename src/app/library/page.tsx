@@ -12,7 +12,8 @@ import { EmptyPurchases, EmptyContent } from '@/components/ui/empty-state';
 import { bookmarks, recentlyViewed } from '@/lib/local-storage';
 import { apiGet } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
-import { formatSol, formatDate } from '@/lib/utils';
+import { formatAmount } from '@/lib/chains';
+import { formatDate } from '@/lib/utils';
 import type { Purchase, Content } from '@/types';
 import Link from 'next/link';
 
@@ -510,7 +511,7 @@ export default function LibraryPage() {
                         </h3>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                            {formatSol(content.priceLamports)} SOL
+                            {formatAmount(content.chain ?? 'solana', content.priceLamports)}
                           </span>
                           <span className="text-neutral-400">
                             {content.purchaseCount || 0} purchases

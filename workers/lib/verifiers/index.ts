@@ -1,11 +1,25 @@
 import type { SupportedChain } from '../../types';
 import type { TransactionVerifier } from './types';
 import { solanaVerifier } from './solana-verifier';
+import {
+  ethereumVerifier,
+  polygonVerifier,
+  baseVerifier,
+  arbitrumVerifier,
+  optimismVerifier,
+  bnbVerifier,
+  avalancheVerifier,
+} from './evm-verifier';
 
 const verifiers: Partial<Record<SupportedChain, TransactionVerifier>> = {
   solana: solanaVerifier,
-  // ethereum: ethereumVerifier,  // Add when implementing Ethereum
-  // polygon: polygonVerifier,    // Add when implementing Polygon
+  ethereum: ethereumVerifier,
+  polygon: polygonVerifier,
+  base: baseVerifier,
+  arbitrum: arbitrumVerifier,
+  optimism: optimismVerifier,
+  bnb: bnbVerifier,
+  avalanche: avalancheVerifier,
 };
 
 /**

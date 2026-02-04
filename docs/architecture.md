@@ -10,11 +10,20 @@ This document describes how the application is structured and how to add support
 
 ## Multi-Chain Design
 
-Solana is the first supported chain; others (e.g. Ethereum, Polygon) can be added by implementing a few well-defined pieces.
+The app supports **8 blockchain networks**:
+
+- **Solana** (L1) – SOL
+- **Ethereum** – ETH  
+- **Polygon** – MATIC
+- **Base** (Coinbase L2) – ETH
+- **Arbitrum** – ETH
+- **Optimism** – ETH
+- **BNB Chain** – BNB
+- **Avalanche** – AVAX
 
 ### 1. Shared types (`src/types/index.ts`)
 
-- **`SupportedChain`**: Union of chain IDs (`'solana' | 'ethereum' | 'polygon'`). Extend when adding a chain.
+- **`SupportedChain`**: Union of chain IDs. Extend when adding a chain.
 - **Optional `chain`** on Content, Merchant, PaymentIntent, Purchase, RecentPayment: used for explorer links and future per-chain payout/price. Defaults to `'solana'` when omitted.
 - Amounts stay in **smallest unit** (lamports for Solana, wei for EVM). Field names remain `priceLamports` / `amountLamports` for DB compatibility.
 
@@ -28,19 +37,22 @@ Solana is the first supported chain; others (e.g. Ethereum, Polygon) can be adde
 ### 3. Backend verifiers (`workers/lib/verifiers/`)
 
 - **`types.ts`**: `VerifierResult` and `TransactionVerifier` interface.
-- **`solana-verifier.ts`**: Implements `TransactionVerifier` using Solana RPC and `transaction-verification.ts`.
-- **`index.ts`**: `getVerifier(chain)`. Registers Solana; add new chains here.
+- **`solana-verifier.ts`**: Implements `TransactionVerifier` using Solana RPC.
+- **`evm-verifier.ts`**: Shared EVM verifier for Ethereum, Polygon, Base, Arbitrum, Optimism, BNB, Avalanche (uses viem).
+- **`index.ts`**: `getVerifier(chain)`. Registers all chains.
 
 **Payment route** (`workers/routes/payments.ts`): Uses `getVerifier(chain)`; chain comes from payment intent (default `'solana'`).
 
 ### 4. Wallet & payment UI
 
-- **Wallet provider** (`src/lib/wallet-provider.tsx`): Currently Solana-only (Wallet Adapter). For multiple chains, add a chain selector or unified wallet abstraction.
-- **Payment widget**: Uses wallet to sign; backend verifies via `getVerifier(chain)`.
+- **Solana wallet** (`src/lib/wallet-provider.tsx`): Solana Wallet Adapter (Phantom, Solflare).
+- **EVM wallet** (`src/lib/evm-wallet-config.tsx`): wagmi + injected connector (MetaMask, Rainbow, etc.).
+- **Payment widget** (`src/components/payment-widget-enhanced.tsx`): Chooses Solana or EVM flow based on content `chain`; auto-switches network for EVM.
 
-### 5. Database (future)
+### 5. Database
 
-- Current schema: single `payout_address`, no `chain` column. To support multiple chains: add optional `chain` column and/or `payout_addresses` keyed by chain.
+- Migration `0005_add_chain_support.sql` adds `chain` column to `content`, `payment_intents`, `purchases` (default `'solana'`).
+- Run: `wrangler d1 migrations apply micropaywall-db --config wrangler.toml` (adjust for your env).
 
 ## Adding a New Blockchain
 
@@ -58,6 +70,7 @@ Solana is the first supported chain; others (e.g. Ethereum, Polygon) can be adde
 | Chain config, explorer URL, format amount | `src/lib/chains.ts` |
 | Verifier interface & result | `workers/lib/verifiers/types.ts` |
 | Solana verifier | `workers/lib/verifiers/solana-verifier.ts` |
+| EVM verifier (all EVM chains) | `workers/lib/verifiers/evm-verifier.ts` |
 | Verifier registry | `workers/lib/verifiers/index.ts` |
 | Payment creation & verification | `workers/routes/payments.ts` |
 

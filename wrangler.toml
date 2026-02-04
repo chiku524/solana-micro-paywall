@@ -5,7 +5,6 @@ name = "micropaywall-api"
 main = "workers/index.ts"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
-
 # Production environment (this is what gets deployed)
 [env.production]
 name = "micropaywall-api"
@@ -18,6 +17,7 @@ NEXT_PUBLIC_WEB_URL = "https://micropaywall.app"
 binding = "DB"
 database_name = "micropaywall-db"
 database_id = "9fb849f1-b895-4670-baca-cdec2767f8c4"
+migrations_dir = "workers/migrations"
 
 [[env.production.kv_namespaces]]
 binding = "CACHE"
@@ -33,6 +33,7 @@ NODE_ENV = "development"
 binding = "DB"
 database_name = "micropaywall-db"
 database_id = "9fb849f1-b895-4670-baca-cdec2767f8c4"
+migrations_dir = "workers/migrations"
 
 [[env.development.kv_namespaces]]
 binding = "CACHE"

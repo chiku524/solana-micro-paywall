@@ -10,11 +10,12 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
-import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
+import { formatAmount } from '@/lib/chains';
+import { formatDate, truncateAddress } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/get-error-message';
 import { getExplorerTxUrl, DEFAULT_CHAIN } from '@/lib/chains';
 import { DashboardCardSkeleton, TableRowSkeleton } from '@/components/ui/skeleton';
-import type { PaymentStats, LoginResponse, RecentPayment } from '@/types';
+import type { PaymentStats, LoginResponse, RecentPayment, SupportedChain } from '@/types';
 
 function DashboardLogin() {
   const searchParams = useSearchParams();
@@ -273,7 +274,7 @@ function DashboardContent() {
                 </div>
               </div>
               <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                {formatSol(stats.totalRevenueLamports)} SOL
+                {formatAmount('solana', stats.totalRevenueLamports)}
               </p>
               <p className="text-xs text-neutral-500 mt-1">All time earnings</p>
             </div>
@@ -324,7 +325,7 @@ function DashboardContent() {
                     <tr key={payment.id} className="border-b border-neutral-800">
                       <td className="py-3 px-4 text-neutral-900 dark:text-white">{payment.contentTitle}</td>
                       <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400">
-                        {formatSol(payment.amountLamports)} SOL
+                        {formatAmount((payment as RecentPayment & { chain?: SupportedChain }).chain ?? 'solana', payment.amountLamports)}
                       </td>
                       <td className="py-3 px-4 text-neutral-600 dark:text-neutral-300">
                         {truncateAddress(payment.payerAddress)}

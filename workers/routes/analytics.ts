@@ -77,6 +77,7 @@ app.get('/recent-payments', authMiddleware, async (c) => {
         amountLamports: purchase.amountLamports,
         payerAddress: purchase.payerAddress,
         confirmedAt: purchase.confirmedAt,
+        chain: purchase.chain ?? 'solana',
       };
     })
   );

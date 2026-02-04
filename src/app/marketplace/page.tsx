@@ -11,7 +11,7 @@ import { SearchInput } from '@/components/ui/search-input';
 import { EmptySearch } from '@/components/ui/empty-state';
 import { useDebounce } from '@/lib/use-debounce';
 import { apiGet } from '@/lib/api';
-import { formatSol } from '@/lib/utils';
+import { formatAmount } from '@/lib/chains';
 import type { Content } from '@/types';
 
 type SortOption = 'recent' | 'trending' | 'price-low' | 'price-high' | 'purchases';
@@ -186,7 +186,7 @@ export default function MarketplacePage() {
                 {/* Price Range */}
                 <div>
                   <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
-                    Price Range: {formatSol(priceRange.min * 1_000_000_000)} - {formatSol(priceRange.max * 1_000_000_000)} SOL
+                    Price Range: {formatAmount('solana', priceRange.min * 1_000_000_000)} - {formatAmount('solana', priceRange.max * 1_000_000_000)}
                   </label>
                   <div className="flex gap-4">
                     <input

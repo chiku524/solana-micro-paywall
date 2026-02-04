@@ -5,6 +5,14 @@ export interface Env {
   JWT_SECRET: string;
   SOLANA_RPC_URL: string;
   HELIUS_API_KEY?: string;
+  // EVM chain RPC URLs (optional; public RPCs used as fallback)
+  ETHEREUM_RPC_URL?: string;
+  POLYGON_RPC_URL?: string;
+  BASE_RPC_URL?: string;
+  ARBITRUM_RPC_URL?: string;
+  OPTIMISM_RPC_URL?: string;
+  BNB_RPC_URL?: string;
+  AVALANCHE_RPC_URL?: string;
   NEXT_PUBLIC_WEB_URL?: string;
   NEXT_PUBLIC_API_URL?: string;
   RESEND_API_KEY?: string;

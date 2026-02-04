@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
 import { apiGet } from '@/lib/api';
-import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
+import { formatAmount } from '@/lib/chains';
+import { formatDate, truncateAddress } from '@/lib/utils';
 import { getExplorerTxUrl, DEFAULT_CHAIN } from '@/lib/chains';
 import type { RecentPayment } from '@/types';
 
@@ -59,7 +60,7 @@ function PaymentsContent() {
                       <tr key={payment.id} className="border-b border-neutral-800 hover:bg-neutral-800/30 transition-colors">
                         <td className="py-4 px-6 text-neutral-900 dark:text-white">{payment.contentTitle || 'N/A'}</td>
                         <td className="py-4 px-6 text-emerald-400 font-semibold">
-                          {formatSol(payment.amountLamports)} SOL
+                          {formatAmount((payment.chain ?? 'solana') as import('@/types').SupportedChain, payment.amountLamports)}
                         </td>
                         <td className="py-4 px-6 text-neutral-300">
                           {truncateAddress(payment.payerAddress)}

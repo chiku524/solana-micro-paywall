@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookmarkButton } from './ui/bookmark-button';
-import { formatSol } from '@/lib/utils';
+import { formatAmount } from '@/lib/chains';
 import type { Content } from '@/types';
 
 interface ContentCardProps {
@@ -46,7 +46,7 @@ export const ContentCard = React.memo(function ContentCard({ content, merchantNa
                 <p className="text-xs text-neutral-500">{merchantName}</p>
               )}
               <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                {formatSol(content.priceLamports)} SOL
+                {formatAmount(content.chain ?? 'solana', content.priceLamports)}
               </p>
             </div>
             {content.purchaseCount > 0 && (

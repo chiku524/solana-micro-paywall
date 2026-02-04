@@ -28,6 +28,7 @@ const createContentSchema = z.object({
   visibility: z.enum(['public', 'private']).default('public'),
   previewText: z.string().max(1000).optional(),
   canonicalUrl: z.string().url().optional(),
+  chain: z.enum(['solana', 'ethereum', 'polygon', 'base', 'arbitrum', 'optimism', 'bnb', 'avalanche']).optional(),
 });
 
 const updateContentSchema = createContentSchema.partial();
@@ -120,6 +121,7 @@ app.post('/', authMiddleware, async (c) => {
       id: contentId,
       merchantId,
       ...data,
+      chain: data.chain,
     });
     
     // Invalidate cache

@@ -10,7 +10,8 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
-import { formatSol } from '@/lib/utils';
+import { formatAmount } from '@/lib/chains';
+import { CHAIN_CONFIGS } from '@/lib/chains';
 import { showToast } from '@/lib/toast';
 import type { Content } from '@/types';
 
@@ -27,6 +28,10 @@ export default function ContentsPage() {
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const chain = (formData.get('chain') as string) || 'solana';
+    const decimals = CHAIN_CONFIGS[chain as keyof typeof CHAIN_CONFIGS]?.decimals ?? 9;
+    const priceHuman = parseFloat(formData.get('price') as string);
+    const priceLamports = Math.floor(priceHuman * 10 ** decimals);
     setIsSubmitting(true);
     try {
       await apiPost(
@@ -35,8 +40,9 @@ export default function ContentsPage() {
           slug: formData.get('slug'),
           title: formData.get('title'),
           description: formData.get('description'),
-          priceLamports: Math.floor(parseFloat(formData.get('price') as string) * 1_000_000_000),
+          priceLamports,
           visibility: formData.get('visibility') || 'public',
+          chain,
         },
         token || undefined
       );
@@ -116,7 +122,7 @@ export default function ContentsPage() {
                   <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-4 line-clamp-2">{content.description || 'No description'}</p>
                   <div className="flex justify-between items-center pt-2 border-t border-neutral-200 dark:border-neutral-700">
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                      {formatSol(content.priceLamports)} SOL
+                      {formatAmount(content.chain ?? 'solana', content.priceLamports)}
                     </span>
                     <span className="text-sm text-neutral-500 dark:text-neutral-400">
                       {content.purchaseCount} purchase{content.purchaseCount !== 1 ? 's' : ''}
@@ -170,15 +176,33 @@ export default function ContentsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
-                Price (SOL)
+                Blockchain
+              </label>
+              <select
+                name="chain"
+                className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
+              >
+                {Object.values(CHAIN_CONFIGS).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.symbol})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
+                Price
               </label>
               <input
                 type="number"
                 name="price"
                 step="0.0001"
+                min="0"
                 required
+                placeholder="0.001"
                 className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
               />
+              <p className="text-xs text-neutral-500 mt-1">Enter amount in the chain&apos;s native token (SOL, ETH, MATIC, etc.)</p>
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Creating…' : 'Create'}

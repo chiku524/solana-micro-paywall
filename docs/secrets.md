@@ -25,6 +25,9 @@ Without either, production forgot-password returns 503 ("Password reset is tempo
 ## Optional
 
 - `HELIUS_API_KEY` – Enhanced Solana RPC
+- **EVM RPC URLs** – For EVM chain verification (public RPCs used as fallback):
+  - `ETHEREUM_RPC_URL`, `POLYGON_RPC_URL`, `BASE_RPC_URL`, `ARBITRUM_RPC_URL`
+  - `OPTIMISM_RPC_URL`, `BNB_RPC_URL`, `AVALANCHE_RPC_URL`
 - `NEXT_PUBLIC_WEB_URL` – e.g. `https://micropaywall.app` (CORS; also in `wrangler.toml` for production)
 - `NEXT_PUBLIC_API_URL` – e.g. `https://api.micropaywall.app`
 

@@ -1,7 +1,15 @@
 // Shared types between frontend and backend
 
 /** Supported blockchain networks; add new chains here and implement verifier + wallet adapter */
-export type SupportedChain = 'solana' | 'ethereum' | 'polygon';
+export type SupportedChain =
+  | 'solana'       // Solana L1
+  | 'ethereum'     // Ethereum mainnet
+  | 'polygon'      // Polygon (MATIC)
+  | 'base'         // Base (Coinbase L2)
+  | 'arbitrum'     // Arbitrum One
+  | 'optimism'     // Optimism
+  | 'bnb'          // BNB Chain (BSC)
+  | 'avalanche';   // Avalanche C-Chain
 
 export type MerchantStatus = 'pending' | 'active' | 'suspended';
 export type ContentVisibility = 'public' | 'private';

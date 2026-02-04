@@ -60,6 +60,7 @@ function rowToContent(row: any): Content {
     purchaseCount: row.purchase_count,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    chain: row.chain || 'solana',
   };
 }
 
@@ -78,6 +79,7 @@ function rowToPaymentIntent(row: any): PaymentIntent {
     expiresAt: row.expires_at,
     confirmedAt: row.confirmed_at,
     createdAt: row.created_at,
+    chain: row.chain || 'solana',
   };
 }
 
@@ -95,6 +97,7 @@ function rowToPurchase(row: any): Purchase {
     expiresAt: row.expires_at,
     confirmedAt: row.confirmed_at,
     createdAt: row.created_at,
+    chain: row.chain || 'solana',
   };
 }
 
@@ -251,14 +254,16 @@ export async function createContent(db: D1Database, data: {
   visibility?: string;
   previewText?: string;
   canonicalUrl?: string;
+  chain?: string;
 }): Promise<Content> {
   const now = Math.floor(Date.now() / 1000);
+  const chain = data.chain || 'solana';
   await db.prepare(
     `INSERT INTO content (
       id, merchant_id, slug, title, description, category, tags, thumbnail_url,
       price_lamports, currency, duration_seconds, visibility, preview_text,
-      canonical_url, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      canonical_url, chain, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       data.id,
@@ -275,6 +280,7 @@ export async function createContent(db: D1Database, data: {
       data.visibility || 'public',
       data.previewText || null,
       data.canonicalUrl || null,
+      chain,
       now,
       now
     )
@@ -301,6 +307,7 @@ export async function updateContent(db: D1Database, id: string, data: Partial<Co
   if (data.visibility !== undefined) { updates.push('visibility = ?'); values.push(data.visibility); }
   if (data.previewText !== undefined) { updates.push('preview_text = ?'); values.push(data.previewText); }
   if (data.canonicalUrl !== undefined) { updates.push('canonical_url = ?'); values.push(data.canonicalUrl); }
+  if (data.chain !== undefined) { updates.push('chain = ?'); values.push(data.chain); }
   
   if (updates.length === 0) {
     return await getContentById(db, id) as Content;
@@ -347,12 +354,14 @@ export async function createPaymentIntent(db: D1Database, data: {
   nonce: string;
   memo?: string;
   expiresAt: number;
+  chain?: string;
 }): Promise<PaymentIntent> {
   const now = Math.floor(Date.now() / 1000);
+  const chain = data.chain || 'solana';
   await db.prepare(
     `INSERT INTO payment_intents (
-      id, merchant_id, content_id, amount_lamports, currency, nonce, memo, expires_at, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      id, merchant_id, content_id, amount_lamports, currency, nonce, memo, expires_at, chain, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       data.id,
@@ -363,6 +372,7 @@ export async function createPaymentIntent(db: D1Database, data: {
       data.nonce,
       data.memo || null,
       data.expiresAt,
+      chain,
       now
     )
     .run();
@@ -440,13 +450,15 @@ export async function createPurchase(db: D1Database, data: {
   transactionSignature: string;
   accessToken: string;
   expiresAt?: number;
+  chain?: string;
 }): Promise<Purchase> {
   const now = Math.floor(Date.now() / 1000);
+  const chain = data.chain || 'solana';
   await db.prepare(
     `INSERT INTO purchases (
       id, payment_intent_id, merchant_id, content_id, payer_address, amount_lamports,
-      currency, transaction_signature, access_token, expires_at, confirmed_at, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      currency, transaction_signature, access_token, expires_at, chain, confirmed_at, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       data.id,
@@ -459,6 +471,7 @@ export async function createPurchase(db: D1Database, data: {
       data.transactionSignature,
       data.accessToken,
       data.expiresAt || null,
+      chain,
       now,
       now
     )

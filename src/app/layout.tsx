@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { SolanaWalletProvider } from '@/lib/wallet-provider';
+import { EVMWalletProvider } from '@/lib/evm-wallet-config';
 import { AuthProvider } from '@/lib/auth-context';
 import { ThemeProvider } from '@/lib/theme-context';
 import { SWRProvider } from '@/lib/swr-config';
@@ -71,13 +72,15 @@ export default function RootLayout({
         <ErrorBoundary>
           <ThemeProvider>
             <SWRProvider>
-              <SolanaWalletProvider>
-                <AuthProvider>
+              <EVMWalletProvider>
+                <SolanaWalletProvider>
+                  <AuthProvider>
                   <ToastProvider />
                   <LazyAnimatedBackground />
                   {children}
-                </AuthProvider>
-              </SolanaWalletProvider>
+                  </AuthProvider>
+                </SolanaWalletProvider>
+              </EVMWalletProvider>
             </SWRProvider>
           </ThemeProvider>
         </ErrorBoundary>

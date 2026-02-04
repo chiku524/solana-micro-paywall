@@ -39,6 +39,57 @@ export const CHAIN_CONFIGS: Record<SupportedChain, ChainConfig> = {
     decimals: 18,
     explorerTxUrl: 'https://polygonscan.com/tx',
   },
+  base: {
+    id: 'base',
+    name: 'Base',
+    symbol: 'ETH',
+    decimals: 18,
+    explorerTxUrl: 'https://basescan.org/tx',
+  },
+  arbitrum: {
+    id: 'arbitrum',
+    name: 'Arbitrum',
+    symbol: 'ETH',
+    decimals: 18,
+    explorerTxUrl: 'https://arbiscan.io/tx',
+  },
+  optimism: {
+    id: 'optimism',
+    name: 'Optimism',
+    symbol: 'ETH',
+    decimals: 18,
+    explorerTxUrl: 'https://optimistic.etherscan.io/tx',
+  },
+  bnb: {
+    id: 'bnb',
+    name: 'BNB Chain',
+    symbol: 'BNB',
+    decimals: 18,
+    explorerTxUrl: 'https://bscscan.com/tx',
+  },
+  avalanche: {
+    id: 'avalanche',
+    name: 'Avalanche',
+    symbol: 'AVAX',
+    decimals: 18,
+    explorerTxUrl: 'https://snowtrace.io/tx',
+  },
+};
+
+/** EVM chains that share the same verification logic */
+export const EVM_CHAINS: SupportedChain[] = [
+  'ethereum', 'polygon', 'base', 'arbitrum', 'optimism', 'bnb', 'avalanche',
+];
+
+/** Chain IDs for EVM networks (for wallet/viem) */
+export const EVM_CHAIN_IDS: Record<'ethereum' | 'polygon' | 'base' | 'arbitrum' | 'optimism' | 'bnb' | 'avalanche', number> = {
+  ethereum: 1,
+  polygon: 137,
+  base: 8453,
+  arbitrum: 42161,
+  optimism: 10,
+  bnb: 56,
+  avalanche: 43114,
 };
 
 /**
@@ -68,3 +119,16 @@ export function formatAmount(
 
 /** Default chain for the app until content/merchant chain is stored */
 export const DEFAULT_CHAIN: SupportedChain = 'solana';
+
+/** Get EVM chain ID for a supported chain (throws if not EVM) */
+export function getEvmChainId(chain: SupportedChain): number {
+  if (chain === 'solana') {
+    throw new Error('Solana is not an EVM chain');
+  }
+  return EVM_CHAIN_IDS[chain];
+}
+
+/** Check if a chain is EVM-based */
+export function isEvmChain(chain: SupportedChain): chain is (typeof EVM_CHAINS)[number] {
+  return EVM_CHAINS.includes(chain);
+}

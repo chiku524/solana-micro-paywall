@@ -4,35 +4,65 @@ import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { Transaction, SystemProgram, PublicKey, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { Transaction, SystemProgram, PublicKey } from '@solana/web3.js';
+import { useAccount, useSendTransaction, useSwitchChain, useConnect } from 'wagmi';
 import { Button } from './ui/button';
 import { Modal } from './ui/modal';
 import { apiPost } from '@/lib/api';
-import { formatSol } from '@/lib/utils';
+import { formatAmount, EVM_CHAIN_IDS } from '@/lib/chains';
 import QRCode from 'qrcode';
-import type { PaymentRequestResponse, VerifyPaymentResponse, PaymentIntent } from '@/types';
+import type { VerifyPaymentResponse, PaymentIntent } from '@/types';
+import type { SupportedChain } from '@/types';
+
+interface PaymentRequestResponse {
+  paymentIntent: PaymentIntent;
+  paymentUrl: string;
+  recipientAddress?: string;
+  chain?: string;
+  chainId?: number;
+  amountWei?: number;
+}
 
 interface PaymentWidgetProps {
   merchantId: string;
   contentId: string;
   priceLamports: number;
+  chain?: SupportedChain;
   onPaymentSuccess?: (accessToken: string) => void;
   onPaymentError?: (error: Error) => void;
 }
 
-export function PaymentWidget({
-  merchantId,
+function EVMConnectButton() {
+  const { connect, connectors, isPending } = useConnect();
+  const injected = connectors.find((c) => c.type === 'injected') ?? connectors[0];
+  return (
+    <button
+      type="button"
+      onClick={() => injected && connect({ connector: injected })}
+      disabled={!injected || isPending}
+      className="w-full rounded-lg bg-emerald-600 px-4 py-3 font-medium text-white hover:bg-emerald-700 transition-colors disabled:opacity-50"
+    >
+      {isPending ? 'Connecting...' : 'Connect Wallet'}
+    </button>
+  );
+}
+
+function SolanaPaymentFlow({
   contentId,
   priceLamports,
   onPaymentSuccess,
   onPaymentError,
-}: PaymentWidgetProps) {
+}: {
+  contentId: string;
+  priceLamports: number;
+  onPaymentSuccess?: (accessToken: string) => void;
+  onPaymentError?: (error: Error) => void;
+}) {
   const { publicKey, sendTransaction, connected } = useWallet();
   const { connection } = useConnection();
   const [isOpen, setIsOpen] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string>('');
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
-  const [paymentIntentId, setPaymentIntentId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string>('');
 
@@ -40,23 +70,20 @@ export function PaymentWidget({
     try {
       if (!connected || !publicKey) {
         setIsOpen(true);
-        setError('Please connect your wallet first');
+        setError('Please connect your Solana wallet first');
         return;
       }
 
       setIsProcessing(true);
       setError('');
 
-      // Create payment request
       const response = await apiPost<PaymentRequestResponse>(
         '/api/payments/create-payment-request',
         { contentId }
       );
 
-      setPaymentIntentId(response.paymentIntent.id);
       setPaymentUrl(response.paymentUrl);
 
-      // Generate QR code
       try {
         const qrCode = await QRCode.toDataURL(response.paymentUrl);
         setQrCodeDataUrl(qrCode);
@@ -64,24 +91,19 @@ export function PaymentWidget({
         console.error('QR code generation failed:', qrError);
       }
 
-      // Use recipient address from API response (preferred)
       if (!response.recipientAddress) {
         throw new Error('Recipient address not provided in payment response');
       }
-      
-      const recipientPubkey = new PublicKey(response.recipientAddress);
-      const amountLamports = priceLamports; // Use the exact amount from content
 
-      // Create transaction
+      const recipientPubkey = new PublicKey(response.recipientAddress);
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
           toPubkey: recipientPubkey,
-          lamports: amountLamports,
+          lamports: priceLamports,
         })
       );
 
-      // Add memo with nonce for verification
       const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
       const memoText = `Payment for ${response.paymentIntent.id}`;
       const memoBuffer = Buffer.from(memoText, 'utf-8');
@@ -91,18 +113,13 @@ export function PaymentWidget({
         data: memoBuffer,
       });
 
-      // Get recent blockhash
       const { blockhash } = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = publicKey;
 
-      // Send transaction
       const signature = await sendTransaction(transaction, connection);
-
-      // Wait for confirmation
       await connection.confirmTransaction(signature, 'confirmed');
 
-      // Verify payment
       const verifyResponse = await apiPost<{ success: boolean; paymentIntent?: PaymentIntent }>(
         '/api/payments/verify-payment',
         {
@@ -115,15 +132,11 @@ export function PaymentWidget({
         throw new Error('Payment verification failed');
       }
 
-      // Create purchase
-      const purchaseResponse = await apiPost<VerifyPaymentResponse>(
-        '/api/purchases',
-        {
-          paymentIntentId: response.paymentIntent.id,
-          transactionSignature: signature,
-          payerAddress: publicKey.toString(),
-        }
-      );
+      const purchaseResponse = await apiPost<VerifyPaymentResponse>('/api/purchases', {
+        paymentIntentId: response.paymentIntent.id,
+        transactionSignature: signature,
+        payerAddress: publicKey.toString(),
+      });
 
       setIsProcessing(false);
       setIsOpen(false);
@@ -145,71 +158,199 @@ export function PaymentWidget({
             <WalletMultiButton className="!bg-emerald-600 hover:!bg-emerald-700" />
           </div>
         )}
-        
         <Button
           onClick={handlePurchase}
           disabled={isProcessing || !connected}
           size="lg"
           className="w-full"
         >
-          {isProcessing
-            ? 'Processing Payment...'
-            : `Purchase for ${formatSol(priceLamports)} SOL`}
+          {isProcessing ? 'Processing...' : `Purchase for ${formatAmount('solana', priceLamports)}`}
         </Button>
-
-        {error && (
-          <p className="text-red-400 text-sm text-center">{error}</p>
-        )}
+        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
       </div>
-
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Complete Payment">
         <div className="text-center space-y-4">
           {!connected ? (
             <>
-              <p className="text-neutral-300 mb-4">
-                Connect your Solana wallet to continue
-              </p>
+              <p className="text-neutral-300 mb-4">Connect your Solana wallet to continue</p>
               <WalletMultiButton className="!bg-emerald-600 hover:!bg-emerald-700 mx-auto" />
             </>
           ) : (
             <>
               {qrCodeDataUrl && (
                 <div className="flex justify-center mb-4">
-                  <Image
-                    src={qrCodeDataUrl}
-                    alt="Payment QR Code"
-                    width={256}
-                    height={256}
-                    className="w-64 h-64"
-                  />
+                  <Image src={qrCodeDataUrl} alt="Payment QR Code" width={256} height={256} className="w-64 h-64" />
                 </div>
               )}
-              
               {paymentUrl && (
                 <div className="mb-4">
-                  <p className="text-neutral-300 mb-2">
-                    Or open the payment link:
-                  </p>
+                  <p className="text-neutral-300 mb-2">Or open the payment link:</p>
                   <a
                     href={paymentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-emerald-600 dark:text-emerald-400 hover:underline break-all"
+                    className="text-emerald-600 dark:text-emerald-400 hover:underline break-all text-sm"
                   >
                     {paymentUrl}
                   </a>
                 </div>
               )}
-
               <p className="text-sm text-neutral-400">
-                {isProcessing
-                  ? 'Waiting for transaction confirmation...'
-                  : 'Payment will be automatically verified once confirmed on-chain'}
+                {isProcessing ? 'Waiting for confirmation...' : 'Payment will be verified once confirmed on-chain'}
               </p>
             </>
           )}
         </div>
       </Modal>
     </>
+  );
+}
+
+function EVMPaymentFlow({
+  contentId,
+  priceLamports,
+  chain,
+  onPaymentSuccess,
+  onPaymentError,
+}: {
+  contentId: string;
+  priceLamports: number;
+  chain: Exclude<SupportedChain, 'solana'>;
+  onPaymentSuccess?: (accessToken: string) => void;
+  onPaymentError?: (error: Error) => void;
+}) {
+  const { address, isConnected, chain: currentChain } = useAccount();
+  const { sendTransactionAsync } = useSendTransaction();
+  const { switchChainAsync } = useSwitchChain();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string>('');
+  const targetChainId = EVM_CHAIN_IDS[chain];
+
+  const handlePurchase = useCallback(async () => {
+    try {
+      if (!isConnected || !address) {
+        setIsOpen(true);
+        setError('Please connect your wallet first');
+        return;
+      }
+
+      setIsProcessing(true);
+      setError('');
+
+      // Switch chain if needed
+      if (currentChain?.id !== targetChainId && switchChainAsync) {
+        await switchChainAsync({ chainId: targetChainId });
+      }
+
+      const response = await apiPost<PaymentRequestResponse>(
+        '/api/payments/create-payment-request',
+        { contentId }
+      );
+
+      if (!response.recipientAddress || !response.chainId) {
+        throw new Error('Invalid payment response');
+      }
+
+      const hash = await sendTransactionAsync({
+        to: response.recipientAddress as `0x${string}`,
+        value: BigInt(priceLamports),
+        data: undefined,
+      });
+
+      if (!hash) {
+        throw new Error('Transaction failed');
+      }
+
+      const verifyResponse = await apiPost<{ success: boolean }>('/api/payments/verify-payment', {
+        paymentIntentId: response.paymentIntent.id,
+        transactionSignature: hash,
+      });
+
+      if (!verifyResponse.success) {
+        throw new Error('Payment verification failed');
+      }
+
+      const purchaseResponse = await apiPost<VerifyPaymentResponse>('/api/purchases', {
+        paymentIntentId: response.paymentIntent.id,
+        transactionSignature: hash,
+        payerAddress: address,
+      });
+
+      setIsProcessing(false);
+      setIsOpen(false);
+      onPaymentSuccess?.(purchaseResponse.accessToken);
+    } catch (err: unknown) {
+      console.error('Payment error:', err);
+      const message = err instanceof Error ? err.message : 'Payment failed. Please try again.';
+      setError(message);
+      setIsProcessing(false);
+      onPaymentError?.(err instanceof Error ? err : new Error(message));
+    }
+  }, [isConnected, address, currentChain?.id, targetChainId, switchChainAsync, sendTransactionAsync, contentId, priceLamports, onPaymentSuccess, onPaymentError]);
+
+  return (
+    <>
+      <div className="space-y-4">
+        {!isConnected && (
+          <div className="mb-4">
+            <EVMConnectButton />
+          </div>
+        )}
+        <Button
+          onClick={handlePurchase}
+          disabled={isProcessing || !isConnected}
+          size="lg"
+          className="w-full"
+        >
+          {isProcessing ? 'Processing...' : `Purchase for ${formatAmount(chain, priceLamports)}`}
+        </Button>
+        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+      </div>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Complete Payment">
+        <div className="text-center space-y-4">
+          {!isConnected ? (
+            <>
+              <p className="text-neutral-300 mb-4">Connect your wallet (MetaMask, Rainbow, etc.) to continue</p>
+              <EVMConnectButton />
+            </>
+          ) : (
+            <p className="text-sm text-neutral-400">Click Purchase above to complete the transaction.</p>
+          )}
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+export function PaymentWidget({
+  merchantId,
+  contentId,
+  priceLamports,
+  chain = 'solana',
+  onPaymentSuccess,
+  onPaymentError,
+}: PaymentWidgetProps) {
+  const isEvm = chain !== 'solana';
+
+  if (isEvm) {
+    return (
+      <EVMPaymentFlow
+        contentId={contentId}
+        priceLamports={priceLamports}
+        chain={chain}
+        onPaymentSuccess={onPaymentSuccess}
+        onPaymentError={onPaymentError}
+      />
+    );
+  }
+
+  return (
+    <SolanaPaymentFlow
+      contentId={contentId}
+      priceLamports={priceLamports}
+      onPaymentSuccess={onPaymentSuccess}
+      onPaymentError={onPaymentError}
+    />
   );
 }

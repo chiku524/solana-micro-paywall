@@ -53,9 +53,9 @@ export function ContentCardSkeleton() {
   );
 }
 
-export function DashboardCardSkeleton() {
+export function DashboardCardSkeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className="glass-strong p-6 rounded-xl">
+    <div className={cn('glass-strong p-6 rounded-xl', className)} {...props}>
       <Skeleton variant="text" width="120px" className="mb-4" />
       <Skeleton variant="text" width="200px" height={32} className="mb-2" />
       <Skeleton variant="text" width="150px" />
