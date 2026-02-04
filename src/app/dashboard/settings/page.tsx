@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import useSWR from 'swr';
 import { apiGet, apiPut } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -7,11 +8,13 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
+import { showToast } from '@/lib/toast';
 import type { Merchant } from '@/types';
 
 export default function SettingsPage() {
   const { token } = useAuth();
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { data: merchant, mutate } = useSWR<Merchant>(
     token ? ['/api/merchants/me', token] : null,
     ([url, t]: [string, string]) => apiGet(url, t)
@@ -20,7 +23,7 @@ export default function SettingsPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    
+    setIsSubmitting(true);
     try {
       await apiPut(
         '/api/merchants/me',
@@ -36,9 +39,11 @@ export default function SettingsPage() {
         token || undefined
       );
       mutate();
-      alert('Settings updated successfully');
+      showToast.success('Settings updated successfully');
     } catch (error: unknown) {
-      alert(error instanceof Error ? error.message : 'Failed to update settings');
+      showToast.error(error instanceof Error ? error.message : 'Failed to update settings');
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -141,7 +146,9 @@ export default function SettingsPage() {
             />
           </div>
           
-          <Button type="submit">Save Settings</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving…' : 'Save Settings'}
+          </Button>
         </form>
         </div>
         <Footer />

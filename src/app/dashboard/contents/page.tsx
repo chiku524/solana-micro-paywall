@@ -11,11 +11,13 @@ import { Footer } from '@/components/footer';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/auth-context';
 import { formatSol } from '@/lib/utils';
+import { showToast } from '@/lib/toast';
 import type { Content } from '@/types';
 
 export default function ContentsPage() {
   const { token } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data, error, isLoading, mutate } = useSWR<{ contents: Content[] }>(
     token ? ['/api/contents', token] : null,
@@ -25,7 +27,7 @@ export default function ContentsPage() {
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-
+    setIsSubmitting(true);
     try {
       await apiPost(
         '/api/contents',
@@ -40,8 +42,11 @@ export default function ContentsPage() {
       );
       mutate();
       setIsCreateModalOpen(false);
+      showToast.success('Content created successfully');
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to create content');
+      showToast.error(err instanceof Error ? err.message : 'Failed to create content');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -50,9 +55,9 @@ export default function ContentsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col bg-neutral-50 dark:bg-neutral-950">
+      <div className="min-h-screen flex flex-col bg-transparent">
         <Navbar />
-        <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full relative z-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
               <h1 className="text-4xl font-bold text-neutral-900 dark:text-white">Content Management</h1>
@@ -175,7 +180,9 @@ export default function ContentsPage() {
                 className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
               />
             </div>
-            <Button type="submit" className="w-full">Create</Button>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating…' : 'Create'}
+            </Button>
           </form>
         </Modal>
       </div>

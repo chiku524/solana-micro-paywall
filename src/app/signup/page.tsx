@@ -7,6 +7,7 @@ import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { apiPost } from '@/lib/api';
+import { showToast } from '@/lib/toast';
 import type { LoginResponse } from '@/types';
 
 // Note: Metadata for client components should be in a layout file
@@ -158,7 +159,7 @@ export default function SignupPage() {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(merchantId);
-                        alert('Merchant ID copied to clipboard!');
+                        showToast.success('Merchant ID copied to clipboard!');
                       }}
                       className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm transition-colors"
                     >

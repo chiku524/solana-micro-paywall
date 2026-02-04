@@ -13,6 +13,7 @@ import { BookmarkButton } from '@/components/ui/bookmark-button';
 import { recentlyViewed } from '@/lib/local-storage';
 import { apiGet } from '@/lib/api';
 import { formatSol } from '@/lib/utils';
+import { showToast } from '@/lib/toast';
 import type { Content } from '@/types';
 
 function ContentDetailContent() {
@@ -132,8 +133,9 @@ function ContentDetailContent() {
             contentId={content.id}
             priceLamports={content.priceLamports}
             onPaymentSuccess={(token) => {
-              alert('Payment successful! Access token: ' + token);
-              // Redirect or unlock content here
+              showToast.success('Payment successful! You now have access.');
+              // Token can be used to unlock content; redirect or show content here
+              void token;
             }}
             onPaymentError={(error) => {
               console.error('Payment error:', error);
