@@ -1,10 +1,10 @@
-# Solana Micro-Paywall - Complete Application Specification
+# Micro Paywall - Complete Application Specification
 
 ## Use Case & Purpose
 
-**Solana Micro-Paywall** is a Solana-native micro-paywall and pay-per-use platform that enables publishers, creators, and API providers to monetize their content using instant Solana blockchain payments. The platform provides:
+**Micro Paywall** is a multi-chain micro-paywall and pay-per-use platform that enables publishers, creators, and API providers to monetize their content using instant blockchain payments. Supports **8 blockchains**: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, and Avalanche. The platform provides:
 
-1. **Instant Payment Processing**: Sub-second Solana transaction confirmations with near-zero fees
+1. **Instant Payment Processing**: Sub-second transaction confirmations with near-zero fees
 2. **Access Token System**: Short-lived JWT tokens (1-24 hours) that grant access to premium content after payment
 3. **Embeddable Widget SDK**: Drop-in payment buttons that can be integrated into any website
 4. **Merchant Dashboard**: Complete analytics, content management, and payment tracking
@@ -14,8 +14,8 @@
 ### Target Users
 
 - **Publishers/Merchants**: Content creators who want to monetize articles, videos, courses, APIs, or any digital content
-- **End Users/Payers**: Consumers who want to purchase and access premium content using Solana wallets
-- **Developers**: Who want to integrate Solana payments into their applications via the Widget SDK
+- **End Users/Payers**: Consumers who want to purchase and access premium content using Solana or EVM wallets
+- **Developers**: Who want to integrate multi-chain payments into their applications via the Widget SDK
 
 ---
 
@@ -24,13 +24,13 @@
 ### 1. Merchant Management & Authentication
 
 #### Merchant Creation & Login
-- **Create Merchant Account**: Merchants can create accounts with email and optional Solana payout address
+- **Create Merchant Account**: Merchants can create accounts with email and optional payout address (Solana or EVM)
 - **Merchant Login**: JWT-based authentication using merchant ID
 - **Merchant Profile**: Public profiles with display name, bio, avatar, social links (Twitter, Telegram, Discord, GitHub)
 - **Merchant Status**: Status management (pending, active, suspended) with auto-activation for development
 
 #### Merchant Settings
-- **Payout Address Management**: Set/update Solana wallet address for receiving payments
+- **Payout Address Management**: Set/update wallet address for receiving payments (Solana address for Solana content; EVM/0x address for Ethereum, Polygon, Base, etc.)
 - **Webhook Configuration**: Configure webhook secrets for payment notifications
 - **Profile Customization**: Update display name, bio, avatar, and social links
 
@@ -47,8 +47,9 @@
 #### Create Content
 - **Content Fields**:
   - Slug (unique per merchant)
-  - Price in lamports (Solana's smallest unit)
-  - Currency (default: SOL)
+  - Chain: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, or Avalanche
+  - Price in smallest unit (lamports for Solana, wei for EVM)
+  - Currency (SOL, ETH, MATIC, etc., per chain)
   - Duration in seconds (null = one-time access, number = timed access)
   - Title, description, category, tags
   - Thumbnail URL
@@ -73,15 +74,15 @@
 ### 3. Payment System
 
 #### Payment Request Flow
-1. **Create Payment Request**: Generate a payment intent with unique nonce
-2. **Payment Intent**: Contains merchant address, amount, memo, nonce, expiration
-3. **Wallet Integration**: Connect Phantom, Solflare, or other Solana wallets
-4. **Transaction Signing**: User signs transaction via wallet
-5. **Payment Verification**: Server verifies on-chain transaction
+1. **Create Payment Request**: Generate a payment intent with unique nonce (chain from content)
+2. **Payment Intent**: Contains merchant address, amount, memo, nonce, expiration, chain
+3. **Wallet Integration**: Solana: Phantom, Solflare. EVM: MetaMask, Rainbow, etc.
+4. **Transaction Signing**: User signs transaction via wallet (auto network switch for EVM)
+5. **Payment Verification**: Server verifies on-chain transaction on the correct blockchain
 6. **Access Token Issuance**: JWT token issued after successful verification
 
 #### Payment Verification
-- **On-Chain Verification**: Verify transaction signature on Solana blockchain
+- **On-Chain Verification**: Chain-specific verifiers (Solana, EVM via viem)
 - **Transaction Checks**:
   - Finality confirmation
   - Memo/nonce consistency
@@ -97,8 +98,8 @@
 - **Refunded**: Payment refunded by merchant
 
 **Implementation Details:**
-- Solana Pay protocol integration
-- QR code generation for mobile payments
+- Solana Pay protocol for Solana; structured payload for EVM chains
+- QR code generation for Solana mobile payments
 - Automatic payment status polling
 - Transaction signature tracking
 - Payment expiration handling (default: 15 minutes)
@@ -145,7 +146,7 @@
   - Today's payments
   - This week's payments
   - This month's payments
-  - Total revenue (SOL)
+  - Total revenue (multi-chain)
   - Average payment amount
 - **Recent Payments Table**: Last 10-20 payments with:
   - Transaction signature (link to Solscan)
@@ -207,7 +208,7 @@
   - Thumbnail image
   - Title and description
   - Merchant name
-  - Price in SOL
+  - Price (chain-native: SOL, ETH, MATIC, etc.)
   - Category and tags
   - Purchase count
   - "View Details" button
@@ -286,7 +287,7 @@
 const widget = createPaymentWidget({
   containerId: 'payment-widget',
   apiUrl: 'https://api.micropaywall.app',
-  buttonText: 'Unlock with Solana',
+  buttonText: 'Unlock',
   onPaymentSuccess: (token) => { /* handle success */ },
   onPaymentError: (error) => { /* handle error */ },
 });
@@ -300,8 +301,8 @@ widget.renderButton({
 
 **Implementation Details:**
 - Vanilla JavaScript/TypeScript
-- Solana Wallet Adapter integration
-- QR code generation (Solana Pay format)
+- Solana Wallet Adapter + wagmi (EVM) integration
+- QR code generation (Solana Pay format for Solana)
 - Event emitter pattern
 - TypeScript definitions
 
@@ -473,7 +474,7 @@ widget.renderButton({
 
 1. **Next.js App Router**: Modern React Server Components architecture
 2. **Cloudflare Edge**: Deploy on Cloudflare for global edge performance
-3. **Solana Pay**: Standard protocol for Solana payments
+3. **Solana Pay**: Standard protocol for Solana payments; viem for EVM transaction verification
 4. **JWT Tokens**: Stateless access tokens for scalability
 5. **SWR**: Efficient data fetching with caching
 6. **TypeScript**: Full type safety across codebase
@@ -551,5 +552,5 @@ widget.renderButton({
 
 ---
 
-This specification provides a complete overview of the Solana Micro-Paywall application. Use this as a reference when recreating the application to ensure all features and functionality are preserved.
+This specification provides a complete overview of the Micro Paywall application. Use this as a reference when recreating the application to ensure all features and functionality are preserved.
 

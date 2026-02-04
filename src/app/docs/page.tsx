@@ -79,7 +79,7 @@ export default function DocsPage() {
               <div className="glass-strong p-6 rounded-xl">
                 <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white mb-4">What is Micro Paywall?</h2>
                 <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-                  Micro Paywall is a blockchain-native platform that enables creators, publishers, and API providers to monetize their content using instant blockchain payments. Built with multi-chain support in mind, starting with Solana and expanding to Ethereum, Polygon, and more.
+                  Micro Paywall is a blockchain-native platform that enables creators, publishers, and API providers to monetize their content using instant blockchain payments. Supports <strong className="text-neutral-900 dark:text-white">8 blockchains</strong>: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, and Avalanche.
                 </p>
                 <div className="grid md:grid-cols-3 gap-4 mt-6">
                   <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
@@ -88,7 +88,7 @@ export default function DocsPage() {
                   </div>
                   <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <h3 className="text-blue-600 dark:text-blue-400 font-semibold mb-2">🔗 Multi-Chain</h3>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">Support for multiple blockchains</p>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">8 chains: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB, Avalanche</p>
                   </div>
                   <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <h3 className="text-purple-600 dark:text-purple-400 font-semibold mb-2">🔌 Easy Integration</h3>
@@ -137,7 +137,7 @@ export default function DocsPage() {
                       <strong className="text-neutral-900 dark:text-white">Browse Marketplace:</strong> Explore content at <Link href="/marketplace" className="text-emerald-600 dark:text-emerald-400 hover:underline">/marketplace</Link>
                     </li>
                     <li>
-                      <strong className="text-neutral-900 dark:text-white">Connect Wallet:</strong> Use Phantom, Solflare, or other Solana wallets
+                      <strong className="text-neutral-900 dark:text-white">Connect Wallet:</strong> For Solana content: Phantom, Solflare. For EVM content: MetaMask, Rainbow, etc.
                     </li>
                     <li>
                       <strong className="text-neutral-900 dark:text-white">Purchase Content:</strong> Click purchase and sign the transaction
@@ -168,7 +168,7 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Account Creation</h3>
                   <p className="text-neutral-600 dark:text-neutral-300 mb-3">
-                    Create your merchant account by providing your email address. Optionally, you can set your Solana payout address during signup or add it later in settings.
+                    Create your merchant account by providing your email address. Optionally, you can set your payout address during signup or add it later in settings. Use a Solana address for Solana content; an EVM address (0x...) for Ethereum, Polygon, Base, etc.
                   </p>
                   <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Signup Endpoint:</p>
@@ -176,7 +176,7 @@ export default function DocsPage() {
                     <pre className="mt-2 text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-900 p-3 rounded overflow-x-auto">
 {`{
   "email": "your@email.com",
-  "payoutAddress": "optional-solana-address"
+  "payoutAddress": "optional-wallet-address"
 }`}
                     </pre>
                   </div>
@@ -229,7 +229,8 @@ export default function DocsPage() {
                   <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-4">
                     <li><strong className="text-neutral-900 dark:text-white">Slug:</strong> Unique identifier per merchant (URL-friendly)</li>
                     <li><strong className="text-neutral-900 dark:text-white">Title & Description:</strong> Content metadata</li>
-                    <li><strong className="text-neutral-900 dark:text-white">Price:</strong> In lamports (1 SOL = 1,000,000,000 lamports)</li>
+                    <li><strong className="text-neutral-900 dark:text-white">Blockchain:</strong> Choose chain: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, or Avalanche</li>
+                    <li><strong className="text-neutral-900 dark:text-white">Price:</strong> In native token (SOL, ETH, MATIC, etc.). Stored as smallest unit (lamports for Solana, wei for EVM)</li>
                     <li><strong className="text-neutral-900 dark:text-white">Duration:</strong> Access duration in seconds (null = one-time access)</li>
                     <li><strong className="text-neutral-900 dark:text-white">Category & Tags:</strong> For organization and discovery</li>
                     <li><strong className="text-neutral-900 dark:text-white">Thumbnail URL:</strong> Image URL for content card</li>
@@ -269,10 +270,10 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Payment Flow</h3>
                   <ol className="list-decimal list-inside space-y-3 text-neutral-600 dark:text-neutral-300">
-                    <li><strong className="text-neutral-900 dark:text-white">Create Payment Request:</strong> Generate payment intent with unique nonce</li>
-                    <li><strong className="text-neutral-900 dark:text-white">Wallet Connection:</strong> User connects Phantom, Solflare, or other Solana wallet</li>
-                    <li><strong className="text-neutral-900 dark:text-white">Transaction Signing:</strong> User signs transaction via wallet</li>
-                    <li><strong className="text-neutral-900 dark:text-white">On-Chain Verification:</strong> Server verifies transaction on Solana blockchain</li>
+                    <li><strong className="text-neutral-900 dark:text-white">Create Payment Request:</strong> Generate payment intent with unique nonce (chain from content)</li>
+                    <li><strong className="text-neutral-900 dark:text-white">Wallet Connection:</strong> Solana: Phantom, Solflare. EVM: MetaMask, Rainbow, etc.</li>
+                    <li><strong className="text-neutral-900 dark:text-white">Transaction Signing:</strong> User signs transaction via wallet (auto network switch for EVM)</li>
+                    <li><strong className="text-neutral-900 dark:text-white">On-Chain Verification:</strong> Server verifies transaction on the correct blockchain</li>
                     <li><strong className="text-neutral-900 dark:text-white">Access Token:</strong> JWT token issued after successful verification</li>
                   </ol>
                 </div>
@@ -353,13 +354,12 @@ export default function DocsPage() {
 <PaymentWidget
   merchantId="your-merchant-id"
   contentId="content-id"
-  priceLamports={1000000000} // 1 SOL
+  priceLamports={1000000000}
+  chain="solana"
   onPaymentSuccess={(token) => {
-    // Handle successful payment
     console.log('Access token:', token);
   }}
   onPaymentError={(error) => {
-    // Handle payment error
     console.error('Payment failed:', error);
   }}
 />`}
@@ -368,8 +368,9 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Features</h3>
                   <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
+                    <li>Multi-chain: Solana (Phantom, Solflare) and EVM (MetaMask, Rainbow)</li>
                     <li>Automatic wallet detection and connection</li>
-                    <li>QR code generation for mobile payments</li>
+                    <li>QR code generation for Solana mobile payments</li>
                     <li>Automatic payment status polling</li>
                     <li>Customizable button text and styling</li>
                     <li>Event-driven architecture</li>
@@ -510,7 +511,7 @@ export default function DocsPage() {
                     </div>
                     <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                       <h4 className="text-pink-400 font-semibold mb-2">Price Range</h4>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">Set min/max price in SOL</p>
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400">Set min/max price (varies by chain)</p>
                     </div>
                   </div>
                 </div>
@@ -553,7 +554,7 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">My Purchases</h3>
                   <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-                    View all content you&apos;ve purchased with your connected Solana wallet. Features include:
+                    View all content you&apos;ve purchased with your connected wallet (Solana or EVM). Features include:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
                     <li>View all purchased content with thumbnails</li>
@@ -625,7 +626,7 @@ export default function DocsPage() {
                         <li>• Total payments (all time)</li>
                         <li>• Today&apos;s payments</li>
                         <li>• This week&apos;s payments</li>
-                        <li>• Total revenue (SOL)</li>
+                        <li>• Total revenue (multi-chain)</li>
                       </ul>
                     </div>
                     <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
@@ -815,7 +816,7 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">What wallets are supported?</h3>
                   <p className="text-neutral-600 dark:text-neutral-300">
-                    Currently supports Phantom (Standard Wallet) and Solflare. More wallets will be added as they become Standard Wallets.
+                    <strong className="text-neutral-900 dark:text-white">Solana:</strong> Phantom, Solflare. <strong className="text-neutral-900 dark:text-white">EVM:</strong> MetaMask, Rainbow, and any injected wallet. The correct wallet is shown based on the content&apos;s blockchain.
                   </p>
                 </div>
                 <div>
@@ -827,13 +828,13 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Can I use this with other blockchains?</h3>
                   <p className="text-neutral-600 dark:text-neutral-300">
-                    The platform is built with multi-chain support in mind. Currently supports Solana, with Ethereum, Polygon, and more coming soon.
+                    Yes. The platform supports 8 blockchains: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, and Avalanche. Choose the chain when creating content.
                   </p>
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">How do I receive payments?</h3>
                   <p className="text-neutral-600 dark:text-neutral-300">
-                    Set your Solana payout address in Dashboard → Settings. All payments are sent directly to this address.
+                    Set your payout address in Dashboard → Settings. Use a Solana address for Solana content; an EVM address (0x...) for Ethereum, Polygon, Base, etc. Your address must match the chain of the content you sell.
                   </p>
                 </div>
                 <div>

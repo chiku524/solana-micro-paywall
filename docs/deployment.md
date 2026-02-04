@@ -74,5 +74,5 @@ The Cloudflare API token is missing or lacks permissions.
 
 - **Database:** Check database ID in `wrangler.toml` and that migrations have been run (`npm run db:migrate`).
 - **CORS:** Set `NEXT_PUBLIC_WEB_URL` in Worker vars/secrets to your frontend URL; check `workers/middleware/cors.ts`.
-- **Payment verification:** Ensure `SOLANA_RPC_URL` (and optional `HELIUS_API_KEY`) are set and the RPC is reachable.
+- **Payment verification:** Ensure `SOLANA_RPC_URL` (and optional `HELIUS_API_KEY`) are set. For EVM chains, optional RPC URLs (e.g. `ETHEREUM_RPC_URL`, `BASE_RPC_URL`) — public RPCs used as fallback.
 - **Frontend not loading:** Ensure `npm run build` produces the `out/` directory and static export is enabled in `next.config.js`.

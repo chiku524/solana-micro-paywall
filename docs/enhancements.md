@@ -19,9 +19,9 @@ The following are already implemented in the codebase:
 - **Recently viewed** – Tracked in `local-storage.ts`, “Recently Viewed” in library
 - **Lazy background** – `LazyAnimatedBackground` with `next/dynamic` (ssr: false)
 - **Modal a11y** – Focus trap, Escape to close, ARIA dialog
-- **Multi-chain** – `SupportedChain`, `chains.ts`, `workers/lib/verifiers/`, dashboard explorer links
-- **Transaction verification** – Solana transaction parsing, recipient/amount/memo checks (`workers/lib/transaction-verification.ts`)
-- **Payment widget** – Solana Wallet Adapter, QR code, verification and purchase flow (`payment-widget-enhanced.tsx`)
+- **Multi-chain** – 8 blockchains: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, Avalanche. Chain selector in content creation, EVM verifier (`workers/lib/verifiers/evm-verifier.ts`), wagmi for EVM wallets.
+- **Transaction verification** – Solana (`transaction-verification.ts`) and EVM (viem) transaction parsing, recipient/amount checks.
+- **Payment widget** – Solana Wallet Adapter + wagmi (EVM), QR code for Solana, chain-aware flow, auto network switch (`payment-widget-enhanced.tsx`)
 - **Password recovery** – Forgot password flow, Resend/SendGrid, reset link with production URL handling
 - **Dashboard dropdown** – Nav “Dashboard” as dropdown (Overview, Manage Content, Payments, Settings, Security)
 - **Content management page** – Animated background, loading/empty/error states, toasts

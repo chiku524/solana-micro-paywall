@@ -1,12 +1,13 @@
-# Solana Micro-Paywall
+# Micro Paywall
 
-A Solana-native micro-paywall and pay-per-use platform that enables publishers, creators, and API providers to monetize their content using instant Solana blockchain payments.
+A multi-chain micro-paywall and pay-per-use platform that enables publishers, creators, and API providers to monetize their content using instant blockchain payments. Supports **8 blockchains**: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, and Avalanche.
 
 ## Features
 
-- **Instant Payment Processing** – Sub-second Solana transaction confirmations with near-zero fees
+- **Instant Payment Processing** – Sub-second transaction confirmations with near-zero fees
+- **Multi-Chain** – Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, Avalanche
 - **Access Token System** – Short-lived JWT tokens (1–24 hours) for premium content access after payment
-- **Embeddable Widget** – Payment widget for any website (Solana Wallet Adapter, QR code)
+- **Embeddable Widget** – Payment widget for any website (Solana + EVM wallets, QR code for Solana)
 - **Merchant Dashboard** – Analytics, content management, payment tracking, settings, security (2FA, password recovery)
 - **Public Marketplace** – Content discovery and browsing
 - **User Library** – Purchased content and bookmarks
@@ -17,7 +18,7 @@ A Solana-native micro-paywall and pay-per-use platform that enables publishers, 
 - **Backend**: Cloudflare Workers, Hono, TypeScript
 - **Database**: Cloudflare D1 (SQLite)
 - **Caching**: Cloudflare KV
-- **Blockchain**: Solana (Web3.js, Solana Pay)
+- **Blockchain**: Solana (Web3.js, Solana Pay), EVM chains (viem, wagmi)
 
 ## Quick Start
 

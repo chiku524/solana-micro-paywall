@@ -5,6 +5,7 @@
 - Node.js 18+ and npm
 - Cloudflare account with Workers and D1 access
 - Solana RPC endpoint (Helius recommended for production)
+- For EVM chains: Optional RPC URLs (public RPCs used as fallback)
 
 ## Quick Start
 
@@ -15,21 +16,22 @@
 
 2. **Create Cloudflare D1 database**
    ```bash
-   wrangler d1 create solana-paywall-db
+   npx wrangler d1 create solana-paywall-db
    ```
    Copy the database ID from the output and update `wrangler.toml` (replace the `database_id` under `[[env.production.d1_databases]]` and development if used).
 
 3. **Create KV namespace** (for rate limiting, cache)
    ```bash
-   wrangler kv:namespace create CACHE
-   wrangler kv:namespace create CACHE --preview
+   npx wrangler kv:namespace create CACHE
+   npx wrangler kv:namespace create CACHE --preview
    ```
    Copy the namespace IDs and update `wrangler.toml` under `[[env.production.kv_namespaces]]`.
 
 4. **Run database migrations**
    ```bash
-   npm run db:migrate
+   npx wrangler d1 migrations apply micropaywall-db --remote --env production
    ```
+   For existing DBs, you may need to run specific migrations via `npx wrangler d1 execute micropaywall-db --remote --env production --file=workers/migrations/0005_add_chain_support.sql`. See [architecture.md](architecture.md).
 
 5. **Configure environment for local development**
    Create a `.dev.vars` file in the project root (not committed):
@@ -59,7 +61,7 @@
 
 1. **Create a merchant account** – Go to http://localhost:3000/dashboard, sign up with email, and save your Merchant ID.
 2. **Log in** – Use email or Merchant ID to access the dashboard.
-3. **Set payout address** – In Settings, add your Solana wallet address for receiving payments.
+3. **Set payout address** – In Settings, add your wallet address (Solana for Solana content; EVM/0x for Ethereum, Polygon, Base, etc.).
 4. **Create content** – Use Dashboard → Manage Content to create your first paywalled item.
 5. **Test payment** – Open the content in the marketplace and use the payment widget to complete a test purchase.
 
@@ -72,7 +74,7 @@
   - `types/` – TypeScript types
 - **`workers/`** – Cloudflare Workers backend
   - `routes/` – API route handlers
-  - `lib/` – DB, JWT, email, Solana, verifiers
+  - `lib/` – DB, JWT, email, Solana, verifiers (Solana + EVM)
   - `middleware/` – Auth, CORS, security
   - `migrations/` – D1 migrations
 
