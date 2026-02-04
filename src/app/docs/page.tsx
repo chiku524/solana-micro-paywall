@@ -95,6 +95,9 @@ export default function DocsPage() {
                     <p className="text-sm text-neutral-600 dark:text-neutral-400">Drop-in widgets and comprehensive API</p>
                   </div>
                 </div>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm mt-4">
+                  The app includes creator (merchant) profile pages, breadcrumb navigation, recently viewed tracking, and respects <strong className="text-neutral-900 dark:text-white">prefers-reduced-motion</strong> for accessibility.
+                </p>
               </div>
               </section>
             )}
@@ -140,10 +143,16 @@ export default function DocsPage() {
                       <strong className="text-neutral-900 dark:text-white">Purchase Content:</strong> Click purchase and sign the transaction
                     </li>
                     <li>
-                      <strong className="text-neutral-900 dark:text-white">Access Library:</strong> View all purchases in <Link href="/library" className="text-emerald-600 dark:text-emerald-400 hover:underline">My Library</Link>
+                      <strong className="text-neutral-900 dark:text-white">Access Library:</strong> View all purchases, bookmarks, and recently viewed in <Link href="/library" className="text-emerald-600 dark:text-emerald-400 hover:underline">Library</Link> (also in the main navigation)
                     </li>
                   </ol>
                 </div>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-4">
+                  From the home page you can also open <Link href="/docs" className="text-emerald-600 dark:text-emerald-400 hover:underline">Documentation</Link> for the full guide.
+                </p>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+                  <strong className="text-neutral-900 dark:text-white">Navigation:</strong> The main nav includes Home, Marketplace, and Library. Logged-in merchants get a Dashboard dropdown (Overview, Manage Content, Payments, Settings, Security); the dropdown closes when you click outside or press Escape.
+                </p>
               </div>
               </section>
             )}
@@ -175,24 +184,29 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Login</h3>
                   <p className="text-neutral-600 dark:text-neutral-300 mb-3">
-                    Login using your email address or Merchant ID. You&apos;ll receive a JWT token valid for 24 hours.
+                    Login using your email address or Merchant ID, plus your password. You&apos;ll receive a JWT token valid for 24 hours. Use &quot;Forgot password?&quot; on the login page to reset your password via email.
                   </p>
                   <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
                     <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Login Endpoint:</p>
                     <code className="text-emerald-600 dark:text-emerald-400 text-sm">POST /api/auth/login</code>
                     <pre className="mt-2 text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-900 p-3 rounded overflow-x-auto">
 {`{
-  "email": "your@email.com"
+  "email": "your@email.com",
+  "password": "your-password"
   // OR
-  "merchantId": "your-merchant-id"
+  "merchantId": "your-merchant-id",
+  "password": "your-password"
 }`}
                     </pre>
                   </div>
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Profile Management</h3>
-                  <p className="text-neutral-600 dark:text-neutral-300">
-                    Customize your merchant profile with display name, bio, avatar, and social links. Update your payout address and configure webhook secrets in the Settings page.
+                  <p className="text-neutral-600 dark:text-neutral-300 mb-3">
+                    Customize your merchant profile with display name, bio, avatar, and social links (Twitter, Telegram, Discord, GitHub). Update your payout address and configure webhook secrets in the Settings page.
+                  </p>
+                  <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+                    Your public profile is visible at <code className="text-emerald-600 dark:text-emerald-400">/marketplace/merchant/[your-merchant-id]</code> so buyers can see your bio and all your public content.
                   </p>
                 </div>
               </div>
@@ -284,6 +298,12 @@ export default function DocsPage() {
                   </div>
                 </div>
                 <div>
+                  <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">User Feedback</h3>
+                  <p className="text-neutral-600 dark:text-neutral-300 mb-3">
+                    On the content detail page, failed payments show a toast notification with the error message so users know what went wrong and can retry or fix the issue.
+                  </p>
+                </div>
+                <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">API Endpoints</h3>
                   <div className="space-y-3">
                     <div className="bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
@@ -353,7 +373,7 @@ export default function DocsPage() {
                     <li>Automatic payment status polling</li>
                     <li>Customizable button text and styling</li>
                     <li>Event-driven architecture</li>
-                    <li>Comprehensive error handling</li>
+                    <li>Comprehensive error handling: use <code className="text-emerald-600 dark:text-emerald-400">onPaymentError</code> to show toasts or custom UI when payment fails</li>
                   </ul>
                 </div>
               </div>
@@ -431,8 +451,11 @@ export default function DocsPage() {
                     <div className="border-l-4 border-cyan-500 pl-4">
                       <h4 className="text-neutral-900 dark:text-white font-semibold mb-2">Discovery</h4>
                       <ul className="space-y-1 text-sm text-neutral-600 dark:text-neutral-300">
+                        <li><code className="text-cyan-600 dark:text-cyan-400">GET /api/discover</code> - Discover content (pagination, category, tags, search, sort)</li>
                         <li><code className="text-cyan-600 dark:text-cyan-400">GET /api/discover/trending</code> - Get trending content</li>
                         <li><code className="text-cyan-600 dark:text-cyan-400">GET /api/discover/recent</code> - Get recent content</li>
+                        <li><code className="text-cyan-600 dark:text-cyan-400">GET /api/discover/categories</code> - Get categories with counts</li>
+                        <li><code className="text-cyan-600 dark:text-cyan-400">GET /api/discover/merchant/:merchantId</code> - Get public content by creator (for profile pages)</li>
                       </ul>
                     </div>
                     <div className="border-l-4 border-emerald-500 pl-4">
@@ -492,13 +515,20 @@ export default function DocsPage() {
                   </div>
                 </div>
                 <div>
+                  <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Creator Profile Page</h3>
+                  <p className="text-neutral-600 dark:text-neutral-300 mb-3">
+                    Each creator has a public profile at <code className="text-emerald-600 dark:text-emerald-400">/marketplace/merchant/[merchantId]</code> showing their display name, bio, avatar, social links, and all their public content. Content detail pages include a &quot;View creator profile&quot; link and a breadcrumb: Marketplace → Creator → Content title.
+                  </p>
+                </div>
+                <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Content Detail Page</h3>
                   <p className="text-neutral-600 dark:text-neutral-300 mb-4">
                     Each content item has a dedicated detail page with:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
+                    <li>Breadcrumb navigation (Marketplace → Creator → Title)</li>
                     <li>Full content information and preview</li>
-                    <li>Payment widget for purchasing</li>
+                    <li>Payment widget for purchasing; payment errors show a toast notification</li>
                     <li>Social sharing buttons (Twitter, LinkedIn, Facebook, Copy Link)</li>
                     <li>Native Web Share API support on mobile devices</li>
                     <li>Bookmark button for saving content</li>
@@ -517,6 +547,9 @@ export default function DocsPage() {
                 key="library"
               >
               <div className="glass-strong p-6 rounded-xl space-y-6">
+                <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+                  The Library at <Link href="/library" className="text-emerald-600 dark:text-emerald-400 hover:underline">/library</Link> is available from the main navigation for everyone. It has <strong className="text-neutral-900 dark:text-white">four tabs</strong>: My Purchases, My Creations, Bookmarks, and Recently Viewed.
+                </p>
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">My Purchases</h3>
                   <p className="text-neutral-600 dark:text-neutral-300 mb-4">
@@ -607,12 +640,19 @@ export default function DocsPage() {
                   </div>
                 </div>
                 <div>
+                  <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Loading States</h3>
+                  <p className="text-neutral-600 dark:text-neutral-300 mb-3">
+                    While stats and recent payments are loading, the dashboard shows skeleton placeholders (cards and table rows) for a smoother experience.
+                  </p>
+                </div>
+                <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Pages</h3>
                   <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
                     <li><Link href="/dashboard" className="text-emerald-600 dark:text-emerald-400 hover:underline">Dashboard</Link> - Overview and statistics</li>
                     <li><Link href="/dashboard/contents" className="text-emerald-600 dark:text-emerald-400 hover:underline">Contents</Link> - Content management</li>
                     <li><Link href="/dashboard/payments" className="text-emerald-600 dark:text-emerald-400 hover:underline">Payments</Link> - Full payment history</li>
                     <li><Link href="/dashboard/settings" className="text-emerald-600 dark:text-emerald-400 hover:underline">Settings</Link> - Profile and account settings</li>
+                    <li><Link href="/dashboard/security" className="text-emerald-600 dark:text-emerald-400 hover:underline">Security</Link> - Password change, 2FA, backup codes, activity log</li>
                   </ul>
                 </div>
               </div>
@@ -732,14 +772,21 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Protected Routes</h3>
                   <p className="text-neutral-600 dark:text-neutral-300 mb-3">
-                    The following routes require authentication:
+                    The following routes require merchant authentication:
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-neutral-600 dark:text-neutral-300">
                     <li>/dashboard - Main dashboard</li>
                     <li>/dashboard/contents - Content management</li>
                     <li>/dashboard/payments - Payment history</li>
                     <li>/dashboard/settings - Account settings</li>
+                    <li>/dashboard/security - Password, 2FA, activity log</li>
                   </ul>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Password Recovery & 2FA</h3>
+                  <p className="text-neutral-600 dark:text-neutral-300">
+                    Use &quot;Forgot password?&quot; on the login page to receive a reset link by email. The Security page lets you change your password, enable two-factor authentication (2FA), and view recent account activity.
+                  </p>
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Token Validation</h3>
@@ -799,6 +846,18 @@ export default function DocsPage() {
                   <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Can I refund a payment?</h3>
                   <p className="text-neutral-600 dark:text-neutral-300">
                     Refunds are handled manually by merchants. Contact support or use the refund functionality in your dashboard (if implemented).
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Where can I see a creator&apos;s profile and all their content?</h3>
+                  <p className="text-neutral-600 dark:text-neutral-300">
+                    Open any content and click &quot;View creator profile&quot; or use the breadcrumb link. Creator profiles are at <code className="text-emerald-600 dark:text-emerald-400">/marketplace/merchant/[merchantId]</code> and show their bio, social links, and public content.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">What if I prefer reduced motion?</h3>
+                  <p className="text-neutral-600 dark:text-neutral-300">
+                    The app respects the <strong className="text-neutral-900 dark:text-white">prefers-reduced-motion</strong> system setting: smooth scrolling and fade-in animations are disabled when you have reduced motion enabled.
                   </p>
                 </div>
               </div>
