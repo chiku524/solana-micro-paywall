@@ -35,6 +35,11 @@ export default function HomePage() {
               <Link href="/marketplace">
                 <Button variant="outline" size="lg">Browse Marketplace</Button>
               </Link>
+              <Link href="/docs">
+                <Button variant="ghost" size="lg" className="text-neutral-600 dark:text-neutral-400">
+                  Documentation
+                </Button>
+              </Link>
             </div>
           </div>
         </section>

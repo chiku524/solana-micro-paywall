@@ -27,6 +27,19 @@ The following are already implemented in the codebase:
 - **Content management page** – Animated background, loading/empty/error states, toasts
 - **Toasts** – Replaced `alert()` with toasts on settings, contents, signup, payment success
 
+## UX Enhancements (Latest)
+
+- **Library tabs** – Added visible "Bookmarks" and "Recently Viewed" tab buttons on the Library page (content was already implemented but tabs were missing).
+- **Content detail** – Breadcrumb (Marketplace → Creator → Title), "View creator profile" link, and automatic tracking of recently viewed content when a content page is loaded.
+- **Merchant profile page** – New `/marketplace/merchant/[merchantId]` page showing creator profile (display name, bio, avatar, social links) and their public content; API: `GET /api/discover/merchant/:merchantId`.
+- **Navbar** – "Library" added to main navigation for all users; dashboard dropdown now closes on Escape key.
+- **Dashboard** – Skeleton loading for stats cards and recent payments table while data is fetching.
+- **Payment errors** – Content detail page now shows a toast notification on payment failure (in addition to widget error state).
+- **Marketplace** – Price Range and Tags filter labels use theme-aware text color (neutral-600/neutral-300) for better readability in light and dark mode.
+- **Footer** – "Library" link added under Product.
+- **Landing** – "Documentation" button added in the hero CTA row.
+- **Accessibility** – `prefers-reduced-motion` support in globals.css: smooth scroll and fade-in animations are disabled when the user prefers reduced motion.
+
 ## Future Recommendations
 
 - **Testing** – Unit tests for verifiers and transaction verification; integration tests for payment flow

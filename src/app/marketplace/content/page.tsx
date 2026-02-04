@@ -1,10 +1,10 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import Image from 'next/image';
-import { useEffect } from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { PaymentWidget } from '@/components/payment-widget-enhanced';
@@ -15,6 +15,7 @@ import { apiGet } from '@/lib/api';
 import { formatSol } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
 import type { Content } from '@/types';
+import { getErrorMessage } from '@/lib/get-error-message';
 
 function ContentDetailContent() {
   const searchParams = useSearchParams();
@@ -62,11 +63,31 @@ function ContentDetailContent() {
       </div>
     );
   }
-  
+
+  // Track recently viewed (client-only)
+  useEffect(() => {
+    recentlyViewed.add(content.id, {
+      title: content.title,
+      thumbnailUrl: content.thumbnailUrl ?? undefined,
+      merchantId: content.merchantId,
+      slug: content.slug,
+    });
+  }, [content.id, content.title, content.thumbnailUrl, content.merchantId, content.slug]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Breadcrumb */}
+        <nav className="mb-6 text-sm text-neutral-600 dark:text-neutral-400" aria-label="Breadcrumb">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li><Link href="/marketplace" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Marketplace</Link></li>
+            <li aria-hidden>/</li>
+            <li><Link href={`/marketplace/merchant/${content.merchantId}`} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Creator</Link></li>
+            <li aria-hidden>/</li>
+            <li className="text-neutral-900 dark:text-white font-medium truncate max-w-[12rem] sm:max-w-none" aria-current="page">{content.title}</li>
+          </ol>
+        </nav>
         {content.thumbnailUrl && (
           <div className="relative w-full aspect-video bg-neutral-200 dark:bg-neutral-900 rounded-lg overflow-hidden mb-8">
             <Image
@@ -96,7 +117,13 @@ function ContentDetailContent() {
           </div>
         </div>
         
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <Link
+            href={`/marketplace/merchant/${content.merchantId}`}
+            className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
+          >
+            View creator profile →
+          </Link>
           <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
             {formatSol(content.priceLamports)} SOL
           </span>
@@ -134,11 +161,10 @@ function ContentDetailContent() {
             priceLamports={content.priceLamports}
             onPaymentSuccess={(token) => {
               showToast.success('Payment successful! You now have access.');
-              // Token can be used to unlock content; redirect or show content here
               void token;
             }}
             onPaymentError={(error) => {
-              console.error('Payment error:', error);
+              showToast.error(getErrorMessage(error, 'Payment failed. Please try again.'));
             }}
           />
         </div>

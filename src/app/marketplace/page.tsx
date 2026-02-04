@@ -185,7 +185,7 @@ export default function MarketplacePage() {
                 
                 {/* Price Range */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
                     Price Range: {formatSol(priceRange.min * 1_000_000_000)} - {formatSol(priceRange.max * 1_000_000_000)} SOL
                   </label>
                   <div className="flex gap-4">
@@ -246,7 +246,7 @@ export default function MarketplacePage() {
               {/* Tags Filter */}
               {allTags.length > 0 && (
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-neutral-300 mb-2">Tags</label>
+                  <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">Tags</label>
                   <div className="flex flex-wrap gap-2">
                     {allTags.slice(0, 20).map((tag) => (
                       <button

@@ -187,4 +187,40 @@ app.get('/categories', async (c) => {
   return c.json({ categories });
 });
 
+// Get public content by merchant ID (must be after static routes like /categories)
+app.get('/merchant/:merchantId', async (c) => {
+  const merchantId = c.req.param('merchantId');
+  const limit = Math.min(parseInt(c.req.query('limit') || '24'), 100);
+  const offset = (Math.max(1, parseInt(c.req.query('page') || '1')) - 1) * limit;
+
+  const results = await c.env.DB.prepare(
+    'SELECT * FROM content WHERE visibility = ? AND merchant_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?'
+  )
+    .bind('public', merchantId, limit, offset)
+    .all();
+
+  const contents: Content[] = results.results.map((row: any) => ({
+    id: row.id,
+    merchantId: row.merchant_id,
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    tags: row.tags,
+    thumbnailUrl: row.thumbnail_url,
+    priceLamports: row.price_lamports,
+    currency: row.currency,
+    durationSeconds: row.duration_seconds,
+    visibility: row.visibility,
+    previewText: row.preview_text,
+    canonicalUrl: row.canonical_url,
+    viewCount: row.view_count,
+    purchaseCount: row.purchase_count,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
+
+  return c.json({ content: contents });
+});
+
 export default app;

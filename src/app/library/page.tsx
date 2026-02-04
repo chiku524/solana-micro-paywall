@@ -109,10 +109,14 @@ export default function LibraryPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-2">My Library</h1>
-            <p className="text-neutral-400">
-              {activeTab === 'purchases' 
+            <p className="text-neutral-600 dark:text-neutral-400">
+              {activeTab === 'purchases'
                 ? 'Access all your purchased content in one place'
-                : 'Manage and view all your created content'}
+                : activeTab === 'creations'
+                ? 'Manage and view all your created content'
+                : activeTab === 'bookmarks'
+                ? 'Content you saved for later'
+                : 'Content you recently viewed'}
             </p>
           </div>
           <div className="mt-4 md:mt-0">
@@ -141,26 +145,46 @@ export default function LibraryPage() {
         </div>
         
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 border-b border-neutral-800">
+        <div className="flex flex-wrap gap-2 mb-8 border-b border-neutral-200 dark:border-neutral-800">
           <button
             onClick={() => setActiveTab('purchases')}
-            className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+            className={`px-4 py-3 font-medium transition-colors border-b-2 ${
               activeTab === 'purchases'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+                ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-300'
             }`}
           >
             My Purchases
           </button>
           <button
             onClick={() => setActiveTab('creations')}
-            className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+            className={`px-4 py-3 font-medium transition-colors border-b-2 ${
               activeTab === 'creations'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+                ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-300'
             }`}
           >
             My Creations
+          </button>
+          <button
+            onClick={() => setActiveTab('bookmarks')}
+            className={`px-4 py-3 font-medium transition-colors border-b-2 ${
+              activeTab === 'bookmarks'
+                ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-300'
+            }`}
+          >
+            Bookmarks
+          </button>
+          <button
+            onClick={() => setActiveTab('recently-viewed')}
+            className={`px-4 py-3 font-medium transition-colors border-b-2 ${
+              activeTab === 'recently-viewed'
+                ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-300'
+            }`}
+          >
+            Recently Viewed
           </button>
         </div>
         

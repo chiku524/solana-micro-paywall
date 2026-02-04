@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/auth-context';
 import { formatSol, formatDate, truncateAddress } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/get-error-message';
 import { getExplorerTxUrl, DEFAULT_CHAIN } from '@/lib/chains';
+import { DashboardCardSkeleton, TableRowSkeleton } from '@/components/ui/skeleton';
 import type { PaymentStats, LoginResponse, RecentPayment } from '@/types';
 
 function DashboardLogin() {
@@ -187,12 +188,12 @@ function DashboardLogin() {
 function DashboardContent() {
   const { token, merchantId } = useAuth();
   
-  const { data: stats } = useSWR<PaymentStats>(
+  const { data: stats, isLoading: statsLoading } = useSWR<PaymentStats>(
     token ? ['/api/analytics/stats', token] : null,
     ([url, t]: [string, string]) => apiGet(url, t)
   );
   
-  const { data: recentPayments } = useSWR<{ payments: RecentPayment[] }>(
+  const { data: recentPayments, isLoading: paymentsLoading } = useSWR<{ payments: RecentPayment[] }>(
     token ? ['/api/analytics/recent-payments', token] : null,
     ([url, t]: [string, string]) => apiGet(url, t)
   );
@@ -218,7 +219,13 @@ function DashboardContent() {
           </div>
         
         {/* Stats */}
-        {stats && (
+        {statsLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {[1, 2, 3, 4].map((i) => (
+              <DashboardCardSkeleton key={i} className="border border-neutral-200 dark:border-neutral-800" />
+            ))}
+          </div>
+        ) : stats && (
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             <div className="glass-strong p-6 rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all">
               <div className="flex items-center justify-between mb-2">
@@ -276,12 +283,31 @@ function DashboardContent() {
         {/* Recent Payments */}
         <div className="glass-strong rounded-xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-white">Recent Payments</h2>
+            <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white">Recent Payments</h2>
             <Link href="/dashboard/payments">
               <Button variant="ghost" size="sm">View All</Button>
             </Link>
           </div>
-          {recentPayments?.payments && recentPayments.payments.length > 0 ? (
+          {paymentsLoading ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-neutral-800">
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Content</th>
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Amount</th>
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Payer</th>
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Date</th>
+                    <th className="text-left py-3 px-4 text-neutral-600 dark:text-neutral-400">Transaction</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <TableRowSkeleton key={i} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : recentPayments?.payments && recentPayments.payments.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -296,7 +322,7 @@ function DashboardContent() {
                 <tbody>
                   {recentPayments.payments.map((payment) => (
                     <tr key={payment.id} className="border-b border-neutral-800">
-                      <td className="py-3 px-4 text-white">{payment.contentTitle}</td>
+                      <td className="py-3 px-4 text-neutral-900 dark:text-white">{payment.contentTitle}</td>
                       <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400">
                         {formatSol(payment.amountLamports)} SOL
                       </td>
@@ -321,9 +347,9 @@ function DashboardContent() {
                 </tbody>
               </table>
             </div>
-          ) : (
-            <p className="text-neutral-400">No payments yet</p>
-          )}
+          ) : !paymentsLoading ? (
+            <p className="text-neutral-600 dark:text-neutral-400">No payments yet</p>
+          ) : null}
         </div>
         </div>
         <Footer />
