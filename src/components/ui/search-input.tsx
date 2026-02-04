@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useDebounce } from '@/lib/use-debounce';
-import { Input, InputProps } from './input';
+import { cn } from '@/lib/utils';
 
-interface SearchInputProps extends Omit<InputProps, 'onChange' | 'value'> {
+interface SearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   value?: string;
   onSearch: (value: string) => void;
   debounceMs?: number;
@@ -63,12 +63,17 @@ export function SearchInput({
           />
         </svg>
       </div>
-      <Input
+      <input
         {...inputProps}
         type="search"
         value={localValue}
         onChange={handleChange}
-        className={`${inputProps.className || ''} pl-10 ${showClearButton && localValue ? 'pr-10' : ''}`}
+        className={cn(
+          'w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors',
+          'pl-10',
+          showClearButton && localValue && 'pr-10',
+          inputProps.className
+        )}
         placeholder={inputProps.placeholder || 'Search...'}
         aria-label={inputProps['aria-label'] || 'Search'}
       />

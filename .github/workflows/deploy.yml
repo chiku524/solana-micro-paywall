@@ -27,7 +27,7 @@ jobs:
       - name: Check Cloudflare secrets
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "::error::Authentication error: CLOUDFLARE_API_TOKEN and/or CLOUDFLARE_ACCOUNT_ID are not set in GitHub Actions secrets (Settings → Secrets and variables → Actions). See DEPLOYMENT.md for how to create a token with the right permissions."
+            echo "::error::Authentication error: CLOUDFLARE_API_TOKEN and/or CLOUDFLARE_ACCOUNT_ID are not set in GitHub Actions secrets (Settings → Secrets and variables → Actions). See docs/deployment.md for how to create a token with the right permissions."
             exit 1
           fi
         env:
@@ -64,7 +64,7 @@ jobs:
       - name: Check Cloudflare secrets
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "::error::Authentication error: CLOUDFLARE_API_TOKEN and/or CLOUDFLARE_ACCOUNT_ID are not set in GitHub Actions secrets (Settings → Secrets and variables → Actions). See DEPLOYMENT.md for how to create a token with the right permissions."
+            echo "::error::Authentication error: CLOUDFLARE_API_TOKEN and/or CLOUDFLARE_ACCOUNT_ID are not set in GitHub Actions secrets (Settings → Secrets and variables → Actions). See docs/deployment.md for how to create a token with the right permissions."
             exit 1
           fi
         env:

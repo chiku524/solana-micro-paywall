@@ -2,7 +2,7 @@
  * Chain-agnostic utilities for multi-blockchain support.
  * Add new chains by extending CHAIN_CONFIGS and implementing:
  * - Backend: workers/lib/verifiers/<chain>-verifier.ts
- * - Frontend: wallet adapter for the chain (see ARCHITECTURE.md)
+ * - Frontend: wallet adapter for the chain (see docs/architecture.md)
  */
 
 import type { SupportedChain } from '@/types';
