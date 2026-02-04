@@ -51,14 +51,9 @@ export default function SettingsPage() {
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8">
           <h1 className="text-4xl font-bold text-neutral-900 dark:text-white">Settings</h1>
-          <a
-            href="/dashboard/security"
-            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-          >
-            Security Settings →
-          </a>
+          <p className="text-neutral-600 dark:text-neutral-400 mt-1">Update your profile and account details</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 p-6 rounded-xl shadow-lg">
