@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js **20.18+** (required by current Solana wallet adapter and related packages; CI uses Node 20)
 - npm
 - Cloudflare account (for production deploy)
 - Wrangler CLI (`npm install -g wrangler` or use `npx wrangler`)

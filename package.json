@@ -2,6 +2,13 @@
   "name": "solana-micro-paywall",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.18.0"
+  },
+  "overrides": {
+    "@types/react": "18.3.27",
+    "@types/react-dom": "18.3.7"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -44,8 +51,8 @@
     "@cloudflare/workers-types": "^4.20240208.0",
     "@types/node": "^20.11.0",
     "@types/qrcode": "^1.5.5",
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0",
+    "@types/react": "18.3.27",
+    "@types/react-dom": "18.3.7",
     "autoprefixer": "^10.4.17",
     "eslint": "^8.56.0",
     "eslint-config-next": "^15.0.0",
