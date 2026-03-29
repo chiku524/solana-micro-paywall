@@ -91,9 +91,7 @@ There is **no** `/api/recommendations` route; discovery is under `/api/discover`
 
 ## Frontend Routes (representative)
 
-- `/`, `/dashboard/*`, `/marketplace`, `/marketplace/discover`, `/marketplace/content/[merchantId]/[slug]` (full description + `?wallet=` for unlock when owned), `/marketplace/merchant/[merchantId]`, `/library`, `/bookmarks`, `/docs`  
-
-**Static export:** dynamic segments such as `/marketplace/merchant/[merchantId]` may require `generateStaticParams` (or similar) for a fully static build; verify with `npm run build` in your branch.
+- `/`, `/dashboard/*`, `/marketplace`, `/marketplace/discover`, `/marketplace/content` (query: `merchantId`, `slug`; `?wallet=` when owned), `/marketplace/merchant` (query: `merchantId`), `/library`, `/bookmarks`, `/docs`
 
 ## Recommendations (still useful)
 

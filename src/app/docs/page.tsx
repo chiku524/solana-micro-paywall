@@ -204,7 +204,7 @@ export default function DocsPage() {
                     <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">Profile & public page</h3>
                     <p className="text-neutral-600 dark:text-neutral-300 mb-2">
                       Display name, bio, avatar, and social links appear on your public creator page at{' '}
-                      <code className="text-emerald-600 dark:text-emerald-400 text-sm">/marketplace/merchant/[merchantId]</code>.
+                      <code className="text-emerald-600 dark:text-emerald-400 text-sm">/marketplace/merchant/?merchantId=…</code>.
                     </p>
                   </div>
                   <div>
@@ -597,7 +597,7 @@ import { MicropaywallEmbed } from 'micropaywall-embed-react';
                     </li>
                   </ul>
                   <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-                    Creator profiles: <code className="text-emerald-600 dark:text-emerald-400">/marketplace/merchant/[merchantId]</code>.
+                    Creator profiles: <code className="text-emerald-600 dark:text-emerald-400">/marketplace/merchant/?merchantId=…</code>.
                   </p>
                 </div>
               </section>

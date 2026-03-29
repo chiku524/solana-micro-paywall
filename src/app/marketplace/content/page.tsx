@@ -183,7 +183,7 @@ function ContentDetailContent() {
             <li aria-hidden>/</li>
             <li>
               <Link
-                href={`/marketplace/merchant/${content.merchantId}`}
+                href={`/marketplace/merchant/?merchantId=${encodeURIComponent(content.merchantId)}`}
                 className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
               >
                 {t('creator')}
@@ -229,7 +229,7 @@ function ContentDetailContent() {
 
         <div className="flex flex-wrap items-center gap-4 mb-6">
           <Link
-            href={`/marketplace/merchant/${content.merchantId}`}
+            href={`/marketplace/merchant/?merchantId=${encodeURIComponent(content.merchantId)}`}
             className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
           >
             {t('viewCreator')}

@@ -1,6 +1,7 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,9 +23,29 @@ type PublicMerchant = {
   createdAt: number;
 };
 
-export default function MerchantProfilePage() {
-  const params = useParams();
-  const merchantId = params?.merchantId as string;
+function MerchantProfileSkeleton() {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="animate-pulse space-y-6">
+          <div className="h-24 bg-neutral-200 dark:bg-neutral-800 rounded-xl w-1/3" />
+          <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded w-full max-w-2xl" />
+          <div className="grid md:grid-cols-3 gap-6 mt-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-64 bg-neutral-200 dark:bg-neutral-800 rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+function MerchantProfileContent() {
+  const searchParams = useSearchParams();
+  const merchantId = searchParams.get('merchantId')?.trim() ?? '';
 
   const { data: merchant, error: merchantError } = useSWR<PublicMerchant>(
     merchantId ? `/api/merchants/${merchantId}` : null,
@@ -43,7 +64,13 @@ export default function MerchantProfilePage() {
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <p className="text-red-500">Invalid merchant</p>
+          <p className="text-neutral-600 dark:text-neutral-400">
+            Missing <code className="text-emerald-600 dark:text-emerald-400">merchantId</code> in the URL. Open a creator from the marketplace or use{' '}
+            <code className="text-emerald-600 dark:text-emerald-400">?merchantId=…</code>
+          </p>
+          <Link href="/marketplace" className="text-emerald-600 dark:text-emerald-400 hover:underline mt-4 inline-block">
+            Back to Marketplace
+          </Link>
         </main>
         <Footer />
       </div>
@@ -51,23 +78,7 @@ export default function MerchantProfilePage() {
   }
 
   if (merchantError || (merchant === undefined && !contentData)) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="animate-pulse space-y-6">
-            <div className="h-24 bg-neutral-200 dark:bg-neutral-800 rounded-xl w-1/3" />
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded w-full max-w-2xl" />
-            <div className="grid md:grid-cols-3 gap-6 mt-8">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-64 bg-neutral-200 dark:bg-neutral-800 rounded-xl" />
-              ))}
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
+    return <MerchantProfileSkeleton />;
   }
 
   if (!merchant) {
@@ -98,9 +109,15 @@ export default function MerchantProfilePage() {
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <nav className="mb-6 text-sm text-neutral-600 dark:text-neutral-400" aria-label="Breadcrumb">
           <ol className="flex flex-wrap items-center gap-2">
-            <li><Link href="/marketplace" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Marketplace</Link></li>
+            <li>
+              <Link href="/marketplace" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                Marketplace
+              </Link>
+            </li>
             <li aria-hidden>/</li>
-            <li className="text-neutral-900 dark:text-white font-medium" aria-current="page">{merchant.displayName || 'Creator'}</li>
+            <li className="text-neutral-900 dark:text-white font-medium" aria-current="page">
+              {merchant.displayName || 'Creator'}
+            </li>
           </ol>
         </nav>
 
@@ -118,9 +135,7 @@ export default function MerchantProfilePage() {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-                {merchant.displayName || 'Creator'}
-              </h1>
+              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">{merchant.displayName || 'Creator'}</h1>
               {merchant.bio && (
                 <p className="text-neutral-600 dark:text-neutral-400 mb-4 whitespace-pre-wrap">{merchant.bio}</p>
               )}
@@ -159,5 +174,13 @@ export default function MerchantProfilePage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function MerchantProfilePage() {
+  return (
+    <Suspense fallback={<MerchantProfileSkeleton />}>
+      <MerchantProfileContent />
+    </Suspense>
   );
 }

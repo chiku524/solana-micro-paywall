@@ -233,7 +233,7 @@
 - **Locale**: Marketplace supports EN/ES toggle (UI copy)
 
 #### Merchant Profile Page
-- **Public Merchant Page**: `/marketplace/merchant/[merchantId]`
+- **Public Merchant Page**: `/marketplace/merchant/?merchantId=…`
 - **Merchant Info**: Display name, bio, avatar, social links
 - **Merchant's Content**: List of all public content from merchant
 - **Content Grid**: Responsive grid of content cards
@@ -344,7 +344,7 @@
 - `/marketplace` - Marketplace homepage
 - `/marketplace/discover` - Content discovery
 - `/marketplace/content/[merchantId]/[slug]` - Content detail
-- `/marketplace/merchant/[merchantId]` - Merchant profile
+- `/marketplace/merchant` - Merchant profile (`?merchantId=`)
 - `/library` - User's purchased content
 - `/bookmarks` - User's bookmarked content
 - `/docs` - Documentation
