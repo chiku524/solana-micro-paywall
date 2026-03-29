@@ -45,7 +45,6 @@ export function Navbar() {
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/marketplace', label: 'Marketplace' },
-    { href: '/library', label: 'Library' },
   ];
   
   return (
