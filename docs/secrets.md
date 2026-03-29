@@ -1,47 +1,41 @@
-# Secrets and Environment Variables
+# Secrets & Environment Variables
 
-Worker secrets are set via the Wrangler CLI and are encrypted in Cloudflare. They are not stored in the repo.
+## Workers (`workers/.dev.vars` locally, `wrangler secret` in production)
 
-## Required secrets
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `JWT_SECRET` | Yes | JWT signing secret for merchant sessions and access tokens |
+| `SOLANA_RPC_URL` | Yes* | Solana RPC (Helius URL with API key is typical) |
+| `HELIUS_API_KEY` | No | Used when building Helius URLs / features that expect it |
+| `RESEND_API_KEY` | No | Transactional email (verification, password reset, merchant sale notifications) |
+| `EMAIL_FROM` | No | From address for Resend (must be verified in Resend) |
+| `SENTRY_DSN` | No | Worker error reporting (if wired in worker code) |
 
-Set these for the `micropaywall-api` Worker (e.g. `--env production`):
+\*Strictly required for Solana flows; EVM-only tests still benefit from a valid Worker env.
 
-| Secret | Purpose | Set via |
-|--------|---------|---------|
-| `JWT_SECRET` | Signing JWT tokens (auth, access tokens) | `wrangler secret put JWT_SECRET --env production` |
-| `SOLANA_RPC_URL` | Solana RPC endpoint for transaction verification | `wrangler secret put SOLANA_RPC_URL --env production` |
+**Webhooks:** HMAC signing uses the per-merchant **`webhookSecret`** set in the dashboard (stored in D1), not a global Worker secret.
 
-## Email (password recovery and verification)
+### Public `[vars]` (non-secret)
 
-To send password-reset and verification emails, set **one** of:
+Typically set in `wrangler.toml` or dashboard:
 
-| Secret | Purpose |
-|--------|---------|
-| `RESEND_API_KEY` | Send via [Resend](https://resend.com); verify your domain and create an API key. Default "From" in code: `noreply@micropaywall.app` (edit `workers/lib/email.ts` if needed). |
-| `SENDGRID_API_KEY` | Send via [SendGrid](https://sendgrid.com). |
+- `NEXT_PUBLIC_WEB_URL` – allowed CORS origin for the web app
+- `ENVIRONMENT` – `development` \| `staging` \| `production`
+- EVM RPC URLs per chain (e.g. `ETHEREUM_RPC_URL`, `POLYGON_RPC_URL`, …) as configured in your project
 
-Without either, production forgot-password returns 503 ("Password reset is temporarily unavailable").
+**Note:** Fiat/USD spot quotes use CoinGecko’s public API by default; no API key is required for basic usage.
 
-## Optional
+## Frontend (`.env.local` / Pages env)
 
-- `HELIUS_API_KEY` – Enhanced Solana RPC
-- **EVM RPC URLs** – For EVM chain verification (public RPCs used as fallback):
-  - `ETHEREUM_RPC_URL`, `POLYGON_RPC_URL`, `BASE_RPC_URL`, `ARBITRUM_RPC_URL`
-  - `OPTIMISM_RPC_URL`, `BNB_RPC_URL`, `AVALANCHE_RPC_URL`
-- `NEXT_PUBLIC_WEB_URL` – e.g. `https://micropaywall.app` (CORS; also in `wrangler.toml` for production)
-- `NEXT_PUBLIC_API_URL` – e.g. `https://api.micropaywall.app`
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | Worker API base URL |
+| `NEXT_PUBLIC_WEB_URL` | Site origin (CORS, links, embeds) |
+| `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry |
 
-## Bindings (wrangler.toml)
+## Do not commit
 
-D1 (`DB`) and KV (`CACHE`) are configured in `wrangler.toml` and applied on deploy. No need to set them as secrets in the dashboard if you deploy with Wrangler.
+- `workers/.dev.vars`
+- `.env.local`
 
-## Commands
-
-```bash
-wrangler secret put JWT_SECRET --env production
-wrangler secret put SOLANA_RPC_URL --env production
-wrangler secret put RESEND_API_KEY --env production   # if using Resend
-wrangler secret list --env production
-```
-
-Secrets cannot be read back after setting; rotate by putting a new value.
+Add these files locally; variable names are listed in the tables above.

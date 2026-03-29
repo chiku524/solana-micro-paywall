@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { generateMetadata as generateSEOMetadata } from '@/lib/seo';
+import { MarketplaceLocaleProvider } from '@/components/marketplace-locale-provider';
 
 export const metadata: Metadata = generateSEOMetadata({
   title: 'Marketplace - Discover Premium Content',
@@ -12,6 +13,6 @@ export default function MarketplaceLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <MarketplaceLocaleProvider>{children}</MarketplaceLocaleProvider>;
 }
 

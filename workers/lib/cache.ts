@@ -79,4 +79,5 @@ export const cacheKeys = {
   contentList: (merchantId: string, page: number, limit: number) => 
     `content:list:${merchantId}:${page}:${limit}`,
   stats: (merchantId: string) => `stats:${merchantId}`,
+  discover: (querySignature: string) => `discover:v1:${querySignature}`,
 };

@@ -185,15 +185,15 @@ export function AnimatedBackground() {
       blobs.push({
         x: Math.random() * dimensions.width,
         y: Math.random() * dimensions.height,
-        vx: (Math.random() - 0.5) * (0.1 + Math.random() * 0.15),
-        vy: (Math.random() - 0.5) * (0.1 + Math.random() * 0.15),
+        vx: (Math.random() - 0.5) * (0.024 + Math.random() * 0.036),
+        vy: (Math.random() - 0.5) * (0.024 + Math.random() * 0.036),
         baseRadius: 150 + Math.random() * 300,
         radius: 150 + Math.random() * 300,
         color,
         movementPattern: movementPatterns[i % movementPatterns.length],
         phase: Math.random() * Math.PI * 2,
-        speed: 0.25 + Math.random() * 0.3,
-        pulseSpeed: 0.4 + Math.random() * 0.4,
+        speed: 0.068 + Math.random() * 0.078,
+        pulseSpeed: 0.1 + Math.random() * 0.11,
         glowIntensity: 0.15 + Math.random() * 0.2,
         trail: [],
       });
@@ -201,15 +201,15 @@ export function AnimatedBackground() {
 
     // Create particle system
     const particles: Particle[] = [];
-    const maxParticles = 50;
+    const maxParticles = 36;
 
     const createParticle = (x: number, y: number, color: { r: number; g: number; b: number }) => {
       if (particles.length < maxParticles) {
         particles.push({
           x,
           y,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
+          vx: (Math.random() - 0.5) * 0.12,
+          vy: (Math.random() - 0.5) * 0.12,
           life: 1,
           maxLife: 0.5 + Math.random() * 1.5,
           size: 1 + Math.random() * 3,
@@ -226,10 +226,10 @@ export function AnimatedBackground() {
         y: Math.random() * dimensions.height,
         w: 24 + Math.random() * 32,
         h: 16 + Math.random() * 20,
-        vx: (Math.random() - 0.5) * 0.08,
-        vy: (Math.random() - 0.5) * 0.08,
+        vx: (Math.random() - 0.5) * 0.028,
+        vy: (Math.random() - 0.5) * 0.028,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.012,
+        rotSpeed: (Math.random() - 0.5) * 0.004,
         phase: Math.random() * Math.PI * 2,
         color: currentPalette[i % currentPalette.length],
       });
@@ -241,10 +241,10 @@ export function AnimatedBackground() {
         x: Math.random() * dimensions.width,
         y: Math.random() * dimensions.height,
         radius: 18 + Math.random() * 28,
-        vx: (Math.random() - 0.5) * 0.07,
-        vy: (Math.random() - 0.5) * 0.07,
+        vx: (Math.random() - 0.5) * 0.024,
+        vy: (Math.random() - 0.5) * 0.024,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.01,
+        rotSpeed: (Math.random() - 0.5) * 0.0035,
         phase: Math.random() * Math.PI * 2,
         color: currentPalette[(i + 2) % currentPalette.length],
       });
@@ -255,8 +255,8 @@ export function AnimatedBackground() {
       chainLinks.push({
         x: Math.random() * dimensions.width,
         y: Math.random() * dimensions.height,
-        vx: (Math.random() - 0.5) * 0.06,
-        vy: (Math.random() - 0.5) * 0.06,
+        vx: (Math.random() - 0.5) * 0.021,
+        vy: (Math.random() - 0.5) * 0.021,
         rotation: Math.random() * Math.PI * 2,
         phase: Math.random() * Math.PI * 2,
         color: currentPalette[(i + 1) % currentPalette.length],
@@ -271,7 +271,7 @@ export function AnimatedBackground() {
         y: dimensions.height * (0.15 + Math.random() * 0.7),
         radius: 0,
         maxRadius: 60 + Math.random() * 90,
-        expandSpeed: 0.08 + Math.random() * 0.06,
+        expandSpeed: 0.022 + Math.random() * 0.02,
         phase: Math.random() * Math.PI * 2,
         color: currentPalette[i % currentPalette.length],
       });
@@ -284,7 +284,7 @@ export function AnimatedBackground() {
         y: 0.1 * dimensions.height + Math.random() * 0.8 * dimensions.height,
         size: 14 + Math.random() * 18,
         phase: Math.random() * Math.PI * 2,
-        pulseSpeed: 0.4 + Math.random() * 0.4,
+        pulseSpeed: 0.11 + Math.random() * 0.12,
         color: currentPalette[(i + 4) % currentPalette.length],
       });
     }
@@ -295,13 +295,13 @@ export function AnimatedBackground() {
 
     const animate = () => {
       try {
-      time += 0.006;
+      time += 0.00175;
       const { width, height } = { width: canvas.width, height: canvas.height };
 
       // Clear with sophisticated fade for trail effect
       ctx.save();
       ctx.globalCompositeOperation = 'source-over';
-      const fadeAlpha = theme === 'dark' ? 0.08 : 0.04;
+      const fadeAlpha = theme === 'dark' ? 0.118 : 0.068;
       ctx.fillStyle = theme === 'dark' ? `rgba(10, 10, 10, ${fadeAlpha})` : `rgba(250, 250, 250, ${fadeAlpha})`;
       ctx.fillRect(0, 0, width, height);
       ctx.restore();
@@ -366,7 +366,7 @@ export function AnimatedBackground() {
       ctx.globalCompositeOperation = 'screen';
       hexagons.forEach((hex) => {
         const base = theme === 'dark' ? 0.06 : 0.12;
-        const opacity = base + Math.sin(time * 0.8 + hex.phase) * (theme === 'dark' ? 0.04 : 0.06);
+        const opacity = base + Math.sin(time * 0.52 + hex.phase) * (theme === 'dark' ? 0.035 : 0.052);
         ctx.save();
         ctx.translate(hex.x, hex.y);
         ctx.rotate(hex.rotation);
@@ -390,7 +390,7 @@ export function AnimatedBackground() {
       chainLinks.forEach((link) => {
         link.x += link.vx;
         link.y += link.vy;
-        link.rotation += 0.005;
+        link.rotation += 0.00125;
         if (link.x < -60) link.x = width + 60;
         if (link.x > width + 60) link.x = -60;
         if (link.y < -40) link.y = height + 40;
@@ -460,28 +460,29 @@ export function AnimatedBackground() {
             break;
           case 'figure8':
             dx = Math.sin(t) * 35;
-            dy = Math.sin(t * 2) * 18;
+            dy = Math.sin(t * 0.92) * 18;
             break;
-          case 'spiral':
-            const spiralRadius = t * 0.8;
+          case 'spiral': {
+            const spiralRadius = Math.min(34, t * 0.17);
             dx = Math.cos(t) * spiralRadius;
             dy = Math.sin(t) * spiralRadius;
             break;
+          }
           case 'wave':
-            dx = Math.sin(t * 1.2) * 28;
-            dy = Math.cos(t * 0.8) * 22;
+            dx = Math.sin(t * 0.55) * 28;
+            dy = Math.cos(t * 0.38) * 22;
             break;
           case 'lissajous':
-            dx = Math.sin(t * 2) * 32;
-            dy = Math.sin(t * 3) * 24;
+            dx = Math.sin(t * 0.82) * 32;
+            dy = Math.sin(t * 1.12) * 24;
             break;
         }
 
         const prevX = blob.x;
         const prevY = blob.y;
 
-        blob.x += blob.vx + dx * 0.12;
-        blob.y += blob.vy + dy * 0.12;
+        blob.x += blob.vx + dx * 0.036;
+        blob.y += blob.vy + dy * 0.036;
 
         // Wrap around edges smoothly
         if (blob.x < -blob.radius) blob.x = width + blob.radius;
@@ -490,7 +491,7 @@ export function AnimatedBackground() {
         if (blob.y > height + blob.radius) blob.y = -blob.radius;
 
         // Dynamic pulsing radius
-        const pulse = Math.sin(time * blob.pulseSpeed + index) * 0.2 + 0.8;
+        const pulse = Math.sin(time * blob.pulseSpeed + index) * 0.14 + 0.86;
         blob.radius = blob.baseRadius * pulse;
 
         // Update trail
@@ -503,7 +504,7 @@ export function AnimatedBackground() {
         });
 
         // Spawn particles occasionally (lower rate for calmer feel)
-        if (Math.random() < 0.06) {
+        if (Math.random() < 0.009) {
           createParticle(blob.x, blob.y, blob.color);
         }
       });
@@ -515,7 +516,7 @@ export function AnimatedBackground() {
         const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.life -= 0.008;
+        p.life -= 0.0046;
         p.vx *= 0.98;
         p.vy *= 0.98;
 
@@ -614,7 +615,7 @@ export function AnimatedBackground() {
         const safeRadius = Math.max(1, blob.radius);
         // Theme-tuned: light mode much stronger so orbs clearly visible on white
         const baseOpacity = theme === 'dark' ? 0.05 : 0.10;
-        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * (theme === 'dark' ? 0.03 : 0.045);
+        const timeOpacity = Math.sin(time * blob.pulseSpeed + index * 0.5) * (theme === 'dark' ? 0.022 : 0.034);
         const distanceFromCenter = Math.sqrt(
           Math.pow(blob.x - width / 2, 2) + Math.pow(blob.y - height / 2, 2)
         );
@@ -636,7 +637,7 @@ export function AnimatedBackground() {
         );
 
         // Dynamic glow intensity with more variation
-        const glow = blob.glowIntensity + Math.sin(time * 2.5 + index) * 0.08;
+        const glow = blob.glowIntensity + Math.sin(time * 0.78 + index) * 0.045;
         const coreOpacity = finalOpacity * (1.2 + glow);
         const midOpacity = finalOpacity * 0.7;
         const edgeOpacity = finalOpacity * 0.4;

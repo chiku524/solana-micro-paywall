@@ -1,86 +1,106 @@
-# Setup Instructions
+# Local Development Setup
 
 ## Prerequisites
 
-- Node.js 18+ and npm
-- Cloudflare account with Workers and D1 access
-- Solana RPC endpoint (Helius recommended for production)
-- For EVM chains: Optional RPC URLs (public RPCs used as fallback)
+- Node.js 18+
+- npm
+- Cloudflare account (for production deploy)
+- Wrangler CLI (`npm install -g wrangler` or use `npx wrangler`)
 
-## Quick Start
+## Install
 
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
+```bash
+git clone https://github.com/chiku524/micropaywall.git
+cd micropaywall
+npm install
+```
 
-2. **Create Cloudflare D1 database**
-   ```bash
-   npx wrangler d1 create solana-paywall-db
-   ```
-   Copy the database ID from the output and update `wrangler.toml` (replace the `database_id` under `[[env.production.d1_databases]]` and development if used).
+## Cloudflare resources
 
-3. **Create KV namespace** (for rate limiting, cache)
-   ```bash
-   npx wrangler kv:namespace create CACHE
-   npx wrangler kv:namespace create CACHE --preview
-   ```
-   Copy the namespace IDs and update `wrangler.toml` under `[[env.production.kv_namespaces]]`.
+Create (or reuse) in the Cloudflare dashboard:
 
-4. **Run database migrations**
-   ```bash
-   npx wrangler d1 migrations apply micropaywall-db --remote --env production
-   ```
-   For existing DBs, you may need to run specific migrations via `npx wrangler d1 execute micropaywall-db --remote --env production --file=workers/migrations/0005_add_chain_support.sql`. See [architecture.md](architecture.md).
+1. **D1 database** – create in the Cloudflare dashboard; copy **`database_id`** into `wrangler.toml` under `[[env.*.d1_databases]]` (binding `DB`).
+2. **KV namespace** – bound as **`CACHE`** in `wrangler.toml` (rate limits, discover cache, fiat quote cache, payment idempotency).
 
-5. **Configure environment for local development**
-   Create a `.dev.vars` file in the project root (not committed):
-   ```
-   JWT_SECRET=your-secret-key-here
-   SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
-   HELIUS_API_KEY=your-helius-api-key
-   NEXT_PUBLIC_WEB_URL=http://localhost:3000
-   NEXT_PUBLIC_API_URL=http://localhost:8787
-   ```
+The D1 **database name** in Wrangler is `micropaywall-db` (see `wrangler.toml` `database_name`). Older docs may say `solana-paywall-db`; use what matches your `wrangler.toml`.
 
-6. **Start development servers**
-   - Terminal 1 (backend API):
-     ```bash
-     npm run worker:dev
-     ```
-   - Terminal 2 (frontend):
-     ```bash
-     npm run dev
-     ```
+## Local configuration
 
-7. **Access the app**
-   - Frontend: http://localhost:3000
-   - API: http://localhost:8787
+### Workers (`.dev.vars`)
 
-## First Steps
+Create `workers/.dev.vars` (not committed) with key/value lines. See [secrets.md](secrets.md) for each variable. Minimum for a working API: `JWT_SECRET`, `SOLANA_RPC_URL`, and (for email features) `RESEND_API_KEY` / `EMAIL_FROM`.
 
-1. **Create a merchant account** – Go to http://localhost:3000/dashboard, sign up with email, and save your Merchant ID.
-2. **Log in** – Use email or Merchant ID to access the dashboard.
-3. **Set payout address** – In Settings, add your wallet address (Solana for Solana content; EVM/0x for Ethereum, Polygon, Base, etc.).
-4. **Create content** – Use Dashboard → Manage Content to create your first paywalled item.
-5. **Test payment** – Open the content in the marketplace and use the payment widget to complete a test purchase.
+### Frontend (`.env.local`)
 
-## Project Structure
+Create `.env.local` in the repo root with at least:
 
-- **`src/`** – Next.js frontend (App Router, static export)
-  - `app/` – Pages and routes
-  - `components/` – React components
-  - `lib/` – API client, auth, theme, chains, etc.
-  - `types/` – TypeScript types
-- **`workers/`** – Cloudflare Workers backend
-  - `routes/` – API route handlers
-  - `lib/` – DB, JWT, email, Solana, verifiers (Solana + EVM)
-  - `middleware/` – Auth, CORS, security
-  - `migrations/` – D1 migrations
+- `NEXT_PUBLIC_API_URL` – local Worker, e.g. `http://localhost:8787`
+- `NEXT_PUBLIC_WEB_URL` – frontend origin, e.g. `http://localhost:3000`
 
-## Notes
+## D1 migrations
 
-- The frontend uses **static export** for Cloudflare Pages.
-- All API calls go through the Cloudflare Workers backend.
-- JWT tokens are used for merchant authentication; access tokens (JWT) are issued after payment verification.
-- For production secrets and deployment, see [secrets.md](secrets.md) and [deployment.md](deployment.md).
+Migrations live in `workers/migrations/` (`0001` … `0007`). **`0005`** includes `CREATE TABLE IF NOT EXISTS content` so a clean local apply survives legacy **`0002`** naming quirks; **`0006`** adds webhooks, API keys, analytics, USD fields; **`0007`** is a no-op placeholder for ordering.
+
+### Apply locally (default)
+
+```bash
+npm run db:migrate
+```
+
+This runs `wrangler d1 migrations apply micropaywall-db` **without** `--remote` (local D1).
+
+### Apply to production D1
+
+```bash
+cd workers && npx wrangler d1 migrations apply micropaywall-db --remote
+```
+
+If production was created manually or `d1_migrations` is out of sync, you may need to run specific SQL files with `wrangler d1 execute ... --remote --file=...` and reconcile `d1_migrations` — see [architecture.md](architecture.md).
+
+### List pending
+
+```bash
+cd workers && npx wrangler d1 migrations list micropaywall-db
+cd workers && npx wrangler d1 migrations list micropaywall-db --remote
+```
+
+## Run locally
+
+**Terminal 1 – API**
+
+```bash
+npm run worker:dev
+```
+
+**Terminal 2 – Frontend**
+
+```bash
+npm run dev
+```
+
+- API: `http://localhost:8787`
+- App: `http://localhost:3000`
+- Health: `GET http://localhost:8787/health`
+
+## Create a merchant (quick test)
+
+```bash
+curl -X POST http://localhost:8787/api/merchants \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"yourpassword","name":"Test Merchant"}'
+```
+
+Use returned `merchantId` in dashboard links and JWT from `POST /api/auth/login`.
+
+## Troubleshooting
+
+| Issue | What to try |
+|-------|-------------|
+| `no such table: content` after migrate | Re-run migrations on a fresh local DB, or apply `0005`+`0006` SQL; see architecture doc |
+| CORS errors | Ensure `NEXT_PUBLIC_API_URL` matches the Worker origin; Worker allows `NEXT_PUBLIC_WEB_URL` |
+| Wallet / chain errors | Set `SOLANA_RPC_URL` (and optional `HELIUS_API_KEY`); EVM needs correct chain RPC in env where verified |
+| Fiat quote unavailable | CoinGecko is used without a secret; check network; amounts fall back to on-chain minimums |
+
+## Optional: Sentry
+
+Configure `SENTRY_DSN` and related vars in `.dev.vars` / secrets for Worker and frontend as needed.

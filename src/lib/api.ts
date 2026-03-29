@@ -13,8 +13,8 @@ function getApiUrl(): string {
     if (window.location.hostname === 'micropaywall.app' || window.location.hostname.endsWith('.micropaywall.app')) {
       return 'https://api.micropaywall.app';
     }
-    // Fallback for other domains (e.g., preview deployments)
-    return '';
+    // Local dev / previews: same default as SSR; override with NEXT_PUBLIC_API_URL (e.g. local worker)
+    return process.env.NEXT_PUBLIC_API_URL || 'https://api.micropaywall.app';
   }
   
   // Fallback for server-side (shouldn't happen with static export)
@@ -141,12 +141,16 @@ export async function apiGet<T>(endpoint: string, token?: string): Promise<T> {
 export async function apiPost<T>(
   endpoint: string,
   body: unknown,
-  token?: string
+  token?: string,
+  extraHeaders?: Record<string, string>
 ): Promise<T> {
   return request<T>(endpoint, {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(extraHeaders ?? {}),
+    },
   });
 }
 

@@ -11,8 +11,11 @@ import {
   createPurchase,
   getPaymentIntentById,
   getContentById,
+  getMerchantById,
   incrementContentPurchaseCount,
 } from '../lib/db';
+import { notifyPurchaseWebhook } from '../lib/purchase-webhook';
+import { getWebBaseUrl } from '../lib/web-url';
 import { generateAccessToken } from '../lib/access-token';
 import { z } from 'zod';
 
@@ -99,7 +102,29 @@ app.post('/', async (c) => {
     
     // Increment content purchase count
     await incrementContentPurchaseCount(c.env.DB, content.id);
-    
+
+    const merchant = await getMerchantById(c.env.DB, paymentIntent.merchantId);
+    if (merchant) {
+      void notifyPurchaseWebhook(c.env, merchant, purchase, content).catch((err) =>
+        console.error('Webhook notify failed:', err)
+      );
+      const { sendEmail, generateMerchantSaleEmail } = await import('../lib/email');
+      const webBase = getWebBaseUrl(c.env, c.req.url);
+      const dashboardUrl = `${webBase}/dashboard/payments/`;
+      const amountLabel = `${purchase.amountLamports} ${purchase.currency}`;
+      const { subject, html, text } = generateMerchantSaleEmail({
+        contentTitle: content.title,
+        amountLabel,
+        chain: purchase.chain ?? 'solana',
+        transactionSignature: purchase.transactionSignature,
+        payerAddress: purchase.payerAddress,
+        dashboardUrl,
+      });
+      void sendEmail(c.env, { to: merchant.email, subject, html, text }).catch((err) =>
+        console.error('Sale notification email failed:', err)
+      );
+    }
+
     return c.json({
       purchase,
       accessToken,

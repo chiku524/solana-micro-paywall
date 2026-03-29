@@ -23,6 +23,12 @@ export interface Merchant {
   avatarUrl?: string;
   payoutAddress?: string;
   webhookSecret?: string;
+  /** HTTPS endpoint for signed purchase webhooks (HMAC with webhook secret) */
+  webhookUrl?: string;
+  /** Shown to buyers on content pages (refunds, disputes) */
+  refundPolicyText?: string;
+  /** Public support inbox for buyers (optional; falls back to account email if unset) */
+  supportContactEmail?: string;
   twitterUrl?: string;
   telegramUrl?: string;
   discordUrl?: string;
@@ -42,6 +48,14 @@ export interface Content {
   slug: string;
   title: string;
   description?: string;
+  /** Optional USD label for listings (manual; does not change on-chain amount by itself) */
+  displayPriceUsd?: number;
+  /** When set, checkout computes native amount from live USD rates at payment time */
+  targetPriceUsd?: number;
+  /** JSON string array of content UUIDs for cross-sell / bundles UI */
+  relatedContentIds?: string;
+  /** When set, public APIs truncate `description` for non-buyers */
+  freePreviewCharLimit?: number;
   category?: string;
   tags?: string;
   thumbnailUrl?: string;
@@ -57,6 +71,8 @@ export interface Content {
   updatedAt: number;
   /** Chain for pricing/payment; defaults to 'solana' if omitted (multi-chain support) */
   chain?: SupportedChain;
+  /** Present when description was truncated for anonymous viewers */
+  descriptionTruncated?: boolean;
 }
 
 export interface PaymentIntent {
@@ -75,6 +91,8 @@ export interface PaymentIntent {
   createdAt: number;
   /** Chain for this payment; defaults to 'solana' if omitted (multi-chain support) */
   chain?: SupportedChain;
+  /** Client-supplied idempotency key for create-payment-request */
+  idempotencyKey?: string;
 }
 
 export interface Purchase {
@@ -114,6 +132,9 @@ export interface UpdateMerchantRequest {
   avatarUrl?: string;
   payoutAddress?: string;
   webhookSecret?: string;
+  webhookUrl?: string;
+  refundPolicyText?: string;
+  supportContactEmail?: string;
   twitterUrl?: string;
   telegramUrl?: string;
   discordUrl?: string;
@@ -124,6 +145,10 @@ export interface CreateContentRequest {
   slug: string;
   title: string;
   description?: string;
+  displayPriceUsd?: number;
+  targetPriceUsd?: number;
+  relatedContentIds?: string;
+  freePreviewCharLimit?: number;
   category?: string;
   tags?: string;
   thumbnailUrl?: string;

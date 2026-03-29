@@ -8,10 +8,11 @@ import { Transaction, SystemProgram, PublicKey } from '@solana/web3.js';
 import { useAccount, useSendTransaction, useSwitchChain, useConnect } from 'wagmi';
 import { Button } from './ui/button';
 import { Modal } from './ui/modal';
+import { PurchaseReceipt } from './purchase-receipt';
 import { apiPost } from '@/lib/api';
 import { formatAmount, EVM_CHAIN_IDS } from '@/lib/chains';
 import QRCode from 'qrcode';
-import type { VerifyPaymentResponse, PaymentIntent } from '@/types';
+import type { VerifyPaymentResponse, PaymentIntent, Purchase } from '@/types';
 import type { SupportedChain } from '@/types';
 
 interface PaymentRequestResponse {
@@ -21,15 +22,25 @@ interface PaymentRequestResponse {
   chain?: string;
   chainId?: number;
   amountWei?: number;
+  quotedFromUsd?: boolean;
 }
 
 interface PaymentWidgetProps {
   merchantId: string;
   contentId: string;
+  contentTitle: string;
   priceLamports: number;
   chain?: SupportedChain;
-  onPaymentSuccess?: (accessToken: string) => void;
+  onPaymentSuccess?: (accessToken: string, purchase?: Purchase) => void;
   onPaymentError?: (error: Error) => void;
+}
+
+function trackAnalyticsEvent(
+  eventType: 'pay_click' | 'purchase_verified',
+  contentId: string,
+  meta?: Record<string, unknown>
+) {
+  void apiPost('/api/analytics/events', { eventType, contentId, meta }).catch(() => {});
 }
 
 function EVMConnectButton() {
@@ -49,13 +60,15 @@ function EVMConnectButton() {
 
 function SolanaPaymentFlow({
   contentId,
+  contentTitle,
   priceLamports,
   onPaymentSuccess,
   onPaymentError,
 }: {
   contentId: string;
+  contentTitle: string;
   priceLamports: number;
-  onPaymentSuccess?: (accessToken: string) => void;
+  onPaymentSuccess?: (accessToken: string, purchase?: Purchase) => void;
   onPaymentError?: (error: Error) => void;
 }) {
   const { publicKey, sendTransaction, connected } = useWallet();
@@ -65,6 +78,7 @@ function SolanaPaymentFlow({
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string>('');
+  const [receiptPurchase, setReceiptPurchase] = useState<Purchase | null>(null);
 
   const handlePurchase = useCallback(async () => {
     try {
@@ -76,10 +90,14 @@ function SolanaPaymentFlow({
 
       setIsProcessing(true);
       setError('');
+      trackAnalyticsEvent('pay_click', contentId);
 
+      const idempotencyKey = crypto.randomUUID();
       const response = await apiPost<PaymentRequestResponse>(
         '/api/payments/create-payment-request',
-        { contentId }
+        { contentId },
+        undefined,
+        { 'Idempotency-Key': idempotencyKey }
       );
 
       setPaymentUrl(response.paymentUrl);
@@ -95,17 +113,18 @@ function SolanaPaymentFlow({
         throw new Error('Recipient address not provided in payment response');
       }
 
+      const lamports = response.paymentIntent.amountLamports;
       const recipientPubkey = new PublicKey(response.recipientAddress);
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
           toPubkey: recipientPubkey,
-          lamports: priceLamports,
+          lamports,
         })
       );
 
       const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
-      const memoText = `Payment for ${response.paymentIntent.id}`;
+      const memoText = response.paymentIntent.memo || `Payment for ${response.paymentIntent.id}`;
       const memoBuffer = Buffer.from(memoText, 'utf-8');
       transaction.add({
         keys: [{ pubkey: publicKey, isSigner: true, isWritable: true }],
@@ -138,9 +157,12 @@ function SolanaPaymentFlow({
         payerAddress: publicKey.toString(),
       });
 
+      trackAnalyticsEvent('purchase_verified', contentId, { chain: 'solana' });
+
       setIsProcessing(false);
       setIsOpen(false);
-      onPaymentSuccess?.(purchaseResponse.accessToken);
+      setReceiptPurchase(purchaseResponse.purchase);
+      onPaymentSuccess?.(purchaseResponse.accessToken, purchaseResponse.purchase);
     } catch (err: unknown) {
       console.error('Payment error:', err);
       const message = err instanceof Error ? err.message : 'Payment failed. Please try again.';
@@ -148,7 +170,7 @@ function SolanaPaymentFlow({
       setIsProcessing(false);
       onPaymentError?.(err instanceof Error ? err : new Error(message));
     }
-  }, [connected, publicKey, sendTransaction, connection, contentId, priceLamports, onPaymentSuccess, onPaymentError]);
+  }, [connected, publicKey, sendTransaction, connection, contentId, onPaymentSuccess, onPaymentError]);
 
   return (
     <>
@@ -202,21 +224,36 @@ function SolanaPaymentFlow({
           )}
         </div>
       </Modal>
+      <Modal
+        isOpen={!!receiptPurchase}
+        onClose={() => setReceiptPurchase(null)}
+        title="Payment complete"
+      >
+        {receiptPurchase && (
+          <PurchaseReceipt
+            purchase={receiptPurchase}
+            contentTitle={contentTitle}
+            onDismiss={() => setReceiptPurchase(null)}
+          />
+        )}
+      </Modal>
     </>
   );
 }
 
 function EVMPaymentFlow({
   contentId,
+  contentTitle,
   priceLamports,
   chain,
   onPaymentSuccess,
   onPaymentError,
 }: {
   contentId: string;
+  contentTitle: string;
   priceLamports: number;
   chain: Exclude<SupportedChain, 'solana'>;
-  onPaymentSuccess?: (accessToken: string) => void;
+  onPaymentSuccess?: (accessToken: string, purchase?: Purchase) => void;
   onPaymentError?: (error: Error) => void;
 }) {
   const { address, isConnected, chain: currentChain } = useAccount();
@@ -225,6 +262,7 @@ function EVMPaymentFlow({
   const [isOpen, setIsOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string>('');
+  const [receiptPurchase, setReceiptPurchase] = useState<Purchase | null>(null);
   const targetChainId = EVM_CHAIN_IDS[chain];
 
   const handlePurchase = useCallback(async () => {
@@ -237,24 +275,29 @@ function EVMPaymentFlow({
 
       setIsProcessing(true);
       setError('');
+      trackAnalyticsEvent('pay_click', contentId);
 
-      // Switch chain if needed
       if (currentChain?.id !== targetChainId && switchChainAsync) {
         await switchChainAsync({ chainId: targetChainId });
       }
 
+      const idempotencyKey = crypto.randomUUID();
       const response = await apiPost<PaymentRequestResponse>(
         '/api/payments/create-payment-request',
-        { contentId }
+        { contentId },
+        undefined,
+        { 'Idempotency-Key': idempotencyKey }
       );
 
       if (!response.recipientAddress || !response.chainId) {
         throw new Error('Invalid payment response');
       }
 
+      const valueWei = response.paymentIntent.amountLamports;
+
       const hash = await sendTransactionAsync({
         to: response.recipientAddress as `0x${string}`,
-        value: BigInt(priceLamports),
+        value: BigInt(valueWei),
         data: undefined,
       });
 
@@ -277,9 +320,12 @@ function EVMPaymentFlow({
         payerAddress: address,
       });
 
+      trackAnalyticsEvent('purchase_verified', contentId, { chain });
+
       setIsProcessing(false);
       setIsOpen(false);
-      onPaymentSuccess?.(purchaseResponse.accessToken);
+      setReceiptPurchase(purchaseResponse.purchase);
+      onPaymentSuccess?.(purchaseResponse.accessToken, purchaseResponse.purchase);
     } catch (err: unknown) {
       console.error('Payment error:', err);
       const message = err instanceof Error ? err.message : 'Payment failed. Please try again.';
@@ -287,7 +333,18 @@ function EVMPaymentFlow({
       setIsProcessing(false);
       onPaymentError?.(err instanceof Error ? err : new Error(message));
     }
-  }, [isConnected, address, currentChain?.id, targetChainId, switchChainAsync, sendTransactionAsync, contentId, priceLamports, onPaymentSuccess, onPaymentError]);
+  }, [
+    isConnected,
+    address,
+    currentChain?.id,
+    targetChainId,
+    switchChainAsync,
+    sendTransactionAsync,
+    contentId,
+    chain,
+    onPaymentSuccess,
+    onPaymentError,
+  ]);
 
   return (
     <>
@@ -319,6 +376,19 @@ function EVMPaymentFlow({
           )}
         </div>
       </Modal>
+      <Modal
+        isOpen={!!receiptPurchase}
+        onClose={() => setReceiptPurchase(null)}
+        title="Payment complete"
+      >
+        {receiptPurchase && (
+          <PurchaseReceipt
+            purchase={receiptPurchase}
+            contentTitle={contentTitle}
+            onDismiss={() => setReceiptPurchase(null)}
+          />
+        )}
+      </Modal>
     </>
   );
 }
@@ -326,17 +396,20 @@ function EVMPaymentFlow({
 export function PaymentWidget({
   merchantId,
   contentId,
+  contentTitle,
   priceLamports,
   chain = 'solana',
   onPaymentSuccess,
   onPaymentError,
 }: PaymentWidgetProps) {
+  void merchantId;
   const isEvm = chain !== 'solana';
 
   if (isEvm) {
     return (
       <EVMPaymentFlow
         contentId={contentId}
+        contentTitle={contentTitle}
         priceLamports={priceLamports}
         chain={chain}
         onPaymentSuccess={onPaymentSuccess}
@@ -348,6 +421,7 @@ export function PaymentWidget({
   return (
     <SolanaPaymentFlow
       contentId={contentId}
+      contentTitle={contentTitle}
       priceLamports={priceLamports}
       onPaymentSuccess={onPaymentSuccess}
       onPaymentError={onPaymentError}

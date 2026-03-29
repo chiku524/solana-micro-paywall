@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
+import type { Merchant } from '../types';
 import { authMiddleware } from '../middleware/auth';
-import { getMerchantById, createMerchant, updateMerchant, getMerchantByEmail, setEmailVerificationToken } from '../lib/db';
+import { getMerchantById, createMerchant, updateMerchant, getMerchantByEmail, setEmailVerificationToken, listWebhookDeliveries } from '../lib/db';
 import { z } from 'zod';
 import { checkRateLimit, getRateLimitKey } from '../lib/rate-limit';
 import { hashPassword, validatePasswordStrength } from '../lib/password';
@@ -22,6 +23,9 @@ const updateMerchantSchema = z.object({
   avatarUrl: z.string().url().optional(),
   payoutAddress: z.string().optional(),
   webhookSecret: z.string().optional(),
+  webhookUrl: z.union([z.string().url(), z.literal('')]).optional(),
+  refundPolicyText: z.string().max(8000).optional(),
+  supportContactEmail: z.union([z.string().email(), z.literal('')]).optional(),
   twitterUrl: z.string().url().optional(),
   telegramUrl: z.string().url().optional(),
   discordUrl: z.string().url().optional(),
@@ -139,6 +143,9 @@ app.get('/me', authMiddleware, async (c) => {
     avatarUrl: merchantWithoutPassword.avatarUrl,
     payoutAddress: merchantWithoutPassword.payoutAddress,
     webhookSecret: merchantWithoutPassword.webhookSecret,
+    webhookUrl: merchantWithoutPassword.webhookUrl,
+    refundPolicyText: merchantWithoutPassword.refundPolicyText,
+    supportContactEmail: merchantWithoutPassword.supportContactEmail,
     twitterUrl: merchantWithoutPassword.twitterUrl,
     telegramUrl: merchantWithoutPassword.telegramUrl,
     discordUrl: merchantWithoutPassword.discordUrl,
@@ -147,6 +154,12 @@ app.get('/me', authMiddleware, async (c) => {
     createdAt: merchantWithoutPassword.createdAt,
     updatedAt: merchantWithoutPassword.updatedAt,
   });
+});
+
+app.get('/me/webhook-deliveries', authMiddleware, async (c) => {
+  const merchantId = c.get('merchantId');
+  const deliveries = await listWebhookDeliveries(c.env.DB, merchantId, 100);
+  return c.json({ deliveries });
 });
 
 // Get merchant by ID (public)
@@ -166,6 +179,8 @@ app.get('/:id', async (c) => {
     displayName: publicMerchant.displayName,
     bio: publicMerchant.bio,
     avatarUrl: publicMerchant.avatarUrl,
+    refundPolicyText: publicMerchant.refundPolicyText,
+    supportContactEmail: publicMerchant.supportContactEmail,
     twitterUrl: publicMerchant.twitterUrl,
     telegramUrl: publicMerchant.telegramUrl,
     discordUrl: publicMerchant.discordUrl,
@@ -179,10 +194,15 @@ app.put('/me', authMiddleware, async (c) => {
   try {
     const merchantId = c.get('merchantId');
     const body = await c.req.json();
-    const updates = updateMerchantSchema.parse(body);
-    
-    const merchant = await updateMerchant(c.env.DB, merchantId, updates);
-    
+    const raw = updateMerchantSchema.parse(body);
+    const updates = {
+      ...raw,
+      webhookUrl: raw.webhookUrl === '' ? null : raw.webhookUrl,
+      supportContactEmail: raw.supportContactEmail === '' ? null : raw.supportContactEmail,
+    };
+
+    const merchant = await updateMerchant(c.env.DB, merchantId, updates as Partial<Merchant>);
+
     return c.json({
       id: merchant.id,
       email: merchant.email,
@@ -191,6 +211,9 @@ app.put('/me', authMiddleware, async (c) => {
       avatarUrl: merchant.avatarUrl,
       payoutAddress: merchant.payoutAddress,
       webhookSecret: merchant.webhookSecret,
+      webhookUrl: merchant.webhookUrl,
+      refundPolicyText: merchant.refundPolicyText,
+      supportContactEmail: merchant.supportContactEmail,
       twitterUrl: merchant.twitterUrl,
       telegramUrl: merchant.telegramUrl,
       discordUrl: merchant.discordUrl,

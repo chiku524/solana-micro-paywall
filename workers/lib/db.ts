@@ -21,6 +21,9 @@ function rowToMerchant(row: any): Merchant & {
     avatarUrl: row.avatar_url,
     payoutAddress: row.payout_address,
     webhookSecret: row.webhook_secret,
+    webhookUrl: row.webhook_url || undefined,
+    refundPolicyText: row.refund_policy_text || undefined,
+    supportContactEmail: row.support_contact_email || undefined,
     twitterUrl: row.twitter_url,
     telegramUrl: row.telegram_url,
     discordUrl: row.discord_url,
@@ -47,6 +50,10 @@ function rowToContent(row: any): Content {
     slug: row.slug,
     title: row.title,
     description: row.description,
+    displayPriceUsd: row.display_price_usd != null ? row.display_price_usd : undefined,
+    targetPriceUsd: row.target_price_usd != null ? row.target_price_usd : undefined,
+    relatedContentIds: row.related_content_ids || undefined,
+    freePreviewCharLimit: row.free_preview_char_limit != null ? row.free_preview_char_limit : undefined,
     category: row.category,
     tags: row.tags,
     thumbnailUrl: row.thumbnail_url,
@@ -80,6 +87,7 @@ function rowToPaymentIntent(row: any): PaymentIntent {
     confirmedAt: row.confirmed_at,
     createdAt: row.created_at,
     chain: row.chain || 'solana',
+    idempotencyKey: row.idempotency_key || undefined,
   };
 }
 
@@ -150,6 +158,9 @@ export async function updateMerchant(db: D1Database, id: string, data: Partial<M
   if (data.avatarUrl !== undefined) { updates.push('avatar_url = ?'); values.push(data.avatarUrl); }
   if (data.payoutAddress !== undefined) { updates.push('payout_address = ?'); values.push(data.payoutAddress); }
   if (data.webhookSecret !== undefined) { updates.push('webhook_secret = ?'); values.push(data.webhookSecret); }
+  if (data.webhookUrl !== undefined) { updates.push('webhook_url = ?'); values.push(data.webhookUrl); }
+  if (data.refundPolicyText !== undefined) { updates.push('refund_policy_text = ?'); values.push(data.refundPolicyText); }
+  if (data.supportContactEmail !== undefined) { updates.push('support_contact_email = ?'); values.push(data.supportContactEmail); }
   if (data.twitterUrl !== undefined) { updates.push('twitter_url = ?'); values.push(data.twitterUrl); }
   if (data.telegramUrl !== undefined) { updates.push('telegram_url = ?'); values.push(data.telegramUrl); }
   if (data.discordUrl !== undefined) { updates.push('discord_url = ?'); values.push(data.discordUrl); }
@@ -245,6 +256,10 @@ export async function createContent(db: D1Database, data: {
   slug: string;
   title: string;
   description?: string;
+  displayPriceUsd?: number;
+  targetPriceUsd?: number;
+  relatedContentIds?: string;
+  freePreviewCharLimit?: number;
   category?: string;
   tags?: string;
   thumbnailUrl?: string;
@@ -260,10 +275,11 @@ export async function createContent(db: D1Database, data: {
   const chain = data.chain || 'solana';
   await db.prepare(
     `INSERT INTO content (
-      id, merchant_id, slug, title, description, category, tags, thumbnail_url,
+      id, merchant_id, slug, title, description, display_price_usd, target_price_usd,
+      related_content_ids, free_preview_char_limit, category, tags, thumbnail_url,
       price_lamports, currency, duration_seconds, visibility, preview_text,
       canonical_url, chain, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       data.id,
@@ -271,6 +287,10 @@ export async function createContent(db: D1Database, data: {
       data.slug,
       data.title,
       data.description || null,
+      data.displayPriceUsd ?? null,
+      data.targetPriceUsd ?? null,
+      data.relatedContentIds || null,
+      data.freePreviewCharLimit ?? null,
       data.category || null,
       data.tags || null,
       data.thumbnailUrl || null,
@@ -308,6 +328,10 @@ export async function updateContent(db: D1Database, id: string, data: Partial<Co
   if (data.previewText !== undefined) { updates.push('preview_text = ?'); values.push(data.previewText); }
   if (data.canonicalUrl !== undefined) { updates.push('canonical_url = ?'); values.push(data.canonicalUrl); }
   if (data.chain !== undefined) { updates.push('chain = ?'); values.push(data.chain); }
+  if (data.displayPriceUsd !== undefined) { updates.push('display_price_usd = ?'); values.push(data.displayPriceUsd); }
+  if (data.targetPriceUsd !== undefined) { updates.push('target_price_usd = ?'); values.push(data.targetPriceUsd); }
+  if (data.relatedContentIds !== undefined) { updates.push('related_content_ids = ?'); values.push(data.relatedContentIds); }
+  if (data.freePreviewCharLimit !== undefined) { updates.push('free_preview_char_limit = ?'); values.push(data.freePreviewCharLimit); }
   
   if (updates.length === 0) {
     return await getContentById(db, id) as Content;
@@ -355,13 +379,14 @@ export async function createPaymentIntent(db: D1Database, data: {
   memo?: string;
   expiresAt: number;
   chain?: string;
+  idempotencyKey?: string;
 }): Promise<PaymentIntent> {
   const now = Math.floor(Date.now() / 1000);
   const chain = data.chain || 'solana';
   await db.prepare(
     `INSERT INTO payment_intents (
-      id, merchant_id, content_id, amount_lamports, currency, nonce, memo, expires_at, chain, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      id, merchant_id, content_id, amount_lamports, currency, nonce, memo, expires_at, chain, idempotency_key, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       data.id,
@@ -373,6 +398,7 @@ export async function createPaymentIntent(db: D1Database, data: {
       data.memo || null,
       data.expiresAt,
       chain,
+      data.idempotencyKey || null,
       now
     )
     .run();
@@ -425,6 +451,18 @@ export async function getPurchasesByWallet(db: D1Database, walletAddress: string
   const results = await db.prepare('SELECT * FROM purchases WHERE payer_address = ? ORDER BY created_at DESC LIMIT ? OFFSET ?')
     .bind(walletAddress, limit, offset).all();
   return results.results.map(rowToPurchase);
+}
+
+export async function walletHasValidPurchaseForContent(
+  db: D1Database,
+  walletAddress: string,
+  contentId: string
+): Promise<boolean> {
+  const purchases = await getPurchasesByWallet(db, walletAddress, 200, 0);
+  const now = Math.floor(Date.now() / 1000);
+  return purchases.some(
+    (p) => p.contentId === contentId && (!p.expiresAt || p.expiresAt > now)
+  );
 }
 
 export async function getPurchasesByContent(db: D1Database, contentId: string, limit = 100, offset = 0): Promise<Purchase[]> {
@@ -509,4 +547,217 @@ export async function createBookmark(db: D1Database, walletAddress: string, cont
 export async function deleteBookmark(db: D1Database, walletAddress: string, contentId: string): Promise<void> {
   await db.prepare('DELETE FROM bookmarks WHERE wallet_address = ? AND content_id = ?')
     .bind(walletAddress, contentId).run();
+}
+
+export async function getPaymentIntentByIdempotencyKey(
+  db: D1Database,
+  idempotencyKey: string
+): Promise<PaymentIntent | null> {
+  const result = await db.prepare(
+    'SELECT * FROM payment_intents WHERE idempotency_key = ? ORDER BY created_at DESC LIMIT 1'
+  )
+    .bind(idempotencyKey)
+    .first();
+  return result ? rowToPaymentIntent(result) : null;
+}
+
+export interface MerchantApiKeyRow {
+  id: string;
+  merchantId: string;
+  keyPrefix: string;
+  keyHash: string;
+  label: string | null;
+  createdAt: number;
+  lastUsedAt: number | null;
+}
+
+function rowToMerchantApiKey(row: any): MerchantApiKeyRow {
+  return {
+    id: row.id,
+    merchantId: row.merchant_id,
+    keyPrefix: row.key_prefix,
+    keyHash: row.key_hash,
+    label: row.label,
+    createdAt: row.created_at,
+    lastUsedAt: row.last_used_at,
+  };
+}
+
+export async function createMerchantApiKey(
+  db: D1Database,
+  data: { id: string; merchantId: string; keyPrefix: string; keyHash: string; label?: string }
+): Promise<MerchantApiKeyRow> {
+  const now = Math.floor(Date.now() / 1000);
+  await db.prepare(
+    `INSERT INTO merchant_api_keys (id, merchant_id, key_prefix, key_hash, label, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  )
+    .bind(data.id, data.merchantId, data.keyPrefix, data.keyHash, data.label || null, now)
+    .run();
+  const row = await db.prepare('SELECT * FROM merchant_api_keys WHERE id = ?').bind(data.id).first();
+  if (!row) throw new Error('Failed to create API key');
+  return rowToMerchantApiKey(row);
+}
+
+export async function listMerchantApiKeys(db: D1Database, merchantId: string): Promise<MerchantApiKeyRow[]> {
+  const results = await db.prepare(
+    'SELECT * FROM merchant_api_keys WHERE merchant_id = ? ORDER BY created_at DESC'
+  )
+    .bind(merchantId)
+    .all();
+  return results.results.map(rowToMerchantApiKey);
+}
+
+export async function getMerchantApiKeyByHash(db: D1Database, keyHash: string): Promise<MerchantApiKeyRow | null> {
+  const result = await db.prepare('SELECT * FROM merchant_api_keys WHERE key_hash = ?').bind(keyHash).first();
+  return result ? rowToMerchantApiKey(result) : null;
+}
+
+export async function deleteMerchantApiKey(db: D1Database, id: string, merchantId: string): Promise<boolean> {
+  const res = await db.prepare('DELETE FROM merchant_api_keys WHERE id = ? AND merchant_id = ?')
+    .bind(id, merchantId)
+    .run();
+  return (res.meta?.changes ?? 0) > 0;
+}
+
+export async function touchMerchantApiKeyLastUsed(db: D1Database, id: string): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  await db.prepare('UPDATE merchant_api_keys SET last_used_at = ? WHERE id = ?').bind(now, id).run();
+}
+
+export interface WebhookDeliveryRow {
+  id: string;
+  merchantId: string;
+  purchaseId: string;
+  url: string;
+  status: 'success' | 'failed' | 'pending';
+  httpStatus: number | null;
+  responsePreview: string | null;
+  attempt: number;
+  createdAt: number;
+}
+
+function rowToWebhookDelivery(row: any): WebhookDeliveryRow {
+  return {
+    id: row.id,
+    merchantId: row.merchant_id,
+    purchaseId: row.purchase_id,
+    url: row.url,
+    status: row.status,
+    httpStatus: row.http_status,
+    responsePreview: row.response_preview,
+    attempt: row.attempt,
+    createdAt: row.created_at,
+  };
+}
+
+export async function createWebhookDelivery(
+  db: D1Database,
+  data: {
+    id: string;
+    merchantId: string;
+    purchaseId: string;
+    url: string;
+    status: WebhookDeliveryRow['status'];
+    httpStatus?: number | null;
+    responsePreview?: string | null;
+    attempt?: number;
+  }
+): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  await db.prepare(
+    `INSERT INTO webhook_deliveries (
+      id, merchant_id, purchase_id, url, status, http_status, response_preview, attempt, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  )
+    .bind(
+      data.id,
+      data.merchantId,
+      data.purchaseId,
+      data.url,
+      data.status,
+      data.httpStatus ?? null,
+      data.responsePreview ?? null,
+      data.attempt ?? 1,
+      now
+    )
+    .run();
+}
+
+export async function listWebhookDeliveries(
+  db: D1Database,
+  merchantId: string,
+  limit = 50
+): Promise<WebhookDeliveryRow[]> {
+  const results = await db.prepare(
+    'SELECT * FROM webhook_deliveries WHERE merchant_id = ? ORDER BY created_at DESC LIMIT ?'
+  )
+    .bind(merchantId, limit)
+    .all();
+  return results.results.map(rowToWebhookDelivery);
+}
+
+export async function insertAnalyticsEvent(
+  db: D1Database,
+  data: {
+    id: string;
+    contentId?: string | null;
+    merchantId?: string | null;
+    eventType: string;
+    meta?: string | null;
+  }
+): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  await db.prepare(
+    `INSERT INTO analytics_events (id, content_id, merchant_id, event_type, meta, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  )
+    .bind(
+      data.id,
+      data.contentId ?? null,
+      data.merchantId ?? null,
+      data.eventType,
+      data.meta ?? null,
+      now
+    )
+    .run();
+}
+
+export async function countAnalyticsEventsByContent(
+  db: D1Database,
+  merchantId: string,
+  sinceUnix: number
+): Promise<{ contentId: string; eventType: string; count: number }[]> {
+  const results = await db.prepare(
+    `SELECT content_id as contentId, event_type as eventType, COUNT(*) as count
+     FROM analytics_events
+     WHERE merchant_id = ? AND created_at >= ? AND content_id IS NOT NULL
+     GROUP BY content_id, event_type`
+  )
+    .bind(merchantId, sinceUnix)
+    .all();
+  return results.results.map((r: any) => ({
+    contentId: r.contentId,
+    eventType: r.eventType,
+    count: r.count,
+  }));
+}
+
+export async function countAnalyticsEventsByMerchant(
+  db: D1Database,
+  merchantId: string,
+  sinceUnix: number
+): Promise<{ eventType: string; count: number }[]> {
+  const results = await db.prepare(
+    `SELECT event_type as eventType, COUNT(*) as count
+     FROM analytics_events
+     WHERE merchant_id = ? AND created_at >= ?
+     GROUP BY event_type`
+  )
+    .bind(merchantId, sinceUnix)
+    .all();
+  return results.results.map((r: any) => ({
+    eventType: r.eventType,
+    count: r.count,
+  }));
 }

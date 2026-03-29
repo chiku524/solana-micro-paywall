@@ -66,6 +66,9 @@ export function SearchInput({
       <input
         {...inputProps}
         type="search"
+        id={inputProps.id ?? 'site-search'}
+        name={inputProps.name ?? 'q'}
+        autoComplete={inputProps.autoComplete ?? 'on'}
         value={localValue}
         onChange={handleChange}
         className={cn(

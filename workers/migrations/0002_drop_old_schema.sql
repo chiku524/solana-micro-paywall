@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS Purchase;
 DROP TABLE IF EXISTS AccessToken;
 DROP TABLE IF EXISTS Payment;
 DROP TABLE IF EXISTS PaymentIntent;
-DROP TABLE IF EXISTS Content;
+-- Do NOT drop Content: SQLite folds unquoted identifiers to the same name as `content`
+-- from 0001_initial_schema.sql, so this would destroy the new schema's content table.
+-- Legacy PascalCase "Content" is the same table as lowercase content in SQLite.
 DROP TABLE IF EXISTS Merchant;
 

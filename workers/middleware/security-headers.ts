@@ -17,7 +17,7 @@ export async function securityHeadersMiddleware(c: Context, next: Next) {
   // Content Security Policy (adjust based on your needs)
   c.header(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.micropaywall.app https://api.mainnet-beta.solana.com https://*.helius-rpc.com;"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.micropaywall.app https://api.mainnet-beta.solana.com https://*.helius-rpc.com https://api.coingecko.com;"
   );
   
   // Strict Transport Security (only for HTTPS)

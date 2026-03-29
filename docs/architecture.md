@@ -1,82 +1,112 @@
 # Architecture & Multi-Chain Integration
 
-This document describes how the application is structured and how to add support for new blockchain networks.
+This document describes how the application is structured, how D1 evolves, and how to extend chains or APIs.
 
 ## High-Level Stack
 
-- **Frontend**: Next.js 15 (App Router), React, TypeScript, Tailwind CSS. Static export for deployment.
-- **Backend**: Cloudflare Workers + Hono. D1 (SQLite), KV (cache).
-- **Payments**: Chain-agnostic flow: create payment intent → user signs on-chain → backend verifies via chain verifier → purchase/access token.
+- **Frontend**: Next.js 15 (App Router), React, TypeScript, Tailwind CSS. **Static export** (`out/`) for Cloudflare Pages.
+- **Backend**: Cloudflare Workers + Hono. **D1** (SQLite), **KV** (binding **`CACHE`** in `wrangler.toml`).
+- **Payments**: Create payment intent → user signs on-chain → verifier confirms → purchase + access JWT. Optional **USD quote** at intent time (`workers/lib/fiat-quote.ts`, CoinGecko + KV cache).
+
+## D1 Migrations (0001–0007)
+
+| Migration | Role |
+|-----------|------|
+| `0001_initial_schema.sql` | Core tables: merchants, content, payment_intents, purchases, bookmarks, … |
+| `0002_drop_old_schema.sql` | Legacy cleanup (SQLite identifier quirks; follow-up migrations repair `content` if needed) |
+| `0003_add_password_hash.sql` | Password hashes for merchants |
+| `0004_add_security_features.sql` | Security-related columns |
+| `0005_add_chain_support.sql` | `chain` on content/payment/purchase; **`CREATE TABLE IF NOT EXISTS content`** + indexes so fresh applies stay consistent |
+| `0006_platform_enhancements.sql` | Merchant webhook URL, refund/support copy, support email; content `target_price_usd`, preview/related; payment idempotency; `merchant_api_keys`, `webhook_deliveries`, `analytics_events` |
+| `0007_repair_content_table.sql` | No-op (`SELECT 1`) — repair folded into `0005`; keeps migration order if `0007` was already pending |
+
+Apply locally: `npm run db:migrate`. Production: `wrangler d1 migrations apply micropaywall-db --remote` from `workers/`. If remote schema exists but `d1_migrations` is empty, reconcile manually (run SQL + insert migration names) before relying on automated apply.
+
+## Worker Subsystems (concise)
+
+| Area | Location | Notes |
+|------|----------|--------|
+| Payments + verify | `workers/routes/payments.ts` | `Idempotency-Key`, optional `X-Api-Key`, fiat from `target_price_usd` |
+| Merchants + webhook log | `workers/routes/merchants.ts` | `GET /me/webhook-deliveries`, profile fields |
+| Developer API keys | `workers/routes/developer-keys.ts` | CRUD under `/api/developer-keys` (merchant JWT) |
+| Fiat quote API | `workers/routes/prices.ts` | `GET /api/prices/quote?usd=&chain=` |
+| Analytics | `workers/routes/analytics.ts` | `POST /api/analytics/events`, `GET /api/analytics/funnel`, `GET /api/analytics/stats`, … |
+| Discover | `workers/routes/discover.ts` | List endpoints cached in KV |
+| Purchase webhooks + email | `workers/lib/purchase-webhook.ts`, `workers/lib/email.ts` | HMAC-SHA256 over JSON body with merchant `webhookSecret`; payload `type: purchase.confirmed`; optional sale email |
+| API key storage | `workers/lib/api-key-crypto.ts` | SHA-256 hash of full key at rest; prefix shown for identification |
+| Request ID | `workers/middleware/request-logging.ts` | `X-Request-Id` on responses; logs slow/error requests |
 
 ## Multi-Chain Design
 
 The app supports **8 blockchain networks**:
 
-- **Solana** (L1) – SOL
+- **Solana** (L1) – SOL  
 - **Ethereum** – ETH  
-- **Polygon** – MATIC
-- **Base** (Coinbase L2) – ETH
-- **Arbitrum** – ETH
-- **Optimism** – ETH
-- **BNB Chain** – BNB
-- **Avalanche** – AVAX
+- **Polygon** – MATIC  
+- **Base** – ETH  
+- **Arbitrum** – ETH  
+- **Optimism** – ETH  
+- **BNB Chain** – BNB  
+- **Avalanche** – AVAX  
 
 ### 1. Shared types (`src/types/index.ts`)
 
-- **`SupportedChain`**: Union of chain IDs. Extend when adding a chain.
-- **Optional `chain`** on Content, Merchant, PaymentIntent, Purchase, RecentPayment: used for explorer links and future per-chain payout/price. Defaults to `'solana'` when omitted.
-- Amounts stay in **smallest unit** (lamports for Solana, wei for EVM). Field names remain `priceLamports` / `amountLamports` for DB compatibility.
+- **`SupportedChain`**: Extend when adding a chain.
+- **`chain`** on Content, PaymentIntent, Purchase: defaults `'solana'`.
+- Amounts in **smallest units** (`priceLamports` / `amountLamports` naming retained for SQLite compatibility).
 
-### 2. Frontend chain utilities (`src/lib/chains.ts`)
+### 2. Frontend (`src/lib/chains.ts`, wallets)
 
-- **`CHAIN_CONFIGS`**: Per-chain config (name, symbol, decimals, explorer base URL).
-- **`getExplorerTxUrl(chain, txSignature)`**: Block explorer link. Use instead of hardcoding Solscan/Etherscan.
-- **`formatAmount(chain, amountSmallestUnit, options?)`**: Format for display (SOL, ETH, MATIC).
-- **`DEFAULT_CHAIN`**: Current default `'solana'`.
+- **`CHAIN_CONFIGS`**, **`getExplorerTxUrl`**, **`formatAmount`**.
 
 ### 3. Backend verifiers (`workers/lib/verifiers/`)
 
-- **`types.ts`**: `VerifierResult` and `TransactionVerifier` interface.
-- **`solana-verifier.ts`**: Implements `TransactionVerifier` using Solana RPC.
-- **`evm-verifier.ts`**: Shared EVM verifier for Ethereum, Polygon, Base, Arbitrum, Optimism, BNB, Avalanche (uses viem).
-- **`index.ts`**: `getVerifier(chain)`. Registers all chains.
+- **`solana-verifier.ts`**, **`evm-verifier.ts`**, **`getVerifier(chain)`** in `index.ts`.
 
-**Payment route** (`workers/routes/payments.ts`): Uses `getVerifier(chain)`; chain comes from payment intent (default `'solana'`).
+### 4. Payment UI
 
-### 4. Wallet & payment UI
+- **`src/components/payment-widget-enhanced.tsx`**: Solana Pay URL or EVM transfer deep link; receipt modal after success.
 
-- **Solana wallet** (`src/lib/wallet-provider.tsx`): Solana Wallet Adapter (Phantom, Solflare).
-- **EVM wallet** (`src/lib/evm-wallet-config.tsx`): wagmi + injected connector (MetaMask, Rainbow, etc.).
-- **Payment widget** (`src/components/payment-widget-enhanced.tsx`): Chooses Solana or EVM flow based on content `chain`; auto-switches network for EVM.
+### 5. Embeds
 
-### 5. Database
-
-- Migration `0005_add_chain_support.sql` adds `chain` column to `content`, `payment_intents`, `purchases` (default `'solana'`).
-- Run: `wrangler d1 migrations apply micropaywall-db --config wrangler.toml` (adjust for your env).
+- **`public/micropaywall-embed.js`**: Vanilla iframe loader.  
+- **`packages/micropaywall-embed-react`**: npm package **`micropaywall-embed-react`**.
 
 ## Adding a New Blockchain
 
-1. **Types**: Add chain to `SupportedChain` in `src/types/index.ts`. Add config to `CHAIN_CONFIGS` in `src/lib/chains.ts`.
-2. **Verifier**: Create `workers/lib/verifiers/<chain>-verifier.ts` implementing `TransactionVerifier`; register in `workers/lib/verifiers/index.ts`.
-3. **Payment route**: Payment intent already has optional `chain`. For the new chain, return the right payload (e.g. EVM `to`/`value`/`data`); verification uses `getVerifier(chain)`.
-4. **Frontend**: Add wallet/RPC for the chain; build and sign the transaction; send `transactionSignature` to `POST /api/payments/verify-payment`. Use `getExplorerTxUrl(chain, signature)` for explorer links.
-5. **Optional**: Add `chain` column and per-chain payout in DB/API.
+1. Extend `SupportedChain` and `CHAIN_CONFIGS`.  
+2. Add verifier (or extend EVM if another EVM-compatible chain).  
+3. Register in `workers/lib/verifiers/index.ts`.  
+4. Add `EVM_CHAIN_IDS` entry in `payments.ts` if EVM.  
+5. Wire wallet + RPC in frontend and env.
+
+## API Surface (Worker)
+
+Mounted in `workers/index.ts`:
+
+- `/api/merchants`, `/api/auth`, `/api/security`, `/api/contents`, `/api/payments`, `/api/purchases`, `/api/discover`, `/api/bookmarks`, `/api/analytics`, `/api/prices`, `/api/developer-keys`  
+- `GET /health` – DB + KV probe  
+
+There is **no** `/api/recommendations` route; discovery is under `/api/discover`.
+
+## Frontend Routes (representative)
+
+- `/`, `/dashboard/*`, `/marketplace`, `/marketplace/discover`, `/marketplace/content/[merchantId]/[slug]` (full description + `?wallet=` for unlock when owned), `/marketplace/merchant/[merchantId]`, `/library`, `/bookmarks`, `/docs`  
+
+**Static export:** dynamic segments such as `/marketplace/merchant/[merchantId]` may require `generateStaticParams` (or similar) for a fully static build; verify with `npm run build` in your branch.
+
+## Recommendations (still useful)
+
+- **Testing**: Unit tests for verifiers; integration test create → verify → purchase.  
+- **Resilience**: RPC retries/circuit breaker beyond current rate limits.  
+- **Docs**: Keep [application-specification.md](application-specification.md) aligned with routes and request headers.
 
 ## File Reference
 
 | Purpose | Location |
 |--------|----------|
-| Chain type & optional `chain` on entities | `src/types/index.ts` |
-| Chain config, explorer URL, format amount | `src/lib/chains.ts` |
-| Verifier interface & result | `workers/lib/verifiers/types.ts` |
-| Solana verifier | `workers/lib/verifiers/solana-verifier.ts` |
-| EVM verifier (all EVM chains) | `workers/lib/verifiers/evm-verifier.ts` |
-| Verifier registry | `workers/lib/verifiers/index.ts` |
-| Payment creation & verification | `workers/routes/payments.ts` |
-
-## Recommendations
-
-- **Observability**: Structured logging, request IDs, optional APM (Sentry, Axiom).
-- **Resilience**: Retries with backoff for RPC; circuit breaker in verifiers.
-- **Security**: Rate limits (already in place); optional CAPTCHA; audit log for sensitive actions.
-- **Testing**: Unit tests for verifiers (mock RPC); integration tests for create → verify → purchase.
+| Chain type & entities | `src/types/index.ts` |
+| Chain config / explorers | `src/lib/chains.ts` |
+| Verifiers | `workers/lib/verifiers/*` |
+| Payments | `workers/routes/payments.ts` |
+| DB helpers | `workers/lib/db.ts` |

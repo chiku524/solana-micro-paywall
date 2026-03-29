@@ -16,6 +16,8 @@ import purchasesRoutes from './routes/purchases';
 import discoverRoutes from './routes/discover';
 import bookmarksRoutes from './routes/bookmarks';
 import analyticsRoutes from './routes/analytics';
+import pricesRoutes from './routes/prices';
+import developerKeysRoutes from './routes/developer-keys';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -98,6 +100,8 @@ app.route('/api/purchases', purchasesRoutes);
 app.route('/api/discover', discoverRoutes);
 app.route('/api/bookmarks', bookmarksRoutes);
 app.route('/api/analytics', analyticsRoutes);
+app.route('/api/prices', pricesRoutes);
+app.route('/api/developer-keys', developerKeysRoutes);
 
 // 404 handler
 app.notFound((c) => {

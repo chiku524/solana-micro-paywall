@@ -182,3 +182,40 @@ If you didn't create an account, please ignore this email.
   
   return { subject, html, text };
 }
+
+export function generateMerchantSaleEmail(params: {
+  contentTitle: string;
+  amountLabel: string;
+  chain: string;
+  transactionSignature: string;
+  payerAddress: string;
+  dashboardUrl: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `New sale: ${params.contentTitle}`;
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="margin-top:0;">You have a new purchase</h2>
+      <p><strong>${params.contentTitle}</strong></p>
+      <ul>
+        <li>Amount: ${params.amountLabel}</li>
+        <li>Chain: ${params.chain}</li>
+        <li>Buyer wallet: ${params.payerAddress}</li>
+        <li>Tx: <code style="word-break:break-all;">${params.transactionSignature}</code></li>
+      </ul>
+      <p><a href="${params.dashboardUrl}">Open dashboard</a></p>
+    </body>
+    </html>
+  `;
+  const text = [
+    `New purchase: ${params.contentTitle}`,
+    `Amount: ${params.amountLabel}`,
+    `Chain: ${params.chain}`,
+    `Buyer: ${params.payerAddress}`,
+    `Tx: ${params.transactionSignature}`,
+    `Dashboard: ${params.dashboardUrl}`,
+  ].join('\n');
+  return { subject, html, text };
+}

@@ -1,6 +1,11 @@
+'use client';
+
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
 
 export function Footer() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <footer className="glass-bar border-t border-neutral-200/80 dark:border-neutral-700/50 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -60,11 +65,13 @@ export function Footer() {
                   Marketplace
                 </Link>
               </li>
-              <li>
-                <Link href="/library" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm">
-                  Library
-                </Link>
-              </li>
+              {isAuthenticated && (
+                <li>
+                  <Link href="/library" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm">
+                    Library
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/docs" className="text-neutral-600 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm">
                   Documentation

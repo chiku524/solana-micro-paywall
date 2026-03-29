@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { D1Database } from '@cloudflare/workers-types';
 import type { Env } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import {
@@ -9,9 +10,11 @@ import {
   updateContent,
   deleteContent,
   incrementContentViewCount,
+  walletHasValidPurchaseForContent,
 } from '../lib/db';
 import { getCache, setCache, deleteCache, cacheKeys } from '../lib/cache';
 import { z } from 'zod';
+import type { Content } from '../types';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -19,6 +22,10 @@ const createContentSchema = z.object({
   slug: z.string().min(1).max(200),
   title: z.string().min(1).max(500),
   description: z.string().max(2000).optional(),
+  displayPriceUsd: z.number().positive().optional(),
+  targetPriceUsd: z.number().positive().optional(),
+  relatedContentIds: z.string().max(2000).optional(),
+  freePreviewCharLimit: z.number().int().min(0).max(50000).optional(),
   category: z.string().max(100).optional(),
   tags: z.string().max(500).optional(),
   thumbnailUrl: z.string().url().optional(),
@@ -32,6 +39,29 @@ const createContentSchema = z.object({
 });
 
 const updateContentSchema = createContentSchema.partial();
+
+async function applyFreePreviewMask(
+  db: D1Database,
+  content: Content,
+  wallet?: string | null
+): Promise<Content> {
+  const limit = content.freePreviewCharLimit;
+  if (!limit || limit <= 0 || !content.description) {
+    return content;
+  }
+  const unlocked =
+    wallet && wallet.length > 0
+      ? await walletHasValidPurchaseForContent(db, wallet, content.id)
+      : false;
+  if (unlocked || content.description.length <= limit) {
+    return content;
+  }
+  return {
+    ...content,
+    description: `${content.description.slice(0, limit)}…`,
+    descriptionTruncated: true,
+  };
+}
 
 // List merchant's content (protected)
 app.get('/', authMiddleware, async (c) => {
@@ -59,48 +89,41 @@ app.get('/', authMiddleware, async (c) => {
 // Get content by ID (public, but increments view count)
 app.get('/:id', async (c) => {
   const id = c.req.param('id');
-  
-  // Try cache first
+  const wallet = c.req.query('wallet')?.trim() || null;
   const cacheKey = cacheKeys.content(id);
-  const cached = await getCache(c.env.CACHE, cacheKey);
-  
-  if (cached) {
-    // Increment view count (fire and forget)
-    incrementContentViewCount(c.env.DB, id).catch(console.error);
-    return c.json(cached);
-  }
-  
-  const content = await getContentById(c.env.DB, id);
-  
+
+  let content = await getCache<Content>(c.env.CACHE, cacheKey);
   if (!content) {
-    return c.json({ error: 'Not Found', message: 'Content not found' }, 404);
+    content = (await getContentById(c.env.DB, id)) as Content | null;
+    if (!content) {
+      return c.json({ error: 'Not Found', message: 'Content not found' }, 404);
+    }
+    await setCache(c.env.CACHE, cacheKey, content, { ttl: 600 });
   }
-  
-  // Cache for 10 minutes
-  await setCache(c.env.CACHE, cacheKey, content, { ttl: 600 });
-  
-  // Increment view count (fire and forget)
+
   incrementContentViewCount(c.env.DB, id).catch(console.error);
-  
-  return c.json(content);
+
+  const masked = await applyFreePreviewMask(c.env.DB, content, wallet);
+  return c.json(masked);
 });
 
 // Get content by merchant ID and slug (public)
 app.get('/merchant/:merchantId/:slug', async (c) => {
   const merchantId = c.req.param('merchantId');
   const slug = c.req.param('slug');
+  const wallet = c.req.query('wallet')?.trim() || null;
   const content = await getContentBySlug(c.env.DB, merchantId, slug);
-  
+
   if (!content) {
     return c.json({ error: 'Not Found', message: 'Content not found' }, 404);
   }
-  
-  // Increment view count
+
   if (content.id) {
     await incrementContentViewCount(c.env.DB, content.id);
   }
-  
-  return c.json(content);
+
+  const masked = await applyFreePreviewMask(c.env.DB, content, wallet);
+  return c.json(masked);
 });
 
 // Create content (protected)
@@ -120,7 +143,22 @@ app.post('/', authMiddleware, async (c) => {
     const content = await createContent(c.env.DB, {
       id: contentId,
       merchantId,
-      ...data,
+      slug: data.slug,
+      title: data.title,
+      description: data.description,
+      displayPriceUsd: data.displayPriceUsd,
+      targetPriceUsd: data.targetPriceUsd,
+      relatedContentIds: data.relatedContentIds,
+      freePreviewCharLimit: data.freePreviewCharLimit,
+      category: data.category,
+      tags: data.tags,
+      thumbnailUrl: data.thumbnailUrl,
+      priceLamports: data.priceLamports,
+      currency: data.currency,
+      durationSeconds: data.durationSeconds ?? undefined,
+      visibility: data.visibility,
+      previewText: data.previewText,
+      canonicalUrl: data.canonicalUrl,
       chain: data.chain,
     });
     

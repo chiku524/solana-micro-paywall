@@ -1,10 +1,61 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
 import { authMiddleware } from '../middleware/auth';
-import { getPurchasesByMerchant, getContentById } from '../lib/db';
+import { getPurchasesByMerchant, getContentById, insertAnalyticsEvent, countAnalyticsEventsByMerchant, countAnalyticsEventsByContent } from '../lib/db';
 import { getCache, setCache, cacheKeys } from '../lib/cache';
+import { checkRateLimit, getRateLimitKey } from '../lib/rate-limit';
+import { z } from 'zod';
 
 const app = new Hono<{ Bindings: Env }>();
+
+const trackBodySchema = z.object({
+  eventType: z.enum(['content_impression', 'pay_click', 'purchase_verified']),
+  contentId: z.string().min(1).optional(),
+  meta: z.any().optional(),
+});
+
+app.post('/events', async (c) => {
+  try {
+    const ip = c.req.header('CF-Connecting-IP') || 'unknown';
+    const rl = await checkRateLimit(c.env.CACHE, getRateLimitKey(ip, 'analytics-events'), {
+      limit: 120,
+      windowSeconds: 60,
+    });
+    if (!rl.allowed) {
+      return c.json({ error: 'Too Many Requests', message: 'Rate limit exceeded' }, 429);
+    }
+
+    const body = await c.req.json();
+    const parsed = trackBodySchema.parse(body);
+    let merchantId: string | null = null;
+    if (parsed.contentId) {
+      const content = await getContentById(c.env.DB, parsed.contentId);
+      merchantId = content?.merchantId ?? null;
+    }
+    await insertAnalyticsEvent(c.env.DB, {
+      id: crypto.randomUUID(),
+      contentId: parsed.contentId ?? null,
+      merchantId,
+      eventType: parsed.eventType,
+      meta: parsed.meta ? JSON.stringify(parsed.meta) : null,
+    });
+    return c.json({ ok: true });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return c.json({ error: 'Bad Request', message: error.errors[0].message }, 400);
+    }
+    throw error;
+  }
+});
+
+app.get('/funnel', authMiddleware, async (c) => {
+  const merchantId = c.get('merchantId');
+  const now = Math.floor(Date.now() / 1000);
+  const since = now - 30 * 86400;
+  const totals = await countAnalyticsEventsByMerchant(c.env.DB, merchantId, since);
+  const byContent = await countAnalyticsEventsByContent(c.env.DB, merchantId, since);
+  return c.json({ since, totals, byContent });
+});
 
 // Get payment statistics (protected)
 app.get('/stats', authMiddleware, async (c) => {

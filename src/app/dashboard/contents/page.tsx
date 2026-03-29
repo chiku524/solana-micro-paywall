@@ -34,6 +34,17 @@ export default function ContentsPage() {
     const priceLamports = Math.floor(priceHuman * 10 ** decimals);
     setIsSubmitting(true);
     try {
+      const displayUsd = parseFloat(String(formData.get('displayPriceUsd') || ''));
+      const targetUsd = parseFloat(String(formData.get('targetPriceUsd') || ''));
+      const previewLimitRaw = String(formData.get('freePreviewCharLimit') || '').trim();
+      const previewLimit = previewLimitRaw ? parseInt(previewLimitRaw, 10) : NaN;
+      const relatedRaw = String(formData.get('relatedContentIds') || '').trim();
+      let relatedContentIds: string | undefined;
+      if (relatedRaw) {
+        const parts = relatedRaw.split(',').map((s) => s.trim()).filter(Boolean);
+        if (parts.length) relatedContentIds = JSON.stringify(parts);
+      }
+
       await apiPost(
         '/api/contents',
         {
@@ -43,6 +54,10 @@ export default function ContentsPage() {
           priceLamports,
           visibility: formData.get('visibility') || 'public',
           chain,
+          displayPriceUsd: Number.isFinite(displayUsd) && displayUsd > 0 ? displayUsd : undefined,
+          targetPriceUsd: Number.isFinite(targetUsd) && targetUsd > 0 ? targetUsd : undefined,
+          relatedContentIds,
+          freePreviewCharLimit: Number.isFinite(previewLimit) && previewLimit > 0 ? previewLimit : undefined,
         },
         token || undefined
       );
@@ -203,6 +218,55 @@ export default function ContentsPage() {
                 className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
               />
               <p className="text-xs text-neutral-500 mt-1">Enter amount in the chain&apos;s native token (SOL, ETH, MATIC, etc.)</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
+                Target price (USD, optional)
+              </label>
+              <input
+                type="number"
+                name="targetPriceUsd"
+                step="0.01"
+                min="0"
+                placeholder="e.g. 4.99 — checkout converts to crypto live"
+                className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
+                Display USD (optional label)
+              </label>
+              <input
+                type="number"
+                name="displayPriceUsd"
+                step="0.01"
+                min="0"
+                placeholder="Shown on listing; does not change amount unless target USD is set"
+                className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
+                Related content IDs (comma-separated)
+              </label>
+              <input
+                type="text"
+                name="relatedContentIds"
+                placeholder="uuid-1, uuid-2"
+                className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-600 dark:text-neutral-300 mb-2">
+                Free preview (max description chars)
+              </label>
+              <input
+                type="number"
+                name="freePreviewCharLimit"
+                min="0"
+                placeholder="Leave empty for full public description"
+                className="w-full px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg border border-neutral-300 dark:border-neutral-700"
+              />
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Creating…' : 'Create'}

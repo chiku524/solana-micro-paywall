@@ -30,9 +30,12 @@
 - **Merchant Status**: Status management (pending, active, suspended) with auto-activation for development
 
 #### Merchant Settings
-- **Payout Address Management**: Set/update wallet address for receiving payments (Solana address for Solana content; EVM/0x address for Ethereum, Polygon, Base, etc.)
-- **Webhook Configuration**: Configure webhook secrets for payment notifications
-- **Profile Customization**: Update display name, bio, avatar, and social links
+- **Payout Address Management**: Set/update wallet address for receiving payments (Solana address for Solana content; EVM `0x` address for EVM chains)
+- **Webhook URL + secret**: HTTPS endpoint for signed deliveries; HMAC uses the merchant’s **`webhookSecret`** configured in settings (stored in D1)
+- **Webhook Delivery Log**: Dashboard + `GET /api/merchants/me/webhook-deliveries` (merchant JWT)
+- **Buyer-facing copy**: Refund policy text, support contact copy, optional support email (shown on marketplace/checkout where configured)
+- **Developer API Keys**: Create/revoke keys in dashboard; use `X-Api-Key` on `POST /api/payments/create-payment-request` (and verify) for higher rate limits
+- **Profile Customization**: Display name, bio, avatar, social links (Twitter, Telegram, Discord, GitHub)
 
 **Implementation Details:**
 - JWT tokens with 24-hour expiration
@@ -48,14 +51,17 @@
 - **Content Fields**:
   - Slug (unique per merchant)
   - Chain: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, or Avalanche
-  - Price in smallest unit (lamports for Solana, wei for EVM)
-  - Currency (SOL, ETH, MATIC, etc., per chain)
+  - Price in smallest unit (lamports / wei) — **required baseline**; used when USD quoting is off or as fallback
+  - Optional **`target_price_usd`**: if set, checkout computes native amount from cached spot rates (CoinGecko); see `GET /api/prices/quote`
+  - Currency label (SOL, ETH, MATIC, etc., per chain)
   - Duration in seconds (null = one-time access, number = timed access)
-  - Title, description, category, tags
+  - Title, description (full body for owner; marketplace may show truncated public text until purchase)
+  - Category, tags
   - Thumbnail URL
   - Visibility (public/private)
-  - Preview text
-  - Canonical URL
+  - Preview snippet / preview text for listings
+  - Optional **related content IDs** for “Related” on the content page
+  - Canonical URL (optional)
 
 #### Content Operations
 - **List Content**: Paginated list of merchant's content with filtering
@@ -74,12 +80,12 @@
 ### 3. Payment System
 
 #### Payment Request Flow
-1. **Create Payment Request**: Generate a payment intent with unique nonce (chain from content)
-2. **Payment Intent**: Contains merchant address, amount, memo, nonce, expiration, chain
-3. **Wallet Integration**: Solana: Phantom, Solflare. EVM: MetaMask, Rainbow, etc.
-4. **Transaction Signing**: User signs transaction via wallet (auto network switch for EVM)
-5. **Payment Verification**: Server verifies on-chain transaction on the correct blockchain
-6. **Access Token Issuance**: JWT token issued after successful verification
+1. **Create Payment Request**: `POST /api/payments/create-payment-request` with `{ contentId }`. Optional headers: **`Idempotency-Key`** (replay-safe), **`X-Api-Key`** (merchant developer key for higher rate limits)
+2. **Payment Intent**: Merchant payout address, amount (native smallest unit), memo/reference, nonce, expiration, chain; amount matches USD quote when `target_price_usd` is set
+3. **Wallet Integration**: Solana: Phantom, Solflare. EVM: MetaMask, Rainbow, etc. (wagmi)
+4. **Transaction Signing**: User signs (Solana Pay URL or EVM transfer deep link); EVM auto network switch where supported
+5. **Payment Verification**: `POST /api/payments/verify-payment` — server verifies on-chain via chain verifier
+6. **Access Token Issuance**: Short-lived access JWT after successful verification; optional webhook + merchant email on new purchase
 
 #### Payment Verification
 - **On-Chain Verification**: Chain-specific verifiers (Solana, EVM via viem)
@@ -175,10 +181,12 @@
 - **Filtering**: Filter by date range, content, status
 
 #### Settings Page
-- **Profile Settings**: Update merchant profile information
-- **Payout Settings**: Manage Solana payout address
-- **Webhook Settings**: Configure webhook secrets
-- **Account Management**: View merchant status and account details
+- **Profile Settings**: Display name, bio, avatar, social links
+- **Payout Settings**: Payout address (Solana or EVM depending on content chains)
+- **Webhooks**: Webhook URL, optional notes; delivery log (recent attempts)
+- **Developer API Keys**: Create, label, revoke keys; documentation snippet for `X-Api-Key`
+- **Buyer policy**: Refund/support copy, support email
+- **Account / Security**: Link to security flows (2FA, password); merchant status
 
 **Implementation Details:**
 - SWR for data fetching with caching
@@ -214,15 +222,15 @@
   - "View Details" button
 
 #### Content Detail Page
-- **Content View**: Full content details at `/marketplace/content/[merchantId]/[slug]`
+- **Content View**: `/marketplace/content/[merchantId]/[slug]` — marketplace listing + checkout
 - **Content Information**:
-  - Full title and description
+  - Title, public description (truncated until unlocked), full body when viewer has access or passes `?wallet=` for a wallet that already purchased
   - Merchant profile link
-  - Price and duration
-  - Category and tags
-  - Preview text
-- **Purchase Button**: Widget SDK integration for payment
-- **Access Check**: Verify if user already has access
+  - Price (USD-quoted or native), duration, chain
+  - Category, tags, related content
+  - Preview snippet
+- **Purchase**: In-app payment widget; receipt modal on success
+- **Locale**: Marketplace supports EN/ES toggle (UI copy)
 
 #### Merchant Profile Page
 - **Public Merchant Page**: `/marketplace/merchant/[merchantId]`
@@ -262,80 +270,52 @@
 
 ---
 
-### 8. Widget SDK
+### 8. Embeds & Checkout Widget
 
-#### Payment Widget Component
-- **Drop-in Button**: Simple payment button component
-- **QR Code Modal**: Mobile-friendly QR code for payment
-- **Wallet Integration**: Automatic wallet detection and connection
-- **Payment Flow**: Complete payment request → sign → verify → token flow
-- **Event System**: Event-driven architecture for payment lifecycle
+#### In-app payment widget (`payment-widget-enhanced.tsx`)
+- **Chain-aware flow**: Solana Pay URL + QR path, or EVM transfer deep link
+- **Wallet integration**: Solana Wallet Adapter + wagmi
+- **Server-aligned memo/amount**: Uses `create-payment-request` response for signing
+- **Receipt UI**: Modal summarizing purchase after successful verify
 
-#### Widget Features
-- **Customizable**: Button text, theme (light/dark/auto), styling
-- **Multiple Integration Methods**:
-  - HTML/JavaScript (vanilla)
-  - React component
-  - TypeScript SDK
-- **Automatic Polling**: Polls payment status until confirmed
-- **Error Handling**: Comprehensive error messages and retry logic
-- **Success Callbacks**: Custom callbacks for payment success
+#### Hosted vanilla embed
+- **Script**: Load `micropaywall-embed.js` from your deployed site (see `public/micropaywall-embed.js`)
+- **Typical usage**: Inserts an iframe pointing at the marketplace content URL with configurable base URL and content path
 
-#### Widget API
-```typescript
-// Create payment widget
-const widget = createPaymentWidget({
-  containerId: 'payment-widget',
-  apiUrl: 'https://api.micropaywall.app',
-  buttonText: 'Unlock',
-  onPaymentSuccess: (token) => { /* handle success */ },
-  onPaymentError: (error) => { /* handle error */ },
-});
-
-// Render payment button
-widget.renderButton({
-  merchantId: 'merchant-id',
-  contentId: 'content-id',
-});
-```
+#### React npm package
+- **Package name**: `micropaywall-embed-react` (unscoped on npm)
+- **Location**: `packages/micropaywall-embed-react/`
+- **Role**: iframe wrapper component + props for `baseUrl`, merchant/content route
 
 **Implementation Details:**
-- Vanilla JavaScript/TypeScript
-- Solana Wallet Adapter + wagmi (EVM) integration
-- QR code generation (Solana Pay format for Solana)
-- Event emitter pattern
-- TypeScript definitions
+- Embeds rely on the same public marketplace URLs as the main app
+- For custom sites, you can also call the REST API directly (`create-payment-request` → wallet sign → `verify-payment`) and store the returned access JWT
 
 ---
 
-### 9. Recommendations & Discovery
+### 9. Discovery
 
-#### Recommendation System
-- **Content Recommendations**: Algorithm-based content suggestions
-- **Trending Content**: Content sorted by purchase count
-- **Similar Content**: Content recommendations based on category/tags
-- **Merchant Recommendations**: Suggest merchants based on user purchases
-
-#### Referral System
-- **Shareable Links**: Generate shareable purchase links
-- **Referral Tracking**: Track referrals and commissions (if implemented)
-- **Social Sharing**: Share content on social media
+- **Marketplace & discover APIs**: Under `/api/discover` (trending, recent, catalog, merchant profile payload)
+- **KV caching**: List-style discover responses cached to reduce D1 load
+- **Related content**: Curated per content item (IDs on content record), shown on the content page
+- **Sharing**: Client-side share buttons on listings (social + copy link)
 
 ---
 
 ### 10. Analytics & Reporting
 
-#### Merchant Analytics
-- **Payment Analytics**: Total payments, revenue, averages
-- **Content Analytics**: View counts, purchase counts per content
-- **Time-based Analytics**: Daily, weekly, monthly breakdowns
-- **Growth Metrics**: Percentage growth calculations
-- **CSV Export**: Export payment data for external analysis
+#### Merchant analytics (dashboard + API)
+- **Stats & history**: `GET /api/analytics/stats` and related authenticated routes (see `workers/routes/analytics.ts`)
+- **CSV export**: Export endpoints where implemented in dashboard
+- **Funnel (30 days)**: `GET /api/analytics/funnel` — counts of `content_impression`, `pay_click`, `purchase_verified` by merchant and breakdown by content
 
-#### Event Tracking
-- **Analytics Events**: Track content views, purchases, widget interactions
-- **Audit Logging**: Log all payment and access events
-- **Error Tracking**: Sentry integration for error monitoring
+#### Client/server event ingestion
+- **Public track endpoint**: `POST /api/analytics/events` with body `{ eventType, contentId?, meta? }`  
+  - `eventType`: `content_impression` | `pay_click` | `purchase_verified`  
+  - Rate limited per IP; associates `merchantId` from `contentId` when present
+
+#### Error monitoring
+- **Optional Sentry**: Worker and browser DSNs when configured
 
 ---
 
@@ -391,36 +371,41 @@ widget.renderButton({
 
 ### Backend (Cloudflare Workers + Hono)
 
-#### API Routes
-- `/api/merchants` - Merchant CRUD operations
-- `/api/auth/login` - Merchant authentication
-- `/api/contents` - Content CRUD operations
-- `/api/payments/create-payment-request` - Create payment intent
-- `/api/payments/verify-payment` - Verify transaction
-- `/api/purchases` - Purchase management
-- `/api/discover` - Content discovery
-- `/api/recommendations` - Content recommendations
-- `/api/bookmarks` - Bookmark management
-- `/api/analytics` - Analytics endpoints
+#### API Routes (Workers + Hono)
+
+| Prefix | Purpose |
+|--------|---------|
+| `/api/merchants` | Merchant CRUD, `GET /me`, `PATCH /me`, `GET /me/webhook-deliveries`, … |
+| `/api/auth` | Login, JWT issuance |
+| `/api/security` | 2FA, password reset, email verification flows |
+| `/api/contents` | Content CRUD (merchant-scoped) |
+| `/api/payments` | `POST /create-payment-request` (optional `Idempotency-Key`, `X-Api-Key`), `POST /verify-payment` |
+| `/api/purchases` | Purchases, access checks, tokens |
+| `/api/discover` | Public discovery, trending, merchant profile data |
+| `/api/bookmarks` | Bookmarks by wallet query |
+| `/api/analytics` | `POST /events`, `GET /funnel`, `GET /stats`, export routes, … |
+| `/api/prices` | `GET /quote?usd=&chain=` — USD → native smallest units |
+| `/api/developer-keys` | List/create/delete merchant API keys (JWT) |
+
+**Global:** `GET /health` — D1 + KV probe. Responses include **`X-Request-Id`** for support/debugging.
 
 #### Middleware
-- **Authentication**: JWT verification for protected routes
-- **Rate Limiting**: Request rate limiting
-- **Caching**: KV-based response caching
-- **Error Handling**: Centralized error handling
-- **Security Headers**: CORS, CSP, etc.
+- **Authentication**: JWT (`authMiddleware`) on protected merchant routes
+- **Rate limiting**: KV-backed limits (payments, analytics, quotes, …)
+- **Caching**: Discover/list caches, fiat quote cache, payment idempotency records
+- **Error handling**: Central `onError` with error id logging
+- **Security headers** + CORS from `NEXT_PUBLIC_WEB_URL`
 
 #### Database (Cloudflare D1)
-- **Merchant Table**: Merchant accounts and profiles
-- **Content Table**: Content items with metadata
-- **PaymentIntent Table**: Payment requests and states
-- **Purchase Table**: Completed purchases and access tokens
-- **Bookmark Table**: User bookmarks (optional)
+Core tables include: **merchants** (webhook URL, policy fields, support email, …), **content** (chain, prices, `target_price_usd`, preview, related JSON, …), **payment_intents** (idempotency key, amounts, memo, chain), **purchases**, **bookmarks**, **merchant_api_keys**, **webhook_deliveries**, **analytics_events**. See `workers/migrations/` for authoritative schema.
 
-#### External Services
-- **Solana RPC**: Helius (primary), QuickNode/GenesysGo (fallback)
-- **KV Cache**: Cloudflare KV for caching
-- **Sentry**: Error tracking and monitoring
+#### External services
+- **Solana RPC** (required for Solana): e.g. Helius
+- **EVM RPCs** per chain (verifier)
+- **CoinGecko** (public HTTP) for USD spot quotes
+- **Resend** (optional) for email
+- **KV** for rate limits, discover cache, quotes, idempotency
+- **Sentry** (optional)
 
 ---
 
@@ -432,13 +417,9 @@ widget.renderButton({
 - **Converged Deployment**: Workers + Pages in single project
 - **GitHub Actions**: CI/CD pipeline
 
-#### Environment Variables
-- `NEXT_PUBLIC_WEB_URL` - Frontend URL
-- `NEXT_PUBLIC_API_URL` - Backend API URL
-- `JWT_SECRET` - JWT signing secret
-- `SOLANA_RPC_URL` - Solana RPC endpoint
-- `HELIUS_API_KEY` - Helius API key
-- Database bindings (D1, KV)
+#### Environment variables
+
+See [secrets.md](secrets.md). Frontend: `NEXT_PUBLIC_WEB_URL`, `NEXT_PUBLIC_API_URL`. Worker: `JWT_SECRET`, RPC URLs, optional `RESEND_API_KEY`, `EMAIL_FROM`, optional `SENTRY_DSN`, plus D1/KV bindings in `wrangler.toml`.
 
 ---
 
@@ -460,13 +441,12 @@ widget.renderButton({
 5. **Access**: Receive access token, view content
 6. **Library**: Access purchased content from library
 
-### Widget Integration Flow
-1. **Install SDK**: Add widget SDK to website
-2. **Initialize**: Create payment widget instance
-3. **Render Button**: Render payment button with merchant/content IDs
-4. **User Clicks**: Widget handles payment flow
-5. **Callback**: Receive access token in success callback
-6. **Unlock Content**: Use token to grant access
+### Widget / embed integration flow
+1. **Choose integration**: iframe embed (`micropaywall-embed.js` or `micropaywall-embed-react`) **or** direct REST + your own wallet UI
+2. **Create intent**: `POST /api/payments/create-payment-request` with `contentId` (add `Idempotency-Key` for safe retries; `X-Api-Key` if using developer keys)
+3. **Sign**: User pays via Solana Pay or EVM wallet using returned payload
+4. **Verify**: `POST /api/payments/verify-payment` with transaction signature / payload
+5. **Access**: Use returned JWT; optional webhook to your backend for fulfillment
 
 ---
 
@@ -485,70 +465,54 @@ widget.renderButton({
 
 ## Important Notes for Recreation
 
-1. **Avoid Cloudflare Pages + Next.js App Router Issues**: Consider using Vercel for Next.js deployment, or use static export if using Cloudflare Pages
-2. **RSC Streaming**: Be careful with React Server Components streaming on Cloudflare - may need client components for dynamic routes
-3. **Middleware HTML Injection**: If using Cloudflare middleware, ensure proper DOCTYPE and __NEXT_DATA__ injection
-4. **Wallet Integration**: Use @solana/wallet-adapter for wallet support
-5. **Payment Verification**: Always verify transactions on-chain, never trust client-side data
-6. **Rate Limiting**: Implement rate limiting on payment endpoints to prevent abuse
-7. **Error Handling**: Comprehensive error handling for blockchain operations (network issues, transaction failures)
-8. **Access Token Expiration**: Implement proper token expiration and refresh logic
-9. **Database Schema**: Use proper indexes for merchantId, contentId, walletAddress queries
-10. **Security**: Never expose JWT secrets, API keys, or private keys in client code
+1. **Static export**: This app targets `output: 'export'`. Dynamic routes (e.g. some marketplace segments) may need `generateStaticParams` or fallbacks so `next build` succeeds — run the build after route changes.
+2. **Wallet integration**: Solana Wallet Adapter + wagmi for EVM; keep chain IDs in sync with `workers/routes/payments.ts` for EVM deep links.
+3. **Payment verification**: Always verify on-chain; never trust client-only checks for entitlement.
+4. **Rate limiting**: Public endpoints (payments, analytics, quotes) are rate limited; use merchant API keys where appropriate.
+5. **Idempotency**: Use `Idempotency-Key` on payment intent creation to avoid duplicate charges on double-submit.
+6. **Access tokens**: Respect JWT expiration; re-verify or re-purchase as needed.
+7. **Security**: Never expose `JWT_SECRET`, developer key secrets, or private keys in client bundles.
+8. **D1 migrations**: Always apply migrations to the target environment (`local` vs `--remote`) before relying on new columns.
 
 ---
 
 ## Feature Checklist for Recreation
 
 ### Backend API
-- [ ] Merchant CRUD operations
-- [ ] JWT authentication
-- [ ] Content CRUD operations
-- [ ] Payment request creation
-- [ ] Transaction verification (on-chain)
-- [ ] Access token issuance
-- [ ] Purchase tracking
-- [ ] Analytics endpoints
-- [ ] Discovery/recommendations
-- [ ] Bookmark management
-- [ ] Rate limiting
-- [ ] Error handling
-- [ ] Caching layer
+- [x] Merchant CRUD + profile/me + webhook deliveries
+- [x] JWT authentication (+ security routes)
+- [x] Content CRUD (multi-chain, USD fields, related)
+- [x] Payment request creation (idempotency, optional API key)
+- [x] Transaction verification (Solana + EVM)
+- [x] Access token issuance
+- [x] Purchase tracking + webhooks + optional email
+- [x] Analytics events + funnel + stats
+- [x] Discovery (KV-cached lists)
+- [x] Bookmark API
+- [x] Developer API keys
+- [x] Fiat quote endpoint
+- [x] Rate limiting + KV caching + request IDs
 
 ### Frontend Web App
-- [ ] Landing page
-- [ ] Merchant dashboard
-- [ ] Content management UI
-- [ ] Analytics dashboard
-- [ ] Settings page
-- [ ] Marketplace homepage
-- [ ] Content discovery
-- [ ] Content detail pages
-- [ ] Merchant profile pages
-- [ ] User library
-- [ ] Bookmarks page
-- [ ] Documentation page
-- [ ] Responsive design
-- [ ] Error boundaries
-- [ ] Loading states
+- [x] Landing page
+- [x] Merchant dashboard (contents, payments, analytics, settings)
+- [x] Marketplace, discover, content detail, merchant profile
+- [x] User library (purchases, bookmarks, recently viewed)
+- [x] Documentation page
+- [x] Payment widget + receipt; marketplace i18n (EN/ES)
+- [x] Responsive design, error boundaries, loading/skeleton patterns
 
-### Widget SDK
-- [ ] Payment widget component
-- [ ] QR code generation
-- [ ] Wallet integration
-- [ ] Payment flow handling
-- [ ] Event system
-- [ ] TypeScript definitions
-- [ ] React wrapper
-- [ ] Vanilla JS support
+### Embeds
+- [x] In-app payment widget
+- [x] Hosted `micropaywall-embed.js`
+- [x] npm `micropaywall-embed-react`
 
 ### Infrastructure
-- [ ] Database schema (D1/Postgres)
-- [ ] Migration scripts
-- [ ] CI/CD pipeline
-- [ ] Environment configuration
-- [ ] Error monitoring (Sentry)
-- [ ] Analytics tracking
+- [x] D1 schema + migrations (`workers/migrations/`)
+- [x] CI/CD (GitHub Actions / Workers + Pages)
+- [x] Environment configuration + secrets doc
+- [ ] Optional: full static export coverage for every dynamic route (verify `next build`)
+- [ ] Optional: OpenAPI / contract tests
 
 ---
 

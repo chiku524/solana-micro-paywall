@@ -1,52 +1,34 @@
 # Enhancements & Recommendations
 
-## Completed Enhancements
+## Platform capabilities (current)
 
-The following are already implemented in the codebase:
+These are implemented end-to-end (API + UI where applicable):
 
-- **Image optimization** – Next.js `Image` where applicable, lazy loading, blur placeholders
-- **Error handling** – Error boundaries, toast notifications (`react-hot-toast`), `getErrorMessage(unknown)` for safe messages
-- **Loading states** – Skeletons, SWR loading/error states, submit loading on forms
-- **Type safety** – Typed API responses, `RecentPayment`/`Merchant`/`PaymentIntent`, strict catch blocks
-- **SWR** – SWRProvider with dedup, revalidation, error retry
-- **Accessibility** – Skip link, ARIA labels, keyboard support, focus rings, modal focus trap and Escape
-- **Analytics** – `src/lib/analytics.ts` for page/event tracking (ready for GA/Plausible)
-- **Debounced search** – `useDebounce`, `SearchInput` on marketplace and discover
-- **Web Vitals** – `web-vitals` and script in layout
-- **Empty states** – Reusable `EmptyState` and variants (purchases, content, search, payments)
-- **Sharing** – `ShareButtons` (Twitter, LinkedIn, Facebook, copy link, Web Share API)
-- **Bookmarks** – `BookmarkButton`, persistence via `local-storage.ts`
-- **Recently viewed** – Tracked in `local-storage.ts`, “Recently Viewed” in library
-- **Lazy background** – `LazyAnimatedBackground` with `next/dynamic` (ssr: false)
-- **Modal a11y** – Focus trap, Escape to close, ARIA dialog
-- **Multi-chain** – 8 blockchains: Solana, Ethereum, Polygon, Base, Arbitrum, Optimism, BNB Chain, Avalanche. Chain selector in content creation, EVM verifier (`workers/lib/verifiers/evm-verifier.ts`), wagmi for EVM wallets.
-- **Transaction verification** – Solana (`transaction-verification.ts`) and EVM (viem) transaction parsing, recipient/amount checks.
-- **Payment widget** – Solana Wallet Adapter + wagmi (EVM), QR code for Solana, chain-aware flow, auto network switch (`payment-widget-enhanced.tsx`)
-- **Password recovery** – Forgot password flow, Resend/SendGrid, reset link with production URL handling
-- **Dashboard dropdown** – Nav “Dashboard” as dropdown (Overview, Manage Content, Payments, Settings, Security)
-- **Content management page** – Animated background, loading/empty/error states, toasts
-- **Toasts** – Replaced `alert()` with toasts on settings, contents, signup, payment success
+- **Multi-chain** – Eight chains; per-content `chain`; Solana Pay + EVM transfer flow; shared EVM verifier (viem).  
+- **USD-quoted pricing** – Optional `target_price_usd` on content; checkout uses cached spot conversion (`workers/lib/fiat-quote.ts`); `GET /api/prices/quote` for tooling.  
+- **Payment intents** – `Idempotency-Key` header deduplicates create-request; optional `X-Api-Key` for higher rate limits (merchant API keys in dashboard + `GET|POST|DELETE /api/developer-keys`).  
+- **Webhooks** – Merchant-configurable URL; HMAC-signed payloads; delivery rows; `GET /api/merchants/me/webhook-deliveries`.  
+- **Email** – Resend: verification, password reset, optional merchant “sale” notification (`RESEND_API_KEY`, `EMAIL_FROM`).  
+- **Merchant policy copy** – Refund/support text and support email stored on merchant; surfaced on content/checkout where configured.  
+- **Analytics** – `POST /api/analytics/events` (`content_impression`, `pay_click`, `purchase_verified`); merchant `GET /api/analytics/funnel` (30-day rollups); existing stats/export under `/api/analytics/*`.  
+- **Discovery cache** – KV-backed caching for discover/list endpoints.  
+- **Observability** – `X-Request-Id` on responses; structured logs for slow/error requests.  
+- **Marketplace UX** – EN/ES locale provider; related content; truncated public body with unlock via `?wallet=` when the viewer has purchased.  
+- **Checkout UX** – Payment widget + receipt modal; memo/amount aligned with server intent.  
+- **Embeds** – `public/micropaywall-embed.js`; npm package **`micropaywall-embed-react`** ([package README](../packages/micropaywall-embed-react/README.md)).  
+- **Library / nav** – Purchases, bookmarks, recently viewed on `/library`; primary nav uses **My Library** (wallet/session) rather than duplicating a second Library link.  
+- **Security** – 2FA/password recovery, rate limits, security headers middleware, JWT auth for merchant routes.
 
-## UX Enhancements (Latest)
+## Frontend & UX polish (already in tree)
 
-- **Library tabs** – Added visible "Bookmarks" and "Recently Viewed" tab buttons on the Library page (content was already implemented but tabs were missing).
-- **Content detail** – Breadcrumb (Marketplace → Creator → Title), "View creator profile" link, and automatic tracking of recently viewed content when a content page is loaded.
-- **Merchant profile page** – New `/marketplace/merchant/[merchantId]` page showing creator profile (display name, bio, avatar, social links) and their public content; API: `GET /api/discover/merchant/:merchantId`.
-- **Navbar** – "Library" added to main navigation for all users; dashboard dropdown now closes on Escape key.
-- **Dashboard** – Skeleton loading for stats cards and recent payments table while data is fetching.
-- **Payment errors** – Content detail page now shows a toast notification on payment failure (in addition to widget error state).
-- **Marketplace** – Price Range and Tags filter labels use theme-aware text color (neutral-600/neutral-300) for better readability in light and dark mode.
-- **Footer** – "Library" link added under Product.
-- **Landing** – "Documentation" button added in the hero CTA row.
-- **Accessibility** – `prefers-reduced-motion` support in globals.css: smooth scroll and fade-in animations are disabled when the user prefers reduced motion.
+- Image optimization patterns, skeletons, SWR, toasts, error boundaries, debounced search, share buttons, `EmptyState` variants, lazy animated background, modal a11y, `prefers-reduced-motion`, Web Vitals, client analytics helper (`src/lib/analytics.ts`).
 
-## Future Recommendations
+## Future recommendations
 
-- **Testing** – Unit tests for verifiers and transaction verification; integration tests for payment flow
-- **Retries** – Exponential backoff for RPC and external APIs; circuit breaker for RPC in verifiers
-- **Security** – CSP, rate limiting on sensitive frontend actions, audit log for sensitive operations
-- **Caching** – KV for idempotency or short-lived dedup of payment requests; optional offline/service worker
-- **Observability** – Structured logging, request IDs, optional APM (Sentry, Axiom)
-- **API docs** – Keep [application-specification.md](application-specification.md) (or OpenAPI) in sync with new endpoints
+- **Automated tests** – Verifier units; full payment E2E (Playwright) per chain smoke.  
+- **RPC hardening** – Backoff + circuit breaker in verifiers; optional multiple RPC fallbacks per chain.  
+- **API contract** – OpenAPI or generated client; keep [application-specification.md](application-specification.md) updated on every route change.  
+- **Static export completeness** – `generateStaticParams` (or ISR strategy) for any dynamic marketplace routes that fail `next build` export.  
+- **Optional** – CAPTCHA on sensitive public POSTs; audit log table for admin actions; service worker / offline hints.
 
-See [architecture.md](architecture.md) for multi-chain and structural recommendations.
+See [architecture.md](architecture.md) for migrations, KV usage, and file map.

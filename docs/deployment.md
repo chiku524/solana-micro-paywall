@@ -1,78 +1,74 @@
 # Deployment Guide
 
-## Overview
-
-The app uses **two Cloudflare projects**:
-
-1. **Pages** (`micropaywall`) – Frontend (Next.js static site from `out/`)
-2. **Workers** (`micropaywall-api`) – Backend API
-
-**Custom domains (typical setup):**
-
-- Frontend: `micropaywall.app`
-- API: `api.micropaywall.app`
+Micro Paywall uses **Cloudflare Workers** (API) and **Cloudflare Pages** (static Next export). This matches `wrangler.toml` and GitHub Actions.
 
 ## Prerequisites
 
-- Cloudflare account with Workers and Pages enabled
-- D1 database and KV namespace created (see [setup.md](setup.md))
-- Secrets configured (see [secrets.md](secrets.md))
+- Cloudflare account
+- Wrangler logged in: `npx wrangler login`
+- D1 database + KV namespaces created; IDs in `wrangler.toml` (or your fork)
 
-## Deploy via GitHub Actions
+## 1. D1 migrations (production)
 
-Pushing to `main` triggers automatic deployment for both Workers and Pages.
+Apply to the **remote** database before or right after deploying Workers:
 
-**Required GitHub secrets** (Settings → Secrets and variables → Actions):
+```bash
+cd workers
+npx wrangler d1 migrations apply micropaywall-db --remote
+npx wrangler d1 migrations list micropaywall-db --remote
+```
 
-- `CLOUDFLARE_API_TOKEN` – Custom API token with permissions below
-- `CLOUDFLARE_ACCOUNT_ID` – From Cloudflare dashboard (Overview → Account ID)
+Use the `database_name` from `wrangler.toml` (`micropaywall-db`). If the remote DB already has schema but an empty `d1_migrations` table, you may need a one-off `d1 execute --remote --file=...` and manual migration rows — document any such repair for your environment.
 
-**API token permissions:** Create a token from **Edit Cloudflare Workers**, then add:
+## 2. Secrets
 
-- Account → **D1** → Edit  
-- Account → **Workers KV Storage** → Edit  
-- Account → **Cloudflare Pages** → Edit  
-- User → **User Details** → Read  
+Set Worker secrets (see [secrets.md](secrets.md)):
 
-Set **Account Resources** to Include → your account. Store the token in `CLOUDFLARE_API_TOKEN`.
+```bash
+cd workers
+npx wrangler secret put JWT_SECRET
+npx wrangler secret put SOLANA_RPC_URL
+# … other secrets as needed
+```
 
-## Manual deploy
+Public URLs can be set via `wrangler.toml` `[vars]` or dashboard.
 
-1. **Build frontend**
-   ```bash
-   npm run build
-   ```
+## 3. Deploy Workers (API)
 
-2. **Deploy Worker**
-   ```bash
-   npx wrangler deploy --env production
-   ```
+From repo root:
 
-3. **Deploy Pages**
-   ```bash
-   npx wrangler pages deploy out --project-name=micropaywall
-   ```
+```bash
+npm run worker:deploy
+# or: cd workers && npx wrangler deploy
+```
 
-## Custom domains
+## 4. Deploy frontend (Pages)
 
-- **Pages:** Cloudflare Dashboard → Workers & Pages → `micropaywall` → Custom domains → add `micropaywall.app`.
-- **Workers:** Workers & Pages → `micropaywall-api` → Triggers → Add route/custom domain → `api.micropaywall.app`.
+Build exports to `out/`:
 
-DNS is usually configured automatically when you add the domain in Cloudflare.
+```bash
+npm run build
+```
 
-## Troubleshooting
+Deploy `out/` to Cloudflare Pages (dashboard or `wrangler pages deploy out --project-name=micropaywall`).
 
-### Authentication error [code: 10000]
+Set Pages environment variables:
 
-The Cloudflare API token is missing or lacks permissions.
+- `NEXT_PUBLIC_API_URL` – production Worker URL
+- `NEXT_PUBLIC_WEB_URL` – production site URL
 
-1. Confirm `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set in GitHub Actions secrets.
-2. Recreate the token with the permissions listed above and update the secret.
-3. Re-run the failed workflow.
+## 5. Custom domains
 
-### Database / CORS / payment issues
+- Worker: custom domain / route in Cloudflare dashboard
+- Pages: attach custom domain to the Pages project
 
-- **Database:** Check database ID in `wrangler.toml` and that migrations have been run (`npm run db:migrate`).
-- **CORS:** Set `NEXT_PUBLIC_WEB_URL` in Worker vars/secrets to your frontend URL; check `workers/middleware/cors.ts`.
-- **Payment verification:** Ensure `SOLANA_RPC_URL` (and optional `HELIUS_API_KEY`) are set. For EVM chains, optional RPC URLs (e.g. `ETHEREUM_RPC_URL`, `BASE_RPC_URL`) — public RPCs used as fallback.
-- **Frontend not loading:** Ensure `npm run build` produces the `out/` directory and static export is enabled in `next.config.js`.
+## CI/CD
+
+`.github/workflows/deploy.yml` runs on push to `main`: Worker deploy + Pages deploy. Ensure GitHub secrets match [secrets.md](secrets.md) and Cloudflare API token permissions.
+
+## Post-deploy checks
+
+- `GET /health` on Worker
+- Create merchant + login
+- Create content + payment intent + verify flow on target chain
+- Optional: webhook delivery and `GET /api/merchants/me/webhook-deliveries` with merchant JWT
